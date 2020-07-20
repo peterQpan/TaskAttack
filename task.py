@@ -1,3 +1,7 @@
+__author__ = "Sebastian Müller"
+__copyright__ = "Just Me"
+__email__ = "sebmueller.bt@gmail.com"
+
 import copy
 import pickle
 
