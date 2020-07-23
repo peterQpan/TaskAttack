@@ -17,10 +17,10 @@ import PySimpleGUI as sg
 from taskatack.tools import printMatrix
 
 
-class TaskAtack():
+class TaskAttack:
     def __init__(self):
 
-        self.taskmanager = Taskmanager(self)
+        self.taskmanager = Taskmanager()
         self.task_window_crator = TaskInputWindowCreator()
         self.task_frames_creator = TaskFrameCreator()
 
@@ -36,8 +36,8 @@ class TaskAtack():
     @staticmethod
     def sMenuBar():
         return (['Datei', ['Neue Projekt Tabelle', 'Öffnen', 'Speichern', 'Speichern unter', 'Exit']],
-                    ['Projekt', ['Neues Projekt']], ['Fenster', ['Reload']],
-                    ['Hilfe', 'Über...'])
+                ['Projekt', ['Neues Projekt']], ['Fenster', ['Reload']],
+                ['Hilfe', 'Über...'])
 
     @staticmethod
     def sTableDummy():
@@ -61,15 +61,15 @@ class TaskAtack():
         if self.last_file_path:
             return os.path.split(self.last_file_path)[0]
 
-    def onQuit(self, event, window, *args, **kwargs):
+    def onQuit(self, window, *args, **kwargs):
         self.dataLossPrevention()
         window.close()
         sys.exit(0)
 
     def onLoad(self, *args, **kwargs):
         self.dataLossPrevention()
-        file_path = sg.PopupGetFile("Öffnen", initial_folder=self.sLastUsedFolder(), file_types=(("TaskAtack", "*.tak"),),
-                                    keep_on_top=True)
+        file_path = sg.PopupGetFile("Öffnen", initial_folder=self.sLastUsedFolder(),
+                                    file_types=(("TaskAtack", "*.tak"),), keep_on_top=True)
         if file_path:
             self.last_file_path = file_path
             self.taskmanager.load(file_path)
@@ -91,11 +91,12 @@ class TaskAtack():
             self.onSaveAt()
 
     def onReload(self, *args, **kwargs):
+        """does nothing so loop starts anew and matrix and window gets build anew"""
         pass
 
     def onNewFile(self, *args, **kwargs):
         self.dataLossPrevention()
-        self.taskmanager = Taskmanager(self)
+        self.taskmanager = Taskmanager()
         self.reset()
 
     def onWorkOnTask(self, event, *args, **kwargs):
@@ -105,7 +106,7 @@ class TaskAtack():
         print(f"#902389090 event: {event}, values: {values}")
         if event == "Löschen":
             task.delete()
-        elif self.eventIsNotNone(event):
+        elif self._eventIsNotNone(event):
             task.update(**values)
 
     def onAddProject(self, *args, **kwargs):
@@ -121,7 +122,7 @@ class TaskAtack():
         task = self.getTaskFromMatrix(event)
         event, values = self.task_window_crator.inputWindow(kind="Aufgabe", masters_ende=task.sEnde())
         print(f"newSubtask #1983928kjndsa event: {event}, values: {values}")
-        if self.eventIsNotNone(event):
+        if self._eventIsNotNone(event):
             task.addSubTask(**values)
 
     def onSetTaskAsCompleted(self, event, *args, **kwargs):
@@ -129,44 +130,38 @@ class TaskAtack():
         task.changeCompleted()
 
     def dataLossPrevention(self):
-        """
-        checks if there is an open unsaved file and asks for wish to save
+        """checks if there is an open unsaved file and asks for wish to save
         """
         if self.unsaved_project:
             if gui_elements.OkCancelPopup(title="Offenes Projekt", text="Speichern?"):
                 self.onSaveAt()
 
     def autoSave(self):
+        """perform auto save in a threat, creates 10 different files
         """
-        performe autosave in a threath, creates 10 different files
-        """
-        # self._aoutosave_counter = (self._aoutosave_counter % 10) + 1
         while self.auto_save_thread and self.auto_save_thread.is_alive():
             print("autosave_loop")
             time.sleep(2)
         self.auto_save_thread = threading.Thread(target=self.taskmanager.save,
-                                                 args=(os.path.join("autosave", f"autosave-{tools.nowDT()}.tak"),))
+                                                 args=(os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"),))
         self.auto_save_thread.start()
         print("autosaved")
 
     def reset(self):
-        """
-        tasks to performe if taskmanager has to reset/start anew
+        """tasks to perform if task manager has to reset/start anew
         """
         self.last_file_path = ""
         self.unsaved_project = False
 
-
-
     def createProjectsLayout(self):
-        """
-        creates layout list_of_list and fills it with destinct FRAMES
+        """creates layout list_of_list and fills it with destinct FRAMES
         :return: list of list, containig showable SG-FRAMES
         """
         orginal_display_matrix = self.taskmanager.displayMatrix()
         printMatrix("orginal matrix:", orginal_display_matrix)
         base_layout = copy.deepcopy(orginal_display_matrix)
 
+        # todo more modularisation here?!?
         for y_index, y in enumerate(orginal_display_matrix):
             for x_index, element in enumerate(y):
                 if not element:
@@ -193,28 +188,27 @@ class TaskAtack():
 
     def executeEvent(self, event, window):
         """executes main window button clicks, by mapping it to two different, function_mapping_dicts"""
-        if event not in ('Neue Projekt Tabelle', 'Öffnen', 'Speichern', 'Speichern unter', 'Exit', 'Reload', 'Hilfe', 'Über...'):
+        if event not in ('Neue Projekt Tabelle', 'Öffnen', 'Speichern', 'Speichern unter',
+                         'Exit', 'Reload', 'Hilfe', 'Über...'):
             self.unsaved_project = True
         try:
             action = self.sGlobalFunctionMapping()[event]
-        except:
+        except KeyError:
             action = self.sLocalCommandMapping()[event[:6]]
         action(event=event, window=window, values=0)
 
     def getTaskFromMatrix(self, event):
-        """
-        splits button-coordinate from event and returns coresponding task
+        """splits button-coordinate from event and returns coresponding task
         :param event: type: sg.window.read()[0]
         :return: destinct task from matric
         """
-        coordinates = self.getCoordinates(event)
-        task_matrix = self.taskmanager.sTaskMatrix()
+        coordinates = self._getCoordinates(event)
+        task_matrix = self.taskmanager. sTaskMatrix()
         return task_matrix[coordinates[0]][coordinates[1]]
 
-
-    def eventIsNotNone(self, event):
-        """
-        checks event for None, Abbrechen
+    @staticmethod
+    def _eventIsNotNone(event):
+        """checks event for None, Abbrechen
         :param event: sg.window.read()[0]
         :return: true if not close or Abrechen
         """
@@ -222,9 +216,9 @@ class TaskAtack():
             return True
         return False
 
-    def getCoordinates(self, event):
-        """
-        strips button event down to button coordinates
+    @staticmethod
+    def _getCoordinates(event):
+        """strips button event down to button coordinates
         :return: button matrix coordinates
         """
         _, _, rest = event.partition("(")
@@ -234,11 +228,10 @@ class TaskAtack():
         return x, y
 
     def propperWindowLayout(self, menu_bar, project_matrix):
-        """
-        creates tree layout either with project_matrix if available, or with a table dummy
+        """creates tree layout either with project_matrix if available, or with a table dummy
         :return: finished layout ready for displaying
         """
-        if  len(project_matrix) == 1 and isinstance(project_matrix[0][0], sg.Text):
+        if len(project_matrix) == 1 and isinstance(project_matrix[0][0], sg.Text):
             layout = [[sg.MenuBar(menu_bar, size=(40, 40))], *project_matrix]
         else:
             collumn = sg.Column(project_matrix, scrollable=True, size=self.window_size)
@@ -254,13 +247,13 @@ class TaskAtack():
         try:
             project_table[0].append(self.task_frames_creator.emptyTaskFrame())
             project_table.append([self.task_frames_creator.emptyTaskFrame()])
-        except:
+        except AttributeError:
             pass
         return project_table
 
     def propperProjectMatrix(self):
         """
-         :return: either table_dummy if no project available, or propper project table
+        :return: either table_dummy if no project available, or propper project table
         """
         project_table = self.createProjectsLayout()
         flat = list(itertools.chain.from_iterable(project_table))
@@ -273,8 +266,7 @@ class TaskAtack():
         return project_table
 
     def mainWindow(self):
-        """
-        creates main window
+        """creates main window
         :return: main window
         """
         project_matrix = self.propperProjectMatrix()
@@ -284,26 +276,24 @@ class TaskAtack():
         return main_window
 
     def mainLoop(self):
+        """loop which is needed for event handling
+        """
         while True:
             main_window = self.mainWindow()
             event, values = main_window.read()
             print(f"mainloop: event: {event}, values: {values}")
             self.executeEvent(event=event, window=main_window)
-            self.window_size = main_window.size
+            self.window_size = main_window.size #todo breaks down sometimes
             self.window_location = main_window.current_location()
             main_window.close()
             self.autoSave()
 
 
+# todo complet documentation and code cleanup
+
 
 if __name__ == '__main__':
-    main_gui_task_atack = TaskAtack()
-
-
-
-
-
-
+    main_gui_task_atack = TaskAttack()
 
 #todo kopieren löschen und verschieben von tasks
 
