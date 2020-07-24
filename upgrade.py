@@ -4,7 +4,8 @@ __email__ = "sebmueller.bt@gmail.com"
 
 import pickle
 
-class Upgradeable:
+
+class Upgrader:
     """
     Abstract Class to make introduction of new Attributes possible
     """
@@ -18,9 +19,11 @@ class Upgradeable:
     def __init__(self):
         self.version = self.__class__.class_version
 
-    def save(self, file_name="test_update.bin"):
-        with open(file_name, "wb") as fh:
-            pickle.dump(self, fh)
+    # not needed Taskmanager takes care of saving
+    # ok with single responsibility?!?
+    # def save(self, file_name="test_update.bin"):
+    #     with open(file_name, "wb") as fh:
+    #         pickle.dump(self, fh)
 
     @staticmethod
     def load(file_name="test_update.bin"):
@@ -51,3 +54,21 @@ class Upgradeable:
         #     print('upgrade to version 3.0')
 
 
+class TaskUpgrader(Upgrader):
+    """Abstract upgrade class for Task (able to do upgrades recursively)"""
+    sub_tasks: list  # inherited then by task.Task()
+
+    @staticmethod
+    def versionSaveUnpickeling(pickle_thing):
+        out = pickle.load(pickle_thing)
+        if not hasattr(out, 'version'):
+            out.version = 0.0
+        out.upgrade()
+        return out
+
+    def upgrade(self):
+        """recursiv upgrade version"""
+        print(f"upgrade from version {self.version}")
+        if self.version < 1.0:
+            self.version = 1.0
+        #     self.in_version_1_0_added_atribute = "what ever"
