@@ -9,12 +9,12 @@ import sys
 import threading
 import time
 
-from taskatack import gui_elements, tools
-from taskatack.gui_elements import TaskInputWindowCreator, TaskFrameCreator
-from taskatack.task import Taskmanager, Task
+import gui_elements, tools
+from gui_elements import TaskInputWindowCreator, TaskFrameCreator
+from task import Taskmanager, Task
 import PySimpleGUI as sg
 
-from taskatack.tools import printMatrix
+from tools import printMatrix
 
 
 class TaskAttack:
@@ -301,7 +301,7 @@ if __name__ == '__main__':
 
 #todo vllt sollte ich alle farbvergleiche auf stunden basis machen anstatt auf tage?!?
 
-
+#todo when onely imputed "name" at saving it get saved as name not as name.tak
 
 
 
