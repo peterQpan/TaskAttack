@@ -9,7 +9,7 @@ from time import strftime
 
 import PySimpleGUI as sg
 
-from taskatack import task, tools
+import task, tools
 
 
 def OkCancelPopup(title:str, text:str, ok_button="OK", cancel_button="Cancel", size=(250, 70), keep_on_top=True,

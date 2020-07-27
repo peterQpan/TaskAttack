@@ -3,9 +3,11 @@ __copyright__ = "Just Me"
 __email__ = "sebmueller.bt@gmail.com"
 
 import copy
+import os
 import pickle
+import shutil
 
-from taskatack import tools
+import tools
 
 
 class Task:
@@ -288,6 +290,9 @@ class Taskmanager:
         self.task_matrix = None
 
     def save(self, filename="projects.bin"):
+        # if not os.path.isdir("autosave"):      # todo in code cleanup and debug brance
+        #     os.mkdir("autosave")
+
         with open(filename, "wb") as fh:
             for projekt in self.projekts:
                 pickle.dump(projekt, fh)
