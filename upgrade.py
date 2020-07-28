@@ -2,7 +2,9 @@ __author__ = "Sebastian Müller"
 __copyright__ = "Just Me"
 __email__ = "sebmueller.bt@gmail.com"
 
+import os
 import pickle
+
 
 class Persistencer:
     """Abstract Class which handles persistence, including introducing new attributes
@@ -58,5 +60,41 @@ class Persistencer:
         return out
 
 
+class RenameUnpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        print(f"in finc_class, module: {module}, name: {name}")
+        renamed_module = module
+        if "taskatack" in module:
+            renamed_module = module[10:]
+            print(f"valued True, {renamed_module}")
+        return super().find_class(renamed_module, name)
 
 
+class ModulDirectoryNameChangeRepickeler:
+    def __init__(self, file_path="autosave"):
+        self.path = file_path
+
+    def allFilesInPath(self):
+        all_files = os.listdir(self.path)
+        return [os.path.join(self.path, x) for x in all_files]
+
+    def renamedLoad(self, file_path):
+        with open(file_path, "rb") as fh:
+            return RenameUnpickler(fh).load()
+
+    def renamedSave(self,file_path, taskattack_save_object):
+        with open(file_path, "wb") as fh:
+            pickle.dump(taskattack_save_object, fh)
+
+    def runFolder(self):
+        for file_path in self.allFilesInPath():
+            loaded = self.renamedLoad(file_path)
+            print(f"{file_path} geladen")
+            self.renamedSave(file_path,loaded)
+            print(f"und wieder gespeichert")
+
+
+if __name__ == '__main__':
+
+    changer = ModulDirectoryNameChangeRepickeler("autosave")
+    changer.runFolder()
