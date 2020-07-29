@@ -124,10 +124,6 @@ class TaskFrameCreator:
                                      tooltip_text=tooltip_text, frame_color=background_color)
         return frame
 
-    #todo laufen lassen funktioniert soweit, allerdings option knopf die auswahlmöglichkeiten
-    # müssen mit den funktionen verknüpft werden
-
-
 
     @staticmethod
     def emptyTaskFrame():
