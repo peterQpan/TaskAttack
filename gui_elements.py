@@ -38,8 +38,16 @@ class TaskFrameCreator:
     """
     Factory to create PySimpleGui Frames which represents either a Task or an empty space of the same size
     """
+
     @staticmethod
-    def _basicTaskFrame(frame_name:str, name, priority, completed, edit, add, relief=sg.RELIEF_RAISED,
+    def sSize():
+        return 30
+
+
+    @staticmethod
+    def _basicTaskFrame(frame_name:str, name, priority, completed,
+                        place_holder, option_button,
+                        relief=sg.RELIEF_RAISED,
                         tooltip_text:str="", frame_color:str=None):
         """task frame creation
         :param name: simplegu element name line
@@ -51,9 +59,10 @@ class TaskFrameCreator:
         """
         frame = sg.Frame(layout=[[name],
                                  [priority, completed],
-                                 [edit, add]],
-                         title=frame_name[:30], relief=relief, size=(30,5), tooltip=tooltip_text,
-                         background_color=frame_color)
+                                 [place_holder, option_button]
+                                 ],
+                         title=frame_name[:TaskFrameCreator.sSize()], relief=relief, size=(TaskFrameCreator.sSize() ,5),
+                         tooltip=tooltip_text, background_color=frame_color)
         return frame
 
     @staticmethod
@@ -81,9 +90,17 @@ class TaskFrameCreator:
         """
         default = True if task.sCompleted() else False
         if type(task.sCompleted()) == int:
-            return sg.Checkbox(text="Completed", key=f"compl-{str(task.sPosition())}", default=default,
+            return sg.Checkbox(text=" Completed", key=f"compl-#7#{str(task.sPosition())}", default=default,
                                enable_events=True, tooltip=tooltip_text, background_color=background_color)
         return sg.Text(f"Vollendet: {task.sCompleted():6.2f}", tooltip=tooltip_text, background_color=background_color)
+
+
+    def _buttonMenuList(self):
+        return ['Unused', ['Unteraufgabe', 'Isolieren', 'Bearbeiten', 'Löschen', 'Verschieben', 'Kopieren']]
+
+    def _buttonMenu(self, task):
+        return sg.ButtonMenu('Options', self._buttonMenuList(), key=f'-BMENU-#7#{task.sPosition()}')
+
 
     def taskFrame(self, task:task.Task):
         """
@@ -92,26 +109,28 @@ class TaskFrameCreator:
         tooltip_text = self._toolTipText(task)
         background_color = task.taskDeadlineColor()
 
-        name_sg_object = sg.Text(text=task.sName(), size=(30, 1), tooltip=tooltip_text, background_color=background_color)
+        name_sg_object = sg.Text(text=task.sName(), size=(self.sSize() - 5, 1), tooltip=tooltip_text, background_color=background_color)
         priority_sg_object = sg.Text(text=f"PR:.{task.sPriority():3d}", tooltip=tooltip_text, background_color=background_color)
         completed_sg_object = self._isCompletedElement(task, tooltip_text=tooltip_text, background_color=background_color)
 
         frame_name = task.HierarchyTreePositionString()
 
-        edit_button = sg.Button(button_text="Bearbeiten", key=f"bearb-{str(task.sPosition())}", tooltip=tooltip_text)
-        add_suptask_button = sg.Button(button_text="Unteraufgabe", key=f"subta-{str(task.sPosition())}", tooltip=tooltip_text)
+        aling_sg_object = sg.Text(text="", size=(self.sSize() - 15,1))
+        option_button_sg_object = self._buttonMenu(task)
 
         frame = self._basicTaskFrame(frame_name=frame_name, name=name_sg_object, priority=priority_sg_object,
-                                     completed=completed_sg_object, edit=edit_button, add=add_suptask_button,
+                                     completed=completed_sg_object,
+                                     place_holder=aling_sg_object, option_button=option_button_sg_object,
                                      tooltip_text=tooltip_text, frame_color=background_color)
         return frame
+
 
     @staticmethod
     def emptyTaskFrame():
         """
         :return: empty sg.Frame in same size than a task frame
         """
-        return sg.Frame(layout=[[sg.Text(text="", size=(30,5))]], title=" ",relief=sg.RELIEF_FLAT, size=(300, 50))
+        return sg.Frame(layout=[[sg.Text(text="", size=(TaskFrameCreator.sSize() -5, 5))]], title=" ",relief=sg.RELIEF_FLAT, size=(300, 50))
 
 
 class TaskInputWindowCreator:

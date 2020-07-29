@@ -29,7 +29,7 @@ class TaskAttack:
         self.last_file_path = ""
 
         self.window_size = sg.Window.get_screen_size()
-        self.window_location = (None,None)
+        self.window_location = (None, None)
 
         self.mainLoop()
 
@@ -47,15 +47,20 @@ class TaskAttack:
         """
         :return: function mapping for window/global executable functions
         """
-        return {"Neues Projekt": self.onAddProject, None: self.onQuit, "Exit": self.onQuit, "Reload":self.onReload,
-                "Neue Projekt Tabelle":self.onNewFile, "Öffnen": self.onLoad, "Speichern": self.onSave,
-                "Speichern unter":self.onSaveAt}
+        return {"Neues Projekt": self.onAddProject, None: self.onQuit, "Exit": self.onQuit, "Reload": self.onReload,
+                "Neue Projekt Tabelle": self.onNewFile, "Öffnen": self.onLoad, "Speichern": self.onSave,
+                "Speichern unter": self.onSaveAt}
 
     def sLocalCommandMapping(self):
         """
         :return: function mapping for local/taskspecivic functions wich corespondents to x,y tasc koordinates
         """
-        return {"bearb-": self.onWorkOnTask, "subta-": self.onNewSubTask, "compl-":self.onSetTaskAsCompleted}
+        return {"bearb-": self.onWorkOnTask, "subta-": self.onNewSubTask, "compl-": self.onSetTaskAsCompleted,
+                "-BMENU-": self.onOptionButtonMenu}
+
+    def buttonMenuCommandMapping(self):
+        return {"Unteraufgabe": self.onNewSubTask, "Isolieren": self.onIsolateTask, "Bearbeiten": self.onWorkOnTask,
+                "Löschen": self.onDeleteTask, "Verschieben": self.onMoveTask, "Kopieren": self.onCopyTask}
 
     def sLastUsedFolder(self):
         if self.last_file_path:
@@ -129,6 +134,33 @@ class TaskAttack:
         task = self.getTaskFromMatrix(event)
         task.changeCompleted()
 
+    def onIsolateTask(self):
+        # todo isolated task tree view
+        pass
+
+    def onDeleteTask(self):
+        # todo delete task
+        pass
+
+    def onMoveTask(self):
+        # todo move task
+        pass
+
+    def onCopyTask(self):
+        # todo copy task
+        pass
+
+    def onOptionButtonMenu(self, event, window, values, *args, **kwargs):
+        command = values[event]
+        action = self.buttonMenuCommandMapping()[command]
+        action(event, values
+               # todo beauty --->
+               # todo cocl task or coordinates, like the other function gets invoket 8 times for each task this has to be simplified and beautified
+               )
+
+        # todo cocl clear in global onButtonMethods and local(coordinated) button menues
+        # todo cocl easiefy local Methods with get task before them so that did not have to do in each of it themselfe
+
     def dataLossPrevention(self):
         """checks if there is an open unsaved file and asks for wish to save
         """
@@ -143,7 +175,8 @@ class TaskAttack:
             print("autosave_loop")
             time.sleep(2)
         self.auto_save_thread = threading.Thread(target=self.taskmanager.save,
-                                                 args=(os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"),))
+                                                 args=(
+                                                 os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"),))
         self.auto_save_thread.start()
         print("autosaved")
 
@@ -161,7 +194,8 @@ class TaskAttack:
         printMatrix("orginal matrix:", orginal_display_matrix)
         base_layout = copy.deepcopy(orginal_display_matrix)
 
-        # todo more modularisation here?!?
+        # todo beauty --->
+        # todo cocl more modularisation here?!?
         for y_index, y in enumerate(orginal_display_matrix):
             for x_index, element in enumerate(y):
                 if not element:
@@ -186,7 +220,10 @@ class TaskAttack:
                     raise RuntimeError("irgend etwas vergessen!!!!")
         return base_layout
 
-    def executeEvent(self, event, window):
+    def executeEvent(self, event, window, values):
+        # todo beauty:
+        # todo cocl is it realy possible to bring all function mapping in one dictionary think about
+        #  change function mapping and keys to work with partition so there is onely one mapping needed
         """executes main window button clicks, by mapping it to two different, function_mapping_dicts"""
         if event not in ('Neue Projekt Tabelle', 'Öffnen', 'Speichern', 'Speichern unter',
                          'Exit', 'Reload', 'Hilfe', 'Über...'):
@@ -194,8 +231,9 @@ class TaskAttack:
         try:
             action = self.sGlobalFunctionMapping()[event]
         except KeyError:
-            action = self.sLocalCommandMapping()[event[:6]]
-        action(event=event, window=window, values=0)
+            command, _, _ = event.partition("#7#")
+            action = self.sLocalCommandMapping()[command]
+        action(event=event, window=window, values=values)
 
     def getTaskFromMatrix(self, event):
         """splits button-coordinate from event and returns coresponding task
@@ -203,7 +241,7 @@ class TaskAttack:
         :return: destinct task from matric
         """
         coordinates = self._getCoordinates(event)
-        task_matrix = self.taskmanager. sTaskMatrix()
+        task_matrix = self.taskmanager.sTaskMatrix()
         return task_matrix[coordinates[0]][coordinates[1]]
 
     @staticmethod
@@ -282,8 +320,8 @@ class TaskAttack:
             main_window = self.mainWindow()
             event, values = main_window.read()
             print(f"mainloop: event: {event}, values: {values}")
-            self.executeEvent(event=event, window=main_window)
-            self.window_size = main_window.size #todo breaks down sometimes
+            self.executeEvent(event=event, window=main_window, values=values)
+            self.window_size = main_window.size  # todo breaks down sometimes, why?!?
             self.window_location = main_window.current_location()
             main_window.close()
             self.autoSave()
@@ -295,22 +333,26 @@ class TaskAttack:
 if __name__ == '__main__':
     main_gui_task_atack = TaskAttack()
 
-#todo kopieren löschen und verschieben von tasks
+# todo dev kopieren von tasks
 
-#todo scroll position beibehalten
+# todo dev verschieben von tasks
 
-#todo vllt sollte ich alle farbvergleiche auf stunden basis machen anstatt auf tage?!?
+# todo dev isolate viev von tasks
 
-#todo when onely imputed "name" at saving it get saved as name not as name.tak
+# todo scroll position beibehalten (not possible as i know)
 
+# todo vllt sollte ich alle farbvergleiche auf stunden basis machen anstatt auf tage?!?
 
+# fixme when onely imputed "name" at saving it get saved as name not as name.tak
 
+# todo beauty performence is ugly bad since i added button menues, how to solve?!?
 
+# todo beauty placeholder color
 
+# fixme red/green for calendar-priority
 
+# todo figure colorcheme sameday task, full deadline, etc
 
-
-
-
+# fixme delete dont work
 
 

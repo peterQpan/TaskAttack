@@ -43,7 +43,6 @@ class Task:
             # try:
             return self._completed
             # except:
-            #     todo pickle versionierung lernen
                 # self._completed = 0
                 # return self._completed
         else:
@@ -102,7 +101,7 @@ class Task:
 
     def sRemainingTimedelta(self):
         try:
-            #todo some kind of mapping and time thread based actualisation since this function gets invoked 8 times
+            #fixme some kind of mapping and time thread based actualisation since this function gets invoked 8 times
             # just for one task for window renewel circle
             print(f"#777777 time_delta: {self.ende - tools.nowDateTime()}")
             return self.ende - tools.nowDateTime()
