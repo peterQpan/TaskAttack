@@ -289,8 +289,8 @@ class Taskmanager:
         self.task_matrix = None
 
     def save(self, filename="projects.bin"):
-        # if not os.path.isdir("autosave"):      # todo in code cleanup and debug brance
-        #     os.mkdir("autosave")
+        if not os.path.isdir("autosave"):
+            os.mkdir("autosave")
 
         with open(filename, "wb") as fh:
             for projekt in self.projekts:
