@@ -355,4 +355,6 @@ if __name__ == '__main__':
 
 # fixme delete dont work
 
+# todo beauty option button has no relife
+
 
