@@ -55,7 +55,13 @@ class TaskAttack:
         """
         :return: function mapping for local/taskspecivic functions wich corespondents to x,y tasc koordinates
         """
-        return {"bearb-": self.onWorkOnTask, "subta-": self.onNewSubTask, "compl-":self.onSetTaskAsCompleted}
+        return {"bearb-": self.onWorkOnTask, "subta-": self.onNewSubTask, "compl-":self.onSetTaskAsCompleted,
+                "-BMENU-": self.onOptionButtonMenu}
+
+    def buttonMenuCommandMapping(self):
+        return {"Unteraufgabe": self.onNewSubTask, "Isolieren":self.onIsolateTask, "Bearbeiten": self.onWorkOnTask,
+                "Löschen":self.onDeleteTask, "Verschieben": self.onMoveTask, "Kopieren": self.onCopyTask}
+
 
     def sLastUsedFolder(self):
         if self.last_file_path:
@@ -129,6 +135,34 @@ class TaskAttack:
         task = self.getTaskFromMatrix(event)
         task.changeCompleted()
 
+    def onIsolateTask(self):
+        # todo isolated task tree view
+        pass
+
+    def onDeleteTask(self):
+        # todo delete task
+        pass
+
+    def onMoveTask(self):
+        # todo move task
+        pass
+
+    def onCopyTask(self):
+        # todo copy task
+        pass
+
+    def onOptionButtonMenu(self, event, window, values, *args, **kwargs):
+        command = values[event]
+        action = self.buttonMenuCommandMapping()[command]
+        action(event, values
+               #todo cocl task or coordinates
+               )
+
+        # todo dev button menu implementieren
+        # todo cocl clear in global onButtonMethods and local(coordinated) button menues
+        # todo cocl easiefy local Methods with get task before them so that did not have to do in each of it themselfe
+
+
     def dataLossPrevention(self):
         """checks if there is an open unsaved file and asks for wish to save
         """
@@ -186,7 +220,9 @@ class TaskAttack:
                     raise RuntimeError("irgend etwas vergessen!!!!")
         return base_layout
 
-    def executeEvent(self, event, window):
+    def executeEvent(self, event, window, values):
+        #todo cocl is that realy possible think about
+        # change function mapping and kexs to work with partition so there is onely one mapping needed
         """executes main window button clicks, by mapping it to two different, function_mapping_dicts"""
         if event not in ('Neue Projekt Tabelle', 'Öffnen', 'Speichern', 'Speichern unter',
                          'Exit', 'Reload', 'Hilfe', 'Über...'):
@@ -194,8 +230,10 @@ class TaskAttack:
         try:
             action = self.sGlobalFunctionMapping()[event]
         except KeyError:
-            action = self.sLocalCommandMapping()[event[:6]]
-        action(event=event, window=window, values=0)
+            command, _, _ = event.partition("#7#")
+            action = self.sLocalCommandMapping()[command]
+        action(event=event, window=window, values=values)
+
 
     def getTaskFromMatrix(self, event):
         """splits button-coordinate from event and returns coresponding task
@@ -282,11 +320,12 @@ class TaskAttack:
             main_window = self.mainWindow()
             event, values = main_window.read()
             print(f"mainloop: event: {event}, values: {values}")
-            self.executeEvent(event=event, window=main_window)
+            self.executeEvent(event=event, window=main_window, values=values)
             self.window_size = main_window.size #todo breaks down sometimes
             self.window_location = main_window.current_location()
             main_window.close()
             self.autoSave()
+
 
 
 # todo complet documentation and code cleanup
@@ -302,6 +341,8 @@ if __name__ == '__main__':
 #todo vllt sollte ich alle farbvergleiche auf stunden basis machen anstatt auf tage?!?
 
 #todo when onely imputed "name" at saving it get saved as name not as name.tak
+
+#todo dev performence is ugly bad since i added button menues, how to solve?!?
 
 
 
