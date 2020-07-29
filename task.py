@@ -152,15 +152,15 @@ class Task:
             return None
 
         if self.start == self.ende:
-            return "#BBBB00"
+            return "#BBBB00" #purple
 
         if self.sRemainingMinutes() <= 0:
             return "#AF14AF"
 
         if self.sRemainingDays() < 0:
-            return "#BB0000"
+            return "#BB0000" #dark red
 
-        if self.completed == 1:
+        if self.completed == 1: #fixme dont work got no deep green taskframe if it gets completed
             return "#004400"
 
         complete_time = self.ende - self.start
