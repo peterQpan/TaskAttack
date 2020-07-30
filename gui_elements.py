@@ -244,7 +244,7 @@ class TaskInputWindowCreator:
     def inputWindow(self, kind:str, name:str='', description:str='',
                     start:datetime.datetime=None, ende:datetime.datetime=None,
                     priority='', masters_ende:datetime.datetime=None, keep_on_top=True,
-                    #*args, **kwargs #todo this time get back this
+                    *args, **kwargs
                     ):
         """
         :param kind: Project or Aufgabe

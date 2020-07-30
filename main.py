@@ -20,6 +20,7 @@ from tools import printMatrix
 class TaskAttack:
     def __init__(self):
 
+        self.last_deleted_task = None
         self.taskmanager = Taskmanager()
         self.task_window_crator = TaskInputWindowCreator()
         self.task_frames_creator = TaskFrameCreator()
@@ -36,7 +37,9 @@ class TaskAttack:
     @staticmethod
     def sMenuBar():
         return (['Datei', ['Neue Projekt Tabelle', 'Öffnen', 'Speichern', 'Speichern unter', 'Exit']],
-                ['Projekt', ['Neues Projekt']], ['Fenster', ['Reload']],
+                ['Projekt', ['Neues Projekt']],
+                ['Bearbeiten', ['Widerherstellen']],
+                ['Fenster', ['Reload']],
                 ['Hilfe', 'Über...'])
 
     @staticmethod
@@ -49,7 +52,7 @@ class TaskAttack:
         """
         return {"Neues Projekt": self.onAddProject, None: self.onQuit, "Exit": self.onQuit, "Reload": self.onReload,
                 "Neue Projekt Tabelle": self.onNewFile, "Öffnen": self.onLoad, "Speichern": self.onSave,
-                "Speichern unter": self.onSaveAt}
+                "Speichern unter": self.onSaveAt, "Widerherstellen": self.onRecoverDeletedTask}
 
     def sLocalCommandMapping(self):
         """
@@ -136,11 +139,16 @@ class TaskAttack:
         # todo isolated task tree view
         pass
 
+    def onRecoverDeletedTask(self, *args, **kwargs):
+        # self.last_deleted_task: Task
+        if self.last_deleted_task:
+            self.last_deleted_task.recover()
+
     def onDeleteTask(self, event, *args, **kwargs):
         if gui_elements.YesNoPopup(title="Löschen", text="Wirklich löschen"):
-            # todo next get rid of all the repeating .getTaskFromMatrix() do it one level bevor
+            # todo next get rid of all the redundant .getTaskFromMatrix() do it one level bevor
             task = self.getTaskFromMatrix(event)
-            # todo this time security question for really delete task
+            self.last_deleted_task = task
             task.delete()
 
     def onMoveTask(self):
@@ -350,12 +358,8 @@ if __name__ == '__main__':
 
 # todo beauty placeholder color
 
-# fixme red/green for calendar-priority
+## todo figure colorcheme someday task, full deadline, etc
 
-# todo figure colorcheme someday task, full deadline, etc
+## todo beauty option button has no relief
 
-# fixme delete dont work
-
-# todo beauty option button has no relief
-
-# todo enable reversion of deletion
+# todo this time enable reversion of deletion
