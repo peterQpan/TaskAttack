@@ -47,7 +47,6 @@ class RedGreenHexColorMapping(ColorMapping):
         def hexStr(number:int):
             hex_str = hex(number)
             hex_str = hex_str.replace("0x", "")
-            print(f"hexstr: {hex_str}")
             if len(hex_str) < 2:
                 return "0" + hex_str
             return hex_str

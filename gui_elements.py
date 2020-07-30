@@ -154,7 +154,6 @@ class TaskInputWindowCreator:
     def inputValidation(self, window, masters_ende):
         while True:
             event, values = window.read()
-            print(f"inputValidation; event: {event}, values: {values}")
             if event in {"Abbrechen", None}:
                 break
             elif event == 'priority' and values['priority'] and values['priority'][-1] not in \
@@ -162,7 +161,6 @@ class TaskInputWindowCreator:
                 window['priority'].update(values['priority'][:-1])
             elif event == "Übernehmen":
                 values = self._updateWithDates(values, window)
-                print(f"#8972398u9  values: {values}, masters_ende: {masters_ende}")
                 if masters_ende and values["ende"] and values["ende"] > masters_ende:
                     window['Ende-KORREKTUR-'].update("Nicht später als Master-Task-Ende")
                 else:
@@ -196,7 +194,6 @@ class TaskInputWindowCreator:
                 sg.CalendarButton(default_date_m_d_y=date_tuple, button_text=button_text,
                                   format="%Y-%m-%d", key=key, target=target),
                 sg.Text(key=f'{s_or_e}-KORREKTUR-', text_color="#FF0000", size=(35, 1))]
-        print(f"line... {line}")
         return line
 
     @staticmethod
@@ -260,7 +257,6 @@ class TaskInputWindowCreator:
         :param kwargs:
         :return:
         """
-        print(f"#90uojhajskd ende: {ende}")
         if not ende:
             ende = masters_ende
 
@@ -305,7 +301,6 @@ if __name__ == '__main__':
         window = sg.Window("test", layout=[[button, buttonb, buttonc],
                                            [buttond, buttone, buttonf],
                                            [buttong, buttonh, buttoni]])
-        print("blub")
 
         win_creator = TaskInputWindowCreator()
         event, values = win_creator.inputWindow(kind="Projekt", start=None)

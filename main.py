@@ -56,12 +56,15 @@ class TaskAttack:
 
     def sLocalCommandMapping(self):
         """
-        :return: function mapping for local/taskspecivic functions wich corespondents to x,y tasc koordinates
+        :return: function mapping for local/task specivic functions wich corespondents to x,y tasc koordinates
         """
         return {"bearb-": self.onWorkOnTask, "subta-": self.onNewSubTask, "compl-": self.onSetTaskAsCompleted,
                 "-BMENU-": self.onOptionButtonMenu}
 
     def buttonMenuCommandMapping(self):
+        """
+        :return: function mapping for button menu clicks which correspondents to x, y, task coordinates
+        """
         return {"Unteraufgabe": self.onNewSubTask, "Isolieren": self.onIsolateTask, "Bearbeiten": self.onWorkOnTask,
                 "Löschen": self.onDeleteTask, "Verschieben": self.onMoveTask, "Kopieren": self.onCopyTask}
 
@@ -114,7 +117,6 @@ class TaskAttack:
         task = self.getTaskFromMatrix(event)
         task: Task
         event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation())
-        print(f"#902389090 event: {event}, values: {values}")
         if self._eventIsNotNone(event):
             task.update(**values)
 
@@ -122,7 +124,6 @@ class TaskAttack:
         event, values = self.task_window_crator.inputWindow(kind="Projekt", )
         if event in {"Abbrechen", None}:
             return
-        print(values)
         self.taskmanager.addProject(name=values['name'], description=values['description'], start=values['start'],
                                     end=values['ende'],
                                     priority=values['priority'])
@@ -130,7 +131,6 @@ class TaskAttack:
     def onNewSubTask(self, event, *args, **kwargs):
         task = self.getTaskFromMatrix(event)
         event, values = self.task_window_crator.inputWindow(kind="Aufgabe", masters_ende=task.sEnde())
-        print(f"newSubtask #1983928kjndsa event: {event}, values: {values}")
         if self._eventIsNotNone(event):
             task.addSubTask(**values)
 
@@ -143,11 +143,11 @@ class TaskAttack:
         pass
 
     def onRecoverDeletedTask(self, *args, **kwargs):
-        # self.last_deleted_task: Task
         if self.last_deleted_task:
             self.last_deleted_task.recover()
 
     def onDeleteTask(self, event, *args, **kwargs):
+
         if gui_elements.YesNoPopup(title="Löschen", text="Wirklich löschen"):
             # todo next get rid of all the redundant .getTaskFromMatrix() do it one level bevor
             task = self.getTaskFromMatrix(event)
@@ -163,6 +163,7 @@ class TaskAttack:
         pass
 
     def onOptionButtonMenu(self, event, window, values, *args, **kwargs):
+        """Method for Button menu command mapping"""
         command = values[event]
         action = self.buttonMenuCommandMapping()[command]
         action(event, values
@@ -172,6 +173,18 @@ class TaskAttack:
 
         # todo cocl clear in global onButtonMethods and local(coordinated) button menues
         # todo cocl easiefy local Methods with get task before them so that did not have to do in each of it themselfe
+
+    def _completeFilePathWithExtension(self, file_path):
+        """
+        checks file path for ".atk" extension and adds it if necessary
+        :param file_path: "file_path_string"
+        :return: "some "file_path_string.tak"
+        """
+        file_name, extension = os.path.splitext(file_path)
+        if not extension:
+            file_path += ".tak"
+        return file_path
+
 
     def dataLossPrevention(self):
         """checks if there is an open unsaved file and asks for wish to save
@@ -184,13 +197,11 @@ class TaskAttack:
         """perform auto save in a threat, creates 10 different files
         """
         while self.auto_save_thread and self.auto_save_thread.is_alive():
-            print("autosave_loop")
             time.sleep(2)
         self.auto_save_thread = threading.Thread(target=self.taskmanager.save,
                                                  args=(
                                                      os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"),))
         self.auto_save_thread.start()
-        print("autosaved")
 
     def reset(self):
         """tasks to perform if task manager has to reset/start anew
@@ -203,7 +214,6 @@ class TaskAttack:
         :return: list of list, containig showable SG-FRAMES
         """
         orginal_display_matrix = self.taskmanager.displayMatrix()
-        printMatrix("orginal matrix:", orginal_display_matrix)
         base_layout = copy.deepcopy(orginal_display_matrix)
 
         # todo beauty --->
@@ -212,22 +222,13 @@ class TaskAttack:
             for x_index, element in enumerate(y):
                 if not element:
                     frame_here = self.task_frames_creator.emptyTaskFrame()
-                    print(f"no element frame: {frame_here}")
-                    printMatrix(f"#09i1uijn", base_layout)
                     base_layout[y_index][x_index] = frame_here
-                    printMatrix(f"#25tgsr", base_layout)
                 elif isinstance(element, Task):
                     frame_here = self.task_frames_creator.taskFrame(element)
-                    print(f"task element frame: {frame_here}")
-                    printMatrix(f"#68tiujfg", base_layout)
                     base_layout[y_index][x_index] = frame_here
-                    printMatrix(f"#mhn656", base_layout)
                 elif isinstance(element, str):
                     frame_here = self.task_frames_creator.emptyTaskFrame()
-                    print(f"string frame: {frame_here}")
-                    printMatrix(f"#bdsf42343", base_layout)
                     base_layout[y_index][x_index] = frame_here
-                    printMatrix(f"#asdf344", base_layout)
                 else:
                     raise RuntimeError("irgend etwas vergessen!!!!")
         return base_layout
@@ -286,7 +287,6 @@ class TaskAttack:
         else:
             collumn = sg.Column(project_matrix, scrollable=True, size=self.window_size)
             layout = [[sg.MenuBar(menu_bar), collumn]]
-        printMatrix(f"#0090239", layout)
         return layout
 
     def projectMatrixOneFieldBigger(self, project_table):
@@ -312,7 +312,6 @@ class TaskAttack:
         else:
             project_table = self.projectMatrixOneFieldBigger(project_table)
 
-        printMatrix("#09239i02", project_table)
         return project_table
 
     def mainWindow(self):
@@ -338,11 +337,6 @@ class TaskAttack:
             main_window.close()
             self.autoSave()
 
-    def _completeFilePathWithExtension(self, file_path):
-        file_name, extension = os.path.splitext(file_path)
-        if not extension:
-            file_path += ".tak"
-        return file_path
 
 
 # todo complet documentation and code cleanup
