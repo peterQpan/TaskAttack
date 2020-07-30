@@ -86,7 +86,10 @@ class TaskAttack:
         self.unsaved_project = False
 
         file_path = sg.PopupGetFile("Speichern in", save_as=True, file_types=(("TaskAtack", "*.tak"),),
-                                    initial_folder=self.sLastUsedFolder(), keep_on_top=True)
+                                    initial_folder=self.sLastUsedFolder(), keep_on_top=True, default_extension=".tak")
+
+        file_path = self._completeFilePathWithExtension(file_path)
+
         if file_path:
             self.last_file_path = file_path
             self.taskmanager.save(file_path)
@@ -335,6 +338,12 @@ class TaskAttack:
             main_window.close()
             self.autoSave()
 
+    def _completeFilePathWithExtension(self, file_path):
+        file_name, extension = os.path.splitext(file_path)
+        if not extension:
+            file_path += ".tak"
+        return file_path
+
 
 # todo complet documentation and code cleanup
 
@@ -351,8 +360,6 @@ if __name__ == '__main__':
 # todo scroll position beibehalten (not possible as i know)
 
 # todo vllt sollte ich alle farbvergleiche auf stunden basis machen anstatt auf tage?!?
-
-# fixme when only imputed "name" at saving it get saved as name not as name.tak
 
 # todo beauty performance is ugly bad since i added button menus, how to solve?!?
 
