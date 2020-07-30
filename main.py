@@ -107,11 +107,9 @@ class TaskAttack:
     def onWorkOnTask(self, event, *args, **kwargs):
         task = self.getTaskFromMatrix(event)
         task: Task
-        event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation(), existend=True)
+        event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation())
         print(f"#902389090 event: {event}, values: {values}")
-        if event == "Löschen":
-            task.delete()
-        elif self._eventIsNotNone(event):
+        if self._eventIsNotNone(event):
             task.update(**values)
 
     def onAddProject(self, *args, **kwargs):
@@ -138,9 +136,12 @@ class TaskAttack:
         # todo isolated task tree view
         pass
 
-    def onDeleteTask(self):
-        # todo delete task
-        pass
+    def onDeleteTask(self, event, *args, **kwargs):
+        if gui_elements.YesNoPopup(title="Löschen", text="Wirklich löschen"):
+            # todo next get rid of all the repeating .getTaskFromMatrix() do it one level bevor
+            task = self.getTaskFromMatrix(event)
+            # todo this time security question for really delete task
+            task.delete()
 
     def onMoveTask(self):
         # todo move task
@@ -165,7 +166,7 @@ class TaskAttack:
         """checks if there is an open unsaved file and asks for wish to save
         """
         if self.unsaved_project:
-            if gui_elements.OkCancelPopup(title="Offenes Projekt", text="Speichern?"):
+            if gui_elements.YesNoPopup(title="Offenes Projekt", text="Speichern?"):
                 self.onSaveAt()
 
     def autoSave(self):
@@ -176,7 +177,7 @@ class TaskAttack:
             time.sleep(2)
         self.auto_save_thread = threading.Thread(target=self.taskmanager.save,
                                                  args=(
-                                                 os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"),))
+                                                     os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"),))
         self.auto_save_thread.start()
         print("autosaved")
 
@@ -337,24 +338,24 @@ if __name__ == '__main__':
 
 # todo dev verschieben von tasks
 
-# todo dev isolate viev von tasks
+# todo dev isolate view von tasks
 
 # todo scroll position beibehalten (not possible as i know)
 
 # todo vllt sollte ich alle farbvergleiche auf stunden basis machen anstatt auf tage?!?
 
-# fixme when onely imputed "name" at saving it get saved as name not as name.tak
+# fixme when only imputed "name" at saving it get saved as name not as name.tak
 
-# todo beauty performence is ugly bad since i added button menues, how to solve?!?
+# todo beauty performance is ugly bad since i added button menus, how to solve?!?
 
 # todo beauty placeholder color
 
 # fixme red/green for calendar-priority
 
-# todo figure colorcheme sameday task, full deadline, etc
+# todo figure colorcheme someday task, full deadline, etc
 
 # fixme delete dont work
 
-# todo beauty option button has no relife
+# todo beauty option button has no relief
 
-
+# todo enable reversion of deletion

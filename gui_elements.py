@@ -12,8 +12,8 @@ import PySimpleGUI as sg
 import task, tools
 
 
-def OkCancelPopup(title:str, text:str, ok_button="OK", cancel_button="Cancel", size=(250, 70), keep_on_top=True,
-                  *args, **kwargs):
+def YesNoPopup(title:str, text:str, ok_button="Yes", cancel_button="No", size=(250, 70), keep_on_top=True,
+               *args, **kwargs):
     """
     popup window to do ok-chancel/yes-now and similar questions
     :param title: The title that will be displayed in the Titlebar and on the Taskbar
@@ -137,11 +137,8 @@ class TaskInputWindowCreator:
     """factory for task input windows on work on task input windows"""
 
     @staticmethod
-    def _buttonLine(existend=False):
-        if existend:
-            return [sg.Submit("Übernehmen"), sg.Cancel("Abbrechen"), sg.Button("Löschen")]
-        else:
-            return [sg.Submit("Übernehmen"), sg.Cancel("Abbrechen")]
+    def _buttonLine():
+        return [sg.Submit("Übernehmen"), sg.Cancel("Abbrechen")]
 
     @staticmethod
     def _updateWithDates(values, window):
@@ -246,8 +243,9 @@ class TaskInputWindowCreator:
 
     def inputWindow(self, kind:str, name:str='', description:str='',
                     start:datetime.datetime=None, ende:datetime.datetime=None,
-                    priority='', masters_ende:datetime.datetime=None, existend=False,  keep_on_top=True,
-                    *args, **kwargs):
+                    priority='', masters_ende:datetime.datetime=None, keep_on_top=True,
+                    #*args, **kwargs #todo this time get back this
+                    ):
         """
         :param kind: Project or Aufgabe
         :param name: short header for task
@@ -272,7 +270,7 @@ class TaskInputWindowCreator:
             self.calenderLine(calendar_date=start),
             self.calenderLine(calendar_date=ende, s_or_e="Ende", key='-END_BUTTON-', target='-END_BUTTON-'),
             self._priorityLine(priority=priority),
-            self._buttonLine(existend)
+            self._buttonLine()
         ]
         window = sg.Window(kind, layout, keep_on_top=keep_on_top)
         event, values = self.inputValidation(window, masters_ende)
