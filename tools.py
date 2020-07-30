@@ -22,7 +22,7 @@ class RedGreenHexColorMapping(ColorMapping):
     """
     def __init__(self):
         super().__init__()
-        self.mapping.update({100:"#FF0000", 0:"#00FF00"})
+        self.mapping.update({0:"#FF0000", 100:"#00FF00"})
 
     def __call__(self, percentage, *args, **kwargs):
         """
@@ -53,8 +53,8 @@ class RedGreenHexColorMapping(ColorMapping):
             return hex_str
 
         percentage = int(percentage)
-        green = int(255 / 100 * (100 - percentage))
-        red = int(255 / 100 * percentage)
+        green = int(255 / 100 * percentage)
+        red = int(255 / 100 * (100 - percentage))
 
         return "#" + hexStr(red) + hexStr(green) + "00"
 

@@ -3,9 +3,11 @@ __copyright__ = "Just Me"
 __email__ = "sebmueller.bt@gmail.com"
 
 import copy
+import os
 import pickle
+import shutil
 
-from taskatack import tools
+import tools
 
 
 class Task:
@@ -41,7 +43,6 @@ class Task:
             # try:
             return self._completed
             # except:
-            #     todo pickle versionierung lernen
                 # self._completed = 0
                 # return self._completed
         else:
@@ -100,7 +101,7 @@ class Task:
 
     def sRemainingTimedelta(self):
         try:
-            #todo some kind of mapping and time thread based actualisation since this function gets invoked 8 times
+            #fixme some kind of mapping and time thread based actualisation since this function gets invoked 8 times
             # just for one task for window renewel circle
             print(f"#777777 time_delta: {self.ende - tools.nowDateTime()}")
             return self.ende - tools.nowDateTime()
@@ -125,6 +126,7 @@ class Task:
 
 
     def delete(self):
+        #fixme upward compapility with taskmanager, cant delete projects
         self.master.deleteSubTask(self)
 
     def deleteSubTask(self, task):
@@ -151,15 +153,15 @@ class Task:
             return None
 
         if self.start == self.ende:
-            return "#BBBB00"
+            return "#BBBB00" #purple
 
         if self.sRemainingMinutes() <= 0:
             return "#AF14AF"
 
         if self.sRemainingDays() < 0:
-            return "#BB0000"
+            return "#BB0000" #dark red
 
-        if self.completed == 1:
+        if self.completed == 1: #fixme dont work got no deep green taskframe if it gets completed
             return "#004400"
 
         complete_time = self.ende - self.start
@@ -272,6 +274,15 @@ class Task:
         base_matrix[y][x] = self
         return base_matrix
 
+    def recover(self):
+        self.master: Task
+        self.master.recoverSubtask(task=self)
+        #todo this time
+        pass
+
+    def recoverSubtask(self, task):
+        self.sub_tasks.append(task)
+
 
 class Taskmanager:
     def __init__(self):
@@ -288,6 +299,9 @@ class Taskmanager:
         self.task_matrix = None
 
     def save(self, filename="projects.bin"):
+        if not os.path.isdir("autosave"):
+            os.mkdir("autosave")
+
         with open(filename, "wb") as fh:
             for projekt in self.projekts:
                 pickle.dump(projekt, fh)
