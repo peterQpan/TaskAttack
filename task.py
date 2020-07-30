@@ -126,6 +126,7 @@ class Task:
 
 
     def delete(self):
+        #fixme upward compapility with taskmanager, cant delete projects
         self.master.deleteSubTask(self)
 
     def deleteSubTask(self, task):
@@ -272,6 +273,15 @@ class Task:
         x, y = self.sPosition()
         base_matrix[y][x] = self
         return base_matrix
+
+    def recover(self):
+        self.master: Task
+        self.master.recoverSubtask(task=self)
+        #todo this time
+        pass
+
+    def recoverSubtask(self, task):
+        self.sub_tasks.append(task)
 
 
 class Taskmanager:

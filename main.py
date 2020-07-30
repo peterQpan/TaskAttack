@@ -20,6 +20,7 @@ from tools import printMatrix
 class TaskAttack:
     def __init__(self):
 
+        self.last_deleted_task = None
         self.taskmanager = Taskmanager()
         self.task_window_crator = TaskInputWindowCreator()
         self.task_frames_creator = TaskFrameCreator()
@@ -36,7 +37,9 @@ class TaskAttack:
     @staticmethod
     def sMenuBar():
         return (['Datei', ['Neue Projekt Tabelle', 'Öffnen', 'Speichern', 'Speichern unter', 'Exit']],
-                ['Projekt', ['Neues Projekt']], ['Fenster', ['Reload']],
+                ['Projekt', ['Neues Projekt']],
+                ['Bearbeiten', ['Widerherstellen']],
+                ['Fenster', ['Reload']],
                 ['Hilfe', 'Über...'])
 
     @staticmethod
@@ -49,7 +52,7 @@ class TaskAttack:
         """
         return {"Neues Projekt": self.onAddProject, None: self.onQuit, "Exit": self.onQuit, "Reload": self.onReload,
                 "Neue Projekt Tabelle": self.onNewFile, "Öffnen": self.onLoad, "Speichern": self.onSave,
-                "Speichern unter": self.onSaveAt}
+                "Speichern unter": self.onSaveAt, "Widerherstellen": self.onRecoverDeletedTask}
 
     def sLocalCommandMapping(self):
         """
@@ -107,11 +110,9 @@ class TaskAttack:
     def onWorkOnTask(self, event, *args, **kwargs):
         task = self.getTaskFromMatrix(event)
         task: Task
-        event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation(), existend=True)
+        event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation())
         print(f"#902389090 event: {event}, values: {values}")
-        if event == "Löschen":
-            task.delete()
-        elif self._eventIsNotNone(event):
+        if self._eventIsNotNone(event):
             task.update(**values)
 
     def onAddProject(self, *args, **kwargs):
@@ -138,9 +139,17 @@ class TaskAttack:
         # todo isolated task tree view
         pass
 
-    def onDeleteTask(self):
-        # todo delete task
-        pass
+    def onRecoverDeletedTask(self, *args, **kwargs):
+        # self.last_deleted_task: Task
+        if self.last_deleted_task:
+            self.last_deleted_task.recover()
+
+    def onDeleteTask(self, event, *args, **kwargs):
+        if gui_elements.YesNoPopup(title="Löschen", text="Wirklich löschen"):
+            # todo next get rid of all the redundant .getTaskFromMatrix() do it one level bevor
+            task = self.getTaskFromMatrix(event)
+            self.last_deleted_task = task
+            task.delete()
 
     def onMoveTask(self):
         # todo move task
@@ -165,7 +174,7 @@ class TaskAttack:
         """checks if there is an open unsaved file and asks for wish to save
         """
         if self.unsaved_project:
-            if gui_elements.OkCancelPopup(title="Offenes Projekt", text="Speichern?"):
+            if gui_elements.YesNoPopup(title="Offenes Projekt", text="Speichern?"):
                 self.onSaveAt()
 
     def autoSave(self):
@@ -176,7 +185,7 @@ class TaskAttack:
             time.sleep(2)
         self.auto_save_thread = threading.Thread(target=self.taskmanager.save,
                                                  args=(
-                                                 os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"),))
+                                                     os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"),))
         self.auto_save_thread.start()
         print("autosaved")
 
@@ -337,24 +346,20 @@ if __name__ == '__main__':
 
 # todo dev verschieben von tasks
 
-# todo dev isolate viev von tasks
+# todo dev isolate view von tasks
 
 # todo scroll position beibehalten (not possible as i know)
 
 # todo vllt sollte ich alle farbvergleiche auf stunden basis machen anstatt auf tage?!?
 
-# fixme when onely imputed "name" at saving it get saved as name not as name.tak
+# fixme when only imputed "name" at saving it get saved as name not as name.tak
 
-# todo beauty performence is ugly bad since i added button menues, how to solve?!?
+# todo beauty performance is ugly bad since i added button menus, how to solve?!?
 
 # todo beauty placeholder color
 
-# fixme red/green for calendar-priority
+## todo figure colorcheme someday task, full deadline, etc
 
-# todo figure colorcheme sameday task, full deadline, etc
+## todo beauty option button has no relief
 
-# fixme delete dont work
-
-# todo beauty option button has no relife
-
-
+# todo this time enable reversion of deletion
