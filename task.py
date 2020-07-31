@@ -248,6 +248,7 @@ class Task:
             span += sub_task.rowExpansion()
 
     def update(self, name:str, description, start, ende=None, priority=9):
+        """updates a task with new or changed values"""
         self.name = name
         self.description = description
         self.start = start
@@ -255,11 +256,9 @@ class Task:
         self.priority = priority
 
     def takePosition(self, base_matrix):
-        """
-        orders task to take own position in base_matrix, orders sub_task to do the same
+        """orders task to take own position in base_matrix, orders sub_task to do the same
         :param base_matrix: list of list
-        :return: base_matrix wit tasks at destinct places
-        """
+        :return: base_matrix wit tasks at destinct places"""
         if self.sub_tasks:
             [sub.takePosition(base_matrix) for sub in self.sub_tasks]
         x, y = self.sPosition()
@@ -267,10 +266,9 @@ class Task:
         return base_matrix
 
     def recover(self):
+        """adds task back in masters sub-task-container, needed for reverse a task-deletion"""
         self.master: Task
         self.master.recoverSubtask(task=self)
-        #todo this time
-        pass
 
     def recoverSubtask(self, task):
         self.sub_tasks.append(task)

@@ -46,6 +46,11 @@ class TaskAttack:
     def sTableDummy():
         return [sg.Text(text="Projekts", size=(20, 20))]
 
+    def sLastUsedFolder(self):
+        if self.last_file_path:
+            return os.path.split(self.last_file_path)[0]
+
+
     def sGlobalFunctionMapping(self):
         """
         :return: function mapping for window/global executable functions
@@ -61,16 +66,40 @@ class TaskAttack:
         return {"bearb-": self.onWorkOnTask, "subta-": self.onNewSubTask, "compl-": self.onSetTaskAsCompleted,
                 "-BMENU-": self.onOptionButtonMenu}
 
-    def buttonMenuCommandMapping(self):
+    def sButtonMenuCommandMapping(self):
         """
         :return: function mapping for button menu clicks which correspondents to x, y, task coordinates
         """
         return {"Unteraufgabe": self.onNewSubTask, "Isolieren": self.onIsolateTask, "Bearbeiten": self.onWorkOnTask,
                 "Löschen": self.onDeleteTask, "Verschieben": self.onMoveTask, "Kopieren": self.onCopyTask}
 
-    def sLastUsedFolder(self):
-        if self.last_file_path:
-            return os.path.split(self.last_file_path)[0]
+    def onOptionButtonMenu(self, event, window, values, *args, **kwargs):
+        """Method for Button menu command mapping"""
+        command = values[event]
+        action = self.sButtonMenuCommandMapping()[command]
+        action(event, values
+               # todo beauty --->
+               # todo cocl task or coordinates, like the other function gets invoket 8 times for each task this has to be simplified and beautified
+               )
+
+        # todo cocl clear in global onButtonMethods and local(coordinated) button menues
+        # todo cocl easiefy local Methods with get task before them so that did not have to do in each of it themselfe
+
+
+    def executeEvent(self, event, window, values):
+        # todo beauty:
+        # todo cocl is it realy possible to bring all function mapping in one dictionary think about
+        #  change function mapping and keys to work with partition so there is onely one mapping needed
+        """executes main window button clicks, by mapping it to two different, function_mapping_dicts"""
+        if event not in ('Neue Projekt Tabelle', 'Öffnen', 'Speichern', 'Speichern unter',
+                         'Exit', 'Reload', 'Hilfe', 'Über...'):
+            self.unsaved_project = True
+        try:
+            action = self.sGlobalFunctionMapping()[event]
+        except KeyError:
+            command, _, _ = event.partition("#7#")
+            action = self.sLocalCommandMapping()[command]
+        action(event=event, window=window, values=values)
 
     def onQuit(self, window, *args, **kwargs):
         self.dataLossPrevention()
@@ -87,12 +116,9 @@ class TaskAttack:
 
     def onSaveAt(self, *args, **kwargs):
         self.unsaved_project = False
-
         file_path = sg.PopupGetFile("Speichern in", save_as=True, file_types=(("TaskAtack", "*.tak"),),
                                     initial_folder=self.sLastUsedFolder(), keep_on_top=True, default_extension=".tak")
-
         file_path = self._completeFilePathWithExtension(file_path)
-
         if file_path:
             self.last_file_path = file_path
             self.taskmanager.save(file_path)
@@ -114,6 +140,7 @@ class TaskAttack:
         self.reset()
 
     def onWorkOnTask(self, event, *args, **kwargs):
+
         task = self.getTaskFromMatrix(event)
         task: Task
         event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation())
@@ -162,17 +189,6 @@ class TaskAttack:
         # todo copy task
         pass
 
-    def onOptionButtonMenu(self, event, window, values, *args, **kwargs):
-        """Method for Button menu command mapping"""
-        command = values[event]
-        action = self.buttonMenuCommandMapping()[command]
-        action(event, values
-               # todo beauty --->
-               # todo cocl task or coordinates, like the other function gets invoket 8 times for each task this has to be simplified and beautified
-               )
-
-        # todo cocl clear in global onButtonMethods and local(coordinated) button menues
-        # todo cocl easiefy local Methods with get task before them so that did not have to do in each of it themselfe
 
     def _completeFilePathWithExtension(self, file_path):
         """
@@ -233,20 +249,6 @@ class TaskAttack:
                     raise RuntimeError("irgend etwas vergessen!!!!")
         return base_layout
 
-    def executeEvent(self, event, window, values):
-        # todo beauty:
-        # todo cocl is it realy possible to bring all function mapping in one dictionary think about
-        #  change function mapping and keys to work with partition so there is onely one mapping needed
-        """executes main window button clicks, by mapping it to two different, function_mapping_dicts"""
-        if event not in ('Neue Projekt Tabelle', 'Öffnen', 'Speichern', 'Speichern unter',
-                         'Exit', 'Reload', 'Hilfe', 'Über...'):
-            self.unsaved_project = True
-        try:
-            action = self.sGlobalFunctionMapping()[event]
-        except KeyError:
-            command, _, _ = event.partition("#7#")
-            action = self.sLocalCommandMapping()[command]
-        action(event=event, window=window, values=values)
 
     def getTaskFromMatrix(self, event):
         """splits button-coordinate from event and returns coresponding task
