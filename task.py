@@ -5,7 +5,6 @@ __email__ = "sebmueller.bt@gmail.com"
 import copy
 import os
 import pickle
-import shutil
 
 import tools
 
@@ -56,6 +55,8 @@ class Task:
         else:
             self.completed(completed)
             #todo ?!?
+
+
 
     def sMastersEnde(self):
         if self.master:
@@ -171,7 +172,7 @@ class Task:
 
     def HierarchyTreePositionString(self, lenght=30):
         # todo enable mapping or saving o something so that this function didnt have to run everytime,
-        #  because it is runing twice alone in task frame creator, each window generation,
+        # todo because it is runing twice alone in task frame creator, each window generation, #todo think maby better optimize use in frame creation
         #  maby ther is a even better way than mapping or saving, becaus after implementig moving tasks
         #  araound this mapping will bug araund
         """
