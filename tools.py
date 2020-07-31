@@ -9,7 +9,7 @@ from pip._vendor.colorama import Fore
 
 
 class ColorMapping:
-    #todo ???
+    #todo bring the ifs from task in here?!?
     def __init__(self):
         self.mapping = {}
 
@@ -26,10 +26,10 @@ class RedGreenHexColorMapping(ColorMapping):
 
     def __call__(self, percentage, *args, **kwargs):
         """
-            generates color transition from red to green,
-            to save computation it mapps his answers
-            0:"#FF0000", 100:"00FF00"
-            """
+        generates color transition from red to green,
+        to save computation it mapps his answers
+        0:"#FF0000", 100:"00FF00"
+        """
         try:
             return self.mapping[percentage]
         except KeyError:
@@ -47,7 +47,6 @@ class RedGreenHexColorMapping(ColorMapping):
         def hexStr(number:int):
             hex_str = hex(number)
             hex_str = hex_str.replace("0x", "")
-            print(f"hexstr: {hex_str}")
             if len(hex_str) < 2:
                 return "0" + hex_str
             return hex_str
