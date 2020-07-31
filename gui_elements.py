@@ -12,7 +12,7 @@ import PySimpleGUI as sg
 import task, tools
 
 
-def YesNoPopup(title:str, text:str, ok_button="Yes", cancel_button="No", size=(250, 70), keep_on_top=True,
+def YesNoPopup(title:str, text:str, ok_button="Yes", cancel_button="No", size=(250, 70), keep_on_top=True, #todo beauty deutsch/englisch
                *args, **kwargs):
     """
     popup window to do ok-chancel/yes-now and similar questions
@@ -39,13 +39,17 @@ class TaskFrameCreator:
     Factory to create PySimpleGui Frames which represents either a Task or an empty space of the same size
     """
 
-    @staticmethod
-    def sSize():
-        return 30
 
+    def __init__(self, size=30):
+        self.size = size
 
-    @staticmethod
-    def _basicTaskFrame(frame_name:str, name, priority, completed,
+    def sSize(self):
+        return self.size
+
+    def setSize(self, size):
+        self.size = size
+
+    def _basicTaskFrame(self, frame_name:str, name, priority, completed,
                         place_holder, option_button,
                         relief=sg.RELIEF_RAISED,
                         tooltip_text:str="", frame_color:str=None):
@@ -61,7 +65,7 @@ class TaskFrameCreator:
                                  [priority, completed],
                                  [place_holder, option_button]
                                  ],
-                         title=frame_name[:TaskFrameCreator.sSize()], relief=relief, size=(TaskFrameCreator.sSize() ,5),
+                         title=frame_name[-(self.sSize() -3):], relief=relief, size=(self.sSize() ,5),
                          tooltip=tooltip_text, background_color=frame_color)
         return frame
 
@@ -94,8 +98,8 @@ class TaskFrameCreator:
                                enable_events=True, tooltip=tooltip_text, background_color=background_color)
         return sg.Text(f"Vollendet: {task.sCompleted():6.2f}", tooltip=tooltip_text, background_color=background_color)
 
-
-    def _buttonMenuList(self):
+    @staticmethod
+    def _buttonMenuList():
         return ['Unused', ['Unteraufgabe', 'Isolieren', 'Bearbeiten', 'Löschen', 'Verschieben', 'Kopieren']]
 
     def _buttonMenu(self, task):
@@ -125,12 +129,11 @@ class TaskFrameCreator:
         return frame
 
 
-    @staticmethod
-    def emptyTaskFrame():
+    def emptyTaskFrame(self):
         """
         :return: empty sg.Frame in same size than a task frame
         """
-        return sg.Frame(layout=[[sg.Text(text="", size=(TaskFrameCreator.sSize() -5, 5))]], title=" ",relief=sg.RELIEF_FLAT, size=(300, 50))
+        return sg.Frame(layout=[[sg.Text(text="", size=(self.sSize() -5, 5))]], title=" ",relief=sg.RELIEF_FLAT, size=(300, 50))
 
 
 class TaskInputWindowCreator:
@@ -138,10 +141,12 @@ class TaskInputWindowCreator:
 
     @staticmethod
     def _buttonLine():
-        return [sg.Submit("Übernehmen"), sg.Cancel("Abbrechen")]
+        return [sg.Submit("Übernehmen"), sg.Cancel("Abbrechen"), #sg.Button()
+                ]
 
     @staticmethod
     def _updateWithDates(values, window):
+        """updates window-values-dict with values fetched from date buttons"""
         values.update({"start": datetime.datetime(*time.strptime(window['-START_BUTTON-'].get_text(), "%Y-%m-%d")[:6])})
         try:
             values.update({"ende": datetime.datetime(*time.strptime(window['-END_BUTTON-'].get_text(), "%Y-%m-%d")[:6])})
@@ -152,6 +157,9 @@ class TaskInputWindowCreator:
         return values
 
     def inputValidation(self, window, masters_ende):
+        """validates imput for user abort,
+        only entering int in priority and int() them already,
+        subtask dont prolong master task"""
         while True:
             event, values = window.read()
             if event in {"Abbrechen", None}:
