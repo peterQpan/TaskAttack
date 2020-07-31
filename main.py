@@ -158,7 +158,7 @@ class TaskAttack:
 
     def _setDataLossPreventionStatus(self, event):
         if event not in ('Neue Projekt Tabelle', 'Öffnen', 'Speichern', 'Speichern unter',
-                         'Exit', 'Reload', 'Hilfe', 'Über...'): #todo think should None be in this list?!?
+                         'Exit', 'Reload', 'Hilfe', 'Über...', None):
             self.unsaved_project = True
 
     @staticmethod

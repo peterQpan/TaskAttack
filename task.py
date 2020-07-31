@@ -42,26 +42,33 @@ class Task:
     def __repr__(self):
         return f"Task: {self.sName()} {self.sStart()} {self.sCompleted()}"
 
-    @property
-    def completed(self):
-        #todo bring all this into sCompleted?!?
-        if not self.sub_tasks:
-            # try:
-            return self._completed
-            # except:
-                # self._completed = 0
-                # return self._completed
-        else:
-            zaehler = sum(x.completed for x in self.sub_tasks)
-            teiler = len(self.sub_tasks)
-            return zaehler / teiler
+    # @property
+    # def completed(self):
+    #     #todo bring all this into sCompleted?!?
+    #     if not self.sub_tasks:
+    #         # try:
+    #         return self._completed
+    #         # except:
+    #             # self._completed = 0
+    #             # return self._completed
+    #     else:
+    #         zaehler = sum(x.completed for x in self.sub_tasks)
+    #         teiler = len(self.sub_tasks)
+    #         return zaehler / teiler
 
     def sCompleted(self, completed:int=None):
-        if completed is None:
-            return self.completed
+        if self.sub_tasks:
+            zaehler = sum(x.sCompleted() for x in self.sub_tasks)
+            teiler = len(self.sub_tasks)
+            print(f"zaehler/teiler: {zaehler /teiler}")
+            return zaehler / teiler
         else:
-            self.completed(completed)
-            #todo ?!?
+            if completed:
+                self._completed = completed
+            else:
+                print(self._completed)
+                return self._completed
+
 
     def sMastersEnde(self):
         if self.master:
@@ -173,15 +180,15 @@ class Task:
             return None
 
         if self.start == self.ende:
-            return "#BBBB00" #purple
+            return "#BBBB00" #yellow
 
         if self.sRemainingMinutes() <= 0:
-            return "#AF14AF"
+            return "#AF14AF" #pink
 
         if self.sRemainingDays() < 0:
-            return "#BB0000" #dark red
+            return "#880000" #dark red
 
-        if self.completed == 1: #fixme dont work got no deep green taskframe if it gets completed
+        if self.sCompleted() == 100:
             return "#004400"
 
         complete_time = self.ende - self.start
@@ -222,7 +229,7 @@ class Task:
         name, description, start, ende, priority, percentage, completed
         """
         dr = {"name":self.name, "description":self.description, "start": self.start, "ende": self.ende,
-              "priority": self.priority, "percentage":self.sPercentage(), "completed":self.completed,
+              "priority": self.priority, "percentage":self.sPercentage(), "completed":self.sCompleted,
               "masters_ende":self.sMastersEnde()}
         if self.master is None:
             dr.update({"kind": "Projekt"})
@@ -436,7 +443,7 @@ class Taskmanager:
                 print(f"#09u09u recursive reset triggered in thread")
                 [subtask.recursiveTimeDeltaReset() for subtask in subtasks]
 
-        self.renewal_thread = threading.Thread(target=renewal, args=(self.projekts, ))
+        self.renewal_thread = threading.Thread(target=renewal, args=(self.projekts, ), daemon=True)
         self.renewal_thread.start()
 
 
