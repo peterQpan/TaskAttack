@@ -14,8 +14,6 @@ from gui_elements import TaskInputWindowCreator, TaskFrameCreator
 from task import Taskmanager, Task
 import PySimpleGUI as sg
 
-from tools import printMatrix
-
 
 class TaskAttack:
     def __init__(self):
@@ -46,28 +44,49 @@ class TaskAttack:
     def sTableDummy():
         return [sg.Text(text="Projekts", size=(20, 20))]
 
-    def sGlobalFunctionMapping(self):
-        """
-        :return: function mapping for window/global executable functions
-        """
-        return {"Neues Projekt": self.onAddProject, None: self.onQuit, "Exit": self.onQuit, "Reload": self.onReload,
-                "Neue Projekt Tabelle": self.onNewFile, "Öffnen": self.onLoad, "Speichern": self.onSave,
-                "Speichern unter": self.onSaveAt, "Widerherstellen": self.onRecoverDeletedTask}
-
-    def sLocalCommandMapping(self):
-        """
-        :return: function mapping for local/taskspecivic functions wich corespondents to x,y tasc koordinates
-        """
-        return {"bearb-": self.onWorkOnTask, "subta-": self.onNewSubTask, "compl-": self.onSetTaskAsCompleted,
-                "-BMENU-": self.onOptionButtonMenu}
-
-    def buttonMenuCommandMapping(self):
-        return {"Unteraufgabe": self.onNewSubTask, "Isolieren": self.onIsolateTask, "Bearbeiten": self.onWorkOnTask,
-                "Löschen": self.onDeleteTask, "Verschieben": self.onMoveTask, "Kopieren": self.onCopyTask}
-
     def sLastUsedFolder(self):
         if self.last_file_path:
             return os.path.split(self.last_file_path)[0]
+
+    def sFunctionMapping(self):
+        """
+        :return: function mapping for window/global executable functions
+        """
+        return {#Globals:
+                "Neues Projekt": self.onAddProject, None: self.onQuit, "Exit": self.onQuit, "Reload": self.onReload,
+                "Neue Projekt Tabelle": self.onNewFile, "Öffnen": self.onLoad, "Speichern": self.onSave,
+                "Speichern unter": self.onSaveAt, "Widerherstellen": self.onRecoverDeletedTask,
+
+                #Locals:
+                "bearb-": self.onWorkOnTask, "subta-": self.onNewSubTask, "compl-": self.onSetTaskAsCompleted,
+                "-BMENU-": self.onOptionButtonMenu,
+
+                #ButtonCommands:
+                "Unteraufgabe": self.onNewSubTask, "Isolieren": self.onIsolateTask, "Bearbeiten": self.onWorkOnTask,
+                "Löschen": self.onDeleteTask, "Verschieben": self.onMoveTask, "Kopieren": self.onCopyTask
+                }
+
+    def onOptionButtonMenu(self, task, event, values, *args, **kwargs):
+        """Method for Button menu command mapping"""
+        command = values[event]
+        action = self.sFunctionMapping()[command]
+        action(task)
+
+    def executeEvent(self, event, window, values):
+
+        self._setDataLossPreventionStatus(event)
+
+        command, _, coordinates = event.partition("#7#")
+        print(f"command: {command}, coordinates:{coordinates}")
+
+        if coordinates:
+            coordinates = self._getCoordinates(coordinates)
+            task = self.getTaskFromMatrix(coordinates=coordinates)
+            action = self.sFunctionMapping()[command]
+            action(task=task, values=values, event=event)
+        else:
+            action = self.sFunctionMapping()[command]
+            action(window=window)
 
     def onQuit(self, window, *args, **kwargs):
         self.dataLossPrevention()
@@ -84,12 +103,9 @@ class TaskAttack:
 
     def onSaveAt(self, *args, **kwargs):
         self.unsaved_project = False
-
         file_path = sg.PopupGetFile("Speichern in", save_as=True, file_types=(("TaskAtack", "*.tak"),),
                                     initial_folder=self.sLastUsedFolder(), keep_on_top=True, default_extension=".tak")
-
         file_path = self._completeFilePathWithExtension(file_path)
-
         if file_path:
             self.last_file_path = file_path
             self.taskmanager.save(file_path)
@@ -110,47 +126,39 @@ class TaskAttack:
         self.taskmanager = Taskmanager()
         self.reset()
 
-    def onWorkOnTask(self, event, *args, **kwargs):
-        task = self.getTaskFromMatrix(event)
-        task: Task
-        event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation())
-        print(f"#902389090 event: {event}, values: {values}")
-        if self._eventIsNotNone(event):
-            task.update(**values)
-
     def onAddProject(self, *args, **kwargs):
         event, values = self.task_window_crator.inputWindow(kind="Projekt", )
         if event in {"Abbrechen", None}:
             return
-        print(values)
         self.taskmanager.addProject(name=values['name'], description=values['description'], start=values['start'],
                                     end=values['ende'],
                                     priority=values['priority'])
 
-    def onNewSubTask(self, event, *args, **kwargs):
-        task = self.getTaskFromMatrix(event)
+    def onRecoverDeletedTask(self, *args, **kwargs):
+        if self.last_deleted_task:
+            self.last_deleted_task.recover()
+
+
+    def onWorkOnTask(self, task, *args, **kwargs):
+        event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation())
+        if self._eventIsNotNone(event):
+            task.update(**values)
+
+
+    def onNewSubTask(self, task, *args, **kwargs):
         event, values = self.task_window_crator.inputWindow(kind="Aufgabe", masters_ende=task.sEnde())
-        print(f"newSubtask #1983928kjndsa event: {event}, values: {values}")
         if self._eventIsNotNone(event):
             task.addSubTask(**values)
 
-    def onSetTaskAsCompleted(self, event, *args, **kwargs):
-        task = self.getTaskFromMatrix(event)
+    def onSetTaskAsCompleted(self, task, *args, **kwargs):
         task.changeCompleted()
 
     def onIsolateTask(self):
         # todo isolated task tree view
         pass
 
-    def onRecoverDeletedTask(self, *args, **kwargs):
-        # self.last_deleted_task: Task
-        if self.last_deleted_task:
-            self.last_deleted_task.recover()
-
-    def onDeleteTask(self, event, *args, **kwargs):
+    def onDeleteTask(self, task, *args, **kwargs):
         if gui_elements.YesNoPopup(title="Löschen", text="Wirklich löschen"):
-            # todo next get rid of all the redundant .getTaskFromMatrix() do it one level bevor
-            task = self.getTaskFromMatrix(event)
             self.last_deleted_task = task
             task.delete()
 
@@ -162,16 +170,16 @@ class TaskAttack:
         # todo copy task
         pass
 
-    def onOptionButtonMenu(self, event, window, values, *args, **kwargs):
-        command = values[event]
-        action = self.buttonMenuCommandMapping()[command]
-        action(event, values
-               # todo beauty --->
-               # todo cocl task or coordinates, like the other function gets invoket 8 times for each task this has to be simplified and beautified
-               )
-
-        # todo cocl clear in global onButtonMethods and local(coordinated) button menues
-        # todo cocl easiefy local Methods with get task before them so that did not have to do in each of it themselfe
+    def _completeFilePathWithExtension(self, file_path):
+        """
+        checks file path for ".atk" extension and adds it if necessary
+        :param file_path: "file_path_string"
+        :return: "some "file_path_string.tak"
+        """
+        file_name, extension = os.path.splitext(file_path)
+        if not extension:
+            file_path += ".tak"
+        return file_path
 
     def dataLossPrevention(self):
         """checks if there is an open unsaved file and asks for wish to save
@@ -184,13 +192,11 @@ class TaskAttack:
         """perform auto save in a threat, creates 10 different files
         """
         while self.auto_save_thread and self.auto_save_thread.is_alive():
-            print("autosave_loop")
             time.sleep(2)
         self.auto_save_thread = threading.Thread(target=self.taskmanager.save,
                                                  args=(
                                                      os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"),))
         self.auto_save_thread.start()
-        print("autosaved")
 
     def reset(self):
         """tasks to perform if task manager has to reset/start anew
@@ -203,7 +209,6 @@ class TaskAttack:
         :return: list of list, containig showable SG-FRAMES
         """
         orginal_display_matrix = self.taskmanager.displayMatrix()
-        printMatrix("orginal matrix:", orginal_display_matrix)
         base_layout = copy.deepcopy(orginal_display_matrix)
 
         # todo beauty --->
@@ -212,47 +217,23 @@ class TaskAttack:
             for x_index, element in enumerate(y):
                 if not element:
                     frame_here = self.task_frames_creator.emptyTaskFrame()
-                    print(f"no element frame: {frame_here}")
-                    printMatrix(f"#09i1uijn", base_layout)
                     base_layout[y_index][x_index] = frame_here
-                    printMatrix(f"#25tgsr", base_layout)
                 elif isinstance(element, Task):
                     frame_here = self.task_frames_creator.taskFrame(element)
-                    print(f"task element frame: {frame_here}")
-                    printMatrix(f"#68tiujfg", base_layout)
                     base_layout[y_index][x_index] = frame_here
-                    printMatrix(f"#mhn656", base_layout)
                 elif isinstance(element, str):
                     frame_here = self.task_frames_creator.emptyTaskFrame()
-                    print(f"string frame: {frame_here}")
-                    printMatrix(f"#bdsf42343", base_layout)
                     base_layout[y_index][x_index] = frame_here
-                    printMatrix(f"#asdf344", base_layout)
                 else:
                     raise RuntimeError("irgend etwas vergessen!!!!")
         return base_layout
 
-    def executeEvent(self, event, window, values):
-        # todo beauty:
-        # todo cocl is it realy possible to bring all function mapping in one dictionary think about
-        #  change function mapping and keys to work with partition so there is onely one mapping needed
-        """executes main window button clicks, by mapping it to two different, function_mapping_dicts"""
-        if event not in ('Neue Projekt Tabelle', 'Öffnen', 'Speichern', 'Speichern unter',
-                         'Exit', 'Reload', 'Hilfe', 'Über...'):
-            self.unsaved_project = True
-        try:
-            action = self.sGlobalFunctionMapping()[event]
-        except KeyError:
-            command, _, _ = event.partition("#7#")
-            action = self.sLocalCommandMapping()[command]
-        action(event=event, window=window, values=values)
 
-    def getTaskFromMatrix(self, event):
-        """splits button-coordinate from event and returns coresponding task
-        :param event: type: sg.window.read()[0]
+    def getTaskFromMatrix(self, coordinates):
+        """
+        :param coordinates: tuple(int, int)
         :return: destinct task from matric
         """
-        coordinates = self._getCoordinates(event)
         task_matrix = self.taskmanager.sTaskMatrix()
         return task_matrix[coordinates[0]][coordinates[1]]
 
@@ -267,14 +248,14 @@ class TaskAttack:
         return False
 
     @staticmethod
-    def _getCoordinates(event):
+    def _getCoordinates(coordinates):
         """strips button event down to button coordinates
         :return: button matrix coordinates
         """
-        _, _, rest = event.partition("(")
-        rest = rest.replace(")", "")
-        rest = rest.replace(",", "")
-        y, x = [int(x) for x in rest.split()]
+        coordinates = coordinates.replace("(", "")
+        coordinates = coordinates.replace(")", "")
+        coordinates = coordinates.replace(",", "")
+        y, x = [int(x) for x in coordinates.split()]
         return x, y
 
     def propperWindowLayout(self, menu_bar, project_matrix):
@@ -286,7 +267,6 @@ class TaskAttack:
         else:
             collumn = sg.Column(project_matrix, scrollable=True, size=self.window_size)
             layout = [[sg.MenuBar(menu_bar), collumn]]
-        printMatrix(f"#0090239", layout)
         return layout
 
     def projectMatrixOneFieldBigger(self, project_table):
@@ -312,7 +292,6 @@ class TaskAttack:
         else:
             project_table = self.projectMatrixOneFieldBigger(project_table)
 
-        printMatrix("#09239i02", project_table)
         return project_table
 
     def mainWindow(self):
@@ -338,11 +317,10 @@ class TaskAttack:
             main_window.close()
             self.autoSave()
 
-    def _completeFilePathWithExtension(self, file_path):
-        file_name, extension = os.path.splitext(file_path)
-        if not extension:
-            file_path += ".tak"
-        return file_path
+    def _setDataLossPreventionStatus(self, event):
+        if event not in ('Neue Projekt Tabelle', 'Öffnen', 'Speichern', 'Speichern unter',
+                         'Exit', 'Reload', 'Hilfe', 'Über...'):
+            self.unsaved_project = True
 
 
 # todo complet documentation and code cleanup
@@ -369,4 +347,3 @@ if __name__ == '__main__':
 
 ## todo beauty option button has no relief
 
-# todo this time enable reversion of deletion
