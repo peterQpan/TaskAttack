@@ -20,6 +20,7 @@ class RedGreenHexColorMapping(ColorMapping):
     to save computation it mapps his answers
     0:"#FF0000", 100:"00FF00"
     """
+    #todo make a more darker color switch
     def __init__(self):
         super().__init__()
         self.mapping.update({0:"#FF0000", 100:"#00FF00"})
