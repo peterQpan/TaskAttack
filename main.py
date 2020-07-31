@@ -53,7 +53,7 @@ class TaskAttack:
         :return: function mapping for window/global executable functions
         """
         return {#Globals:
-                "Neues Projekt": self.onAddProject, None: self.onQuit, "Exit": self.onQuit, "Reload": self.onReload,
+                "Neues Projekt": self.onAddProject, "Reload": self.onReload,
                 "Neue Projekt Tabelle": self.onNewFile, "Öffnen": self.onLoad, "Speichern": self.onSave,
                 "Speichern unter": self.onSaveAt, "Widerherstellen": self.onRecoverDeletedTask,
 
@@ -71,27 +71,6 @@ class TaskAttack:
         command = values[event]
         action = self.sFunctionMapping()[command]
         action(task)
-
-    def executeEvent(self, event, window, values):
-
-        self._setDataLossPreventionStatus(event)
-
-        command, _, coordinates = event.partition("#7#")
-        print(f"command: {command}, coordinates:{coordinates}")
-
-        if coordinates:
-            coordinates = self._getCoordinates(coordinates)
-            task = self.getTaskFromMatrix(coordinates=coordinates)
-            action = self.sFunctionMapping()[command]
-            action(task=task, values=values, event=event)
-        else:
-            action = self.sFunctionMapping()[command]
-            action(window=window)
-
-    def onQuit(self, window, *args, **kwargs):
-        self.dataLossPrevention()
-        window.close()
-        sys.exit(0)
 
     def onLoad(self, *args, **kwargs):
         self.dataLossPrevention()
@@ -170,6 +149,45 @@ class TaskAttack:
         # todo copy task
         pass
 
+    def _userExit(self, event, window):
+        """checks for and executes Exit if asked for"""
+        if event in ("Exit", None):
+            self.dataLossPrevention()
+            window.close()
+            sys.exit(0)
+
+    def _setDataLossPreventionStatus(self, event):
+        if event not in ('Neue Projekt Tabelle', 'Öffnen', 'Speichern', 'Speichern unter',
+                         'Exit', 'Reload', 'Hilfe', 'Über...'): #todo think should None be in this list?!?
+            self.unsaved_project = True
+
+    @staticmethod
+    def _getCoordinatesAsInts(coordinates):
+        """strips button event down to button coordinates
+        :return: button matrix coordinates
+        """
+        coordinates = coordinates.replace("(", "")
+        coordinates = coordinates.replace(")", "")
+        coordinates = coordinates.replace(",", "")
+        y, x = [int(x) for x in coordinates.split()]
+        return x, y
+
+    def executeEvent(self, event, window, values, *args, **kwargs):
+        self._userExit(event=event, window=window)
+        self._setDataLossPreventionStatus(event)
+
+        command, _, string_coordinates = event.partition("#7#")
+        print(f"command: {command}, string_coordinates:{string_coordinates}")
+
+        if string_coordinates:
+            int_coordinates = self._getCoordinatesAsInts(string_coordinates)
+            task = self.getTaskFromMatrix(coordinates=int_coordinates)
+            action = self.sFunctionMapping()[command]
+            action(task=task, values=values, event=event)
+        else:
+            action = self.sFunctionMapping()[command]
+            action()
+
     def _completeFilePathWithExtension(self, file_path):
         """
         checks file path for ".atk" extension and adds it if necessary
@@ -215,17 +233,14 @@ class TaskAttack:
         # todo cocl more modularisation here?!?
         for y_index, y in enumerate(orginal_display_matrix):
             for x_index, element in enumerate(y):
-                if not element:
-                    frame_here = self.task_frames_creator.emptyTaskFrame()
-                    base_layout[y_index][x_index] = frame_here
-                elif isinstance(element, Task):
+                if isinstance(element, Task):
                     frame_here = self.task_frames_creator.taskFrame(element)
                     base_layout[y_index][x_index] = frame_here
-                elif isinstance(element, str):
+                else:# isinstance(element, str):
                     frame_here = self.task_frames_creator.emptyTaskFrame()
                     base_layout[y_index][x_index] = frame_here
-                else:
-                    raise RuntimeError("irgend etwas vergessen!!!!")
+                # else:
+                #     raise RuntimeError("irgend etwas vergessen!!!!")
         return base_layout
 
 
@@ -246,17 +261,6 @@ class TaskAttack:
         if event and event != "Abbrechen":
             return True
         return False
-
-    @staticmethod
-    def _getCoordinates(coordinates):
-        """strips button event down to button coordinates
-        :return: button matrix coordinates
-        """
-        coordinates = coordinates.replace("(", "")
-        coordinates = coordinates.replace(")", "")
-        coordinates = coordinates.replace(",", "")
-        y, x = [int(x) for x in coordinates.split()]
-        return x, y
 
     def propperWindowLayout(self, menu_bar, project_matrix):
         """creates tree layout either with project_matrix if available, or with a table dummy
@@ -317,11 +321,6 @@ class TaskAttack:
             main_window.close()
             self.autoSave()
 
-    def _setDataLossPreventionStatus(self, event):
-        if event not in ('Neue Projekt Tabelle', 'Öffnen', 'Speichern', 'Speichern unter',
-                         'Exit', 'Reload', 'Hilfe', 'Über...'):
-            self.unsaved_project = True
-
 
 # todo complet documentation and code cleanup
 
@@ -346,4 +345,6 @@ if __name__ == '__main__':
 ## todo figure colorcheme someday task, full deadline, etc
 
 ## todo beauty option button has no relief
+
+# todo beauty clear language interface either german OR english not a little bit of both --> todo dev language and translating class
 
