@@ -27,7 +27,7 @@ class Task:
         self.sub_tasks = []
         self._completed = 0
 
-        self._redGreenHexColor = tools.RedGreenHexColorMapping()
+        self._colorSheme = tools.RedGreenHexColorMapping()
 
     def __getstate__(self):
         return self.__dict__
@@ -171,31 +171,31 @@ class Task:
             return all_tasks_under
 
     def taskDeadlineColor(self):
-        """
-        :return: i.e. "#FF0000" hexstring_color which indicates the approximation to the deadline date
-                or none if there is no deadline
-        """
-        #todo all this ifs in hexcolor class?!?
-        if not self.ende:
-            return None
-
-        if self.start == self.ende:
-            return "#BBBB00" #yellow
-
-        if self.sRemainingMinutes() <= 0:
-            return "#AF14AF" #pink
-
-        if self.sRemainingDays() < 0:
-            return "#880000" #dark red
-
-        if self.sCompleted() == 100:
-            return "#004400"
-
-        complete_time = self.ende - self.start
-        complete_minutes = complete_time.total_seconds() // 60
-        percentage = 100 / complete_minutes * self.sRemainingMinutes()
-
-        return self._redGreenHexColor(percentage)
+        # """
+        # :return: i.e. "#FF0000" hexstring_color which indicates the approximation to the deadline date
+        #         or none if there is no deadline
+        # """
+        # if not self.ende:
+        #     return None
+        #
+        # if self.sStart() == self.sEnde():
+        #     return "#BBBB00" #yellow
+        #
+        # if self.sRemainingMinutes() <= 0:
+        #     return "#AF14AF" #pink
+        #
+        # if self.sRemainingDays() < 0:
+        #     return "#880000" #dark red
+        #
+        # if self.sCompleted() == 100:
+        #     return "#004400"
+        #
+        # complete_time = self.ende - self.start
+        # complete_minutes = complete_time.total_seconds() // 60
+        # percentage = 100 / complete_minutes * self.sRemainingMinutes()
+        #
+        # return self._colorSheme(percentage)
+        return self._colorSheme(task=self)
 
     def HierarchyTreePositionString(self, lenght=30):
         # todo enable mapping or saving o something so that this function didnt have to run everytime,

@@ -9,28 +9,53 @@ from pip._vendor.colorama import Fore
 
 
 class ColorMapping:
-    #todo bring the ifs from task in here?!?
     def __init__(self):
         self.mapping = {}
 
 
 class RedGreenHexColorMapping(ColorMapping):
+    # todo beauty--->
+    # todo dev make this class better inheritable or changeable for various different color schemes
     """
     generates color transition from red to green,
     to save computation it mapps his answers
     0:"#FF0000", 100:"00FF00"
     """
-    #todo make a more darker color switch
     def __init__(self):
         super().__init__()
-        self.mapping.update({0:"#FF0000", 100:"#00FF00"})
+        self.mapping.update({0:"#B90000", 100:"#00DC00"})
 
-    def __call__(self, percentage, *args, **kwargs):
+    def __call__(self, task, *args, **kwargs):
         """
         generates color transition from red to green,
         to save computation it mapps his answers
         0:"#FF0000", 100:"00FF00"
         """
+
+        """
+        :return: i.e. "#FF0000" hexstring_color which indicates the approximation to the deadline date
+                or none if there is no deadline
+        """
+        if task.sCompleted() == 100:
+            return "#004400"
+
+        if not task.sEnde():
+            return None
+
+        if task.sStart() == task.sEnde():
+            return "#BBBB00" #yellow
+
+        if task.sRemainingMinutes() <= 0:
+            return "#AF14AF" #pink
+
+        if task.sRemainingDays() < 0:
+            return "#880000" #dark red
+
+
+        complete_time = task.ende - task.start
+        complete_minutes = complete_time.total_seconds() // 60
+        percentage = 100 / complete_minutes * task.sRemainingMinutes()
+
         try:
             return self.mapping[percentage]
         except KeyError:
@@ -53,9 +78,8 @@ class RedGreenHexColorMapping(ColorMapping):
             return hex_str
 
         percentage = int(percentage)
-        green = int(255 / 100 * percentage)
-        red = int(255 / 100 * (100 - percentage))
-
+        green = int(220 / 100 * percentage)
+        red = int(185 / 100 * (100 - percentage))
         return "#" + hexStr(red) + hexStr(green) + "00"
 
 
