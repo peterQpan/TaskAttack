@@ -36,6 +36,7 @@ class RedGreenHexColorMapping(ColorMapping):
         :return: i.e. "#FF0000" hexstring_color which indicates the approximation to the deadline date
                 or none if there is no deadline
         """
+        # todo beauty bring all hex colors in intercangable dict
         if task.sCompleted() == 100:
             return "#004400"
 
@@ -48,7 +49,7 @@ class RedGreenHexColorMapping(ColorMapping):
         if task.sRemainingMinutes() <= 0:
             return "#AF14AF" #pink
 
-        if task.sRemainingDays() < 0:
+        if task.sRemainingMinutes() < 21600:
             return "#880000" #dark red
 
 

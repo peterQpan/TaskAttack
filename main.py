@@ -230,7 +230,7 @@ class TaskAttack:
         base_layout = copy.deepcopy(orginal_display_matrix)
 
         # todo beauty --->
-        # todo cocl more modularisation here?!?
+        #  delete out commented on 2020-08-04
         for y_index, y in enumerate(orginal_display_matrix):
             for x_index, element in enumerate(y):
                 if isinstance(element, Task):
@@ -336,15 +336,10 @@ if __name__ == '__main__':
 
 # todo scroll position beibehalten (not possible as i know)
 
-# todo vllt sollte ich alle farbvergleiche auf stunden basis machen anstatt auf tage?!?
-
-# todo beauty performance is ugly bad since i added button menus, how to solve?!?
-
-# todo beauty placeholder color
+# todo beauty look out for chances to easily improve performance
 
 ## todo figure colorcheme someday task, full deadline, etc
 
-## todo beauty option button has no relief
 
 # todo beauty clear language interface either german OR english not a little bit of both --> todo dev language and translating class
 

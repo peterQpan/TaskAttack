@@ -42,9 +42,9 @@ class Task:
     def __repr__(self):
         return f"Task: {self.sName()} {self.sStart()} {self.sCompleted()}"
 
+    # todo beauty delete out commented on 2020-08-04
     # @property
     # def completed(self):
-    #     #todo bring all this into sCompleted?!?
     #     if not self.sub_tasks:
     #         # try:
     #         return self._completed
