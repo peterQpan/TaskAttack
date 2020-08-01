@@ -84,6 +84,9 @@ class TaskFrameCreator:
         tt += f"   Vollendet in Prozent:................................. {task.sCompleted():5.1f}   \n\n"
         tt += "    \n   ".join(textwrap.wrap(task.sDescription(), width=90))
         return tt
+    #todo date is shown yyyy-mm-dd 00:00:00 should i exclude the hours if its always zerro,
+    # or shouldnt i change it in case for later improvements whit exact time?!?
+    # as is write this down here i think i shouldnt
 
     @staticmethod
     def _isCompletedElement(task:task.Task, tooltip_text, background_color:str):
@@ -314,4 +317,4 @@ if __name__ == '__main__':
         event, values = win_creator.inputWindow(kind="Projekt", start=None)
         print(event, values)
 
-
+# todo calendar button both shows "start" have to be start and ENDE

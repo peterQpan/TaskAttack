@@ -5,12 +5,18 @@ __email__ = "sebmueller.bt@gmail.com"
 import copy
 import os
 import pickle
+import threading
+import time
 
 import tools
 
 
 class Task:
     def __init__(self, name:str, description:str=None, start=None, end=None, priority=21, master=None):
+        self._remaining_timedelta = None
+        self._remaining_minutes = None
+        self._remaining_days = None
+
         self.name = name
         self.description = description
         self.start = start if start else tools.nowDateTime()
@@ -21,12 +27,13 @@ class Task:
         self.sub_tasks = []
         self._completed = 0
 
-        self._redGreenHexColor = tools.RedGreenHexColorMapping()
+        self._colorSheme = tools.RedGreenHexColorMapping()
 
     def __getstate__(self):
         return self.__dict__
 
     def __setstate__(self, state):
+        state.update({"_remeining_timedelta":None})
         self.__dict__.update(state)
 
     def __str__(self):
@@ -35,27 +42,32 @@ class Task:
     def __repr__(self):
         return f"Task: {self.sName()} {self.sStart()} {self.sCompleted()}"
 
-    @property
-    def completed(self):
-        #todo bring all this into sCompleted?!?
-        if not self.sub_tasks:
-            # try:
-            return self._completed
-            # except:
-                # self._completed = 0
-                # return self._completed
-        else:
-            zaehler = sum(x.completed for x in self.sub_tasks)
-            teiler = len(self.sub_tasks)
-            return zaehler / teiler
+    # @property
+    # def completed(self):
+    #     #todo bring all this into sCompleted?!?
+    #     if not self.sub_tasks:
+    #         # try:
+    #         return self._completed
+    #         # except:
+    #             # self._completed = 0
+    #             # return self._completed
+    #     else:
+    #         zaehler = sum(x.completed for x in self.sub_tasks)
+    #         teiler = len(self.sub_tasks)
+    #         return zaehler / teiler
 
     def sCompleted(self, completed:int=None):
-        if completed is None:
-            return self.completed
+        if self.sub_tasks:
+            zaehler = sum(x.sCompleted() for x in self.sub_tasks)
+            teiler = len(self.sub_tasks)
+            print(f"zaehler/teiler: {zaehler /teiler}")
+            return zaehler / teiler
         else:
-            self.completed(completed)
-            #todo ?!?
-
+            if completed:
+                self._completed = completed
+            else:
+                print(self._completed)
+                return self._completed
 
 
     def sMastersEnde(self):
@@ -101,21 +113,37 @@ class Task:
             return self.master.subTaskPercentage()
 
     def sRemainingTimedelta(self):
-        try:
-            #fixme some kind of mapping and time thread based actualisation since this function gets invoked 8 times
-            # just for one task for window renewel circle
-            return self.ende - tools.nowDateTime()
+        if self._remaining_timedelta is None:
+            try:
+                self._remaining_timedelta = self.ende - tools.nowDateTime()
+                self._remaining_minutes = self._remaining_timedelta.total_seconds() // 60
+                self._remaining_days = self._remaining_timedelta.days
+            except TypeError as e:
+                print(f"#kakld89i error: {e.__traceback__}, {e.__repr__()}, {e.__traceback__.tb_lineno}")
+                self._remaining_timedelta = self._remaining_minutes = False
+                self._remaining_minutes = False
+                self._remaining_days = False
 
-        except TypeError:
-            return None
+        return self._remaining_timedelta
 
     def sRemainingDays(self):
-        if self.sRemainingTimedelta():
-            return self.sRemainingTimedelta().days
+        # todo beauty ---> how to avoid need for this check
+        if self._remaining_days is None:
+            self.sRemainingTimedelta()
+        return self._remaining_days
 
     def sRemainingMinutes(self):
-        if self.sRemainingTimedelta():
-            return self.sRemainingTimedelta().total_seconds() // 60
+        return self._remaining_minutes
+
+
+    def resetTimedelta(self):
+        self._remaining_timedelta = None
+
+    def recursiveTimeDeltaReset(self):
+        self.resetTimedelta()
+        print(f"time delta resetted")
+        [sub_task.recursiveTimeDeltaReset() for sub_task in self.sub_tasks]
+
 
     def changeCompleted(self):
         self._completed = 0 if self._completed else 100
@@ -123,7 +151,6 @@ class Task:
     def addSubTask(self, name: str, description, start, ende=None, priority: int = 9):
         sub_task = self.__class__(name, description, start, ende, priority, self)
         self.sub_tasks.append(sub_task)
-
 
     def delete(self):
         #fixme upward compapility with taskmanager, cant delete projects
@@ -144,31 +171,31 @@ class Task:
             return all_tasks_under
 
     def taskDeadlineColor(self):
-        """
-        :return: i.e. "#FF0000" hexstring_color which indicates the approximation to the deadline date
-                or none if there is no deadline
-        """
-        #todo all this ifs in hexcolor class?!?
-        if not self.ende:
-            return None
-
-        if self.start == self.ende:
-            return "#BBBB00" #purple
-
-        if self.sRemainingMinutes() <= 0:
-            return "#AF14AF"
-
-        if self.sRemainingDays() < 0:
-            return "#BB0000" #dark red
-
-        if self.completed == 1: #fixme dont work got no deep green taskframe if it gets completed
-            return "#004400"
-
-        complete_time = self.ende - self.start
-        complete_minutes = complete_time.total_seconds() // 60
-        percentage = 100 / complete_minutes * self.sRemainingMinutes()
-
-        return self._redGreenHexColor(percentage)
+        # """
+        # :return: i.e. "#FF0000" hexstring_color which indicates the approximation to the deadline date
+        #         or none if there is no deadline
+        # """
+        # if not self.ende:
+        #     return None
+        #
+        # if self.sStart() == self.sEnde():
+        #     return "#BBBB00" #yellow
+        #
+        # if self.sRemainingMinutes() <= 0:
+        #     return "#AF14AF" #pink
+        #
+        # if self.sRemainingDays() < 0:
+        #     return "#880000" #dark red
+        #
+        # if self.sCompleted() == 100:
+        #     return "#004400"
+        #
+        # complete_time = self.ende - self.start
+        # complete_minutes = complete_time.total_seconds() // 60
+        # percentage = 100 / complete_minutes * self.sRemainingMinutes()
+        #
+        # return self._colorSheme(percentage)
+        return self._colorSheme(task=self)
 
     def HierarchyTreePositionString(self, lenght=30):
         # todo enable mapping or saving o something so that this function didnt have to run everytime,
@@ -202,7 +229,7 @@ class Task:
         name, description, start, ende, priority, percentage, completed
         """
         dr = {"name":self.name, "description":self.description, "start": self.start, "ende": self.ende,
-              "priority": self.priority, "percentage":self.sPercentage(), "completed":self.completed,
+              "priority": self.priority, "percentage":self.sPercentage(), "completed":self.sCompleted,
               "masters_ende":self.sMastersEnde()}
         if self.master is None:
             dr.update({"kind": "Projekt"})
@@ -255,6 +282,7 @@ class Task:
         self.start = start
         self.ende = ende
         self.priority = priority
+        self.resetTimedelta()
 
     def takePosition(self, base_matrix):
         """orders task to take own position in base_matrix, orders sub_task to do the same
@@ -277,6 +305,7 @@ class Task:
 
 class Taskmanager:
     def __init__(self):
+        self.renewal_thread = None
         self.task_matrix = None
         self.reset()
 
@@ -312,6 +341,8 @@ class Taskmanager:
         creates a new project"""
         new_project = Task(name=name, description=description, start=start, end=end, priority=priority)
         self.projekts.append(new_project)
+        if not self.renewal_thread:
+            self.startDataDeletionForRenewalThread()
 
     def columnCount(self):
         """
@@ -404,6 +435,16 @@ class Taskmanager:
         self.task_matrix = self.createTaskMatix()
         display_matrix = self.addMasterTaskPlaceholderStrings(self.task_matrix)
         return display_matrix
+
+    def startDataDeletionForRenewalThread(self):
+        def renewal(subtasks):
+            while True:
+                time.sleep(7200)
+                print(f"#09u09u recursive reset triggered in thread")
+                [subtask.recursiveTimeDeltaReset() for subtask in subtasks]
+
+        self.renewal_thread = threading.Thread(target=renewal, args=(self.projekts, ), daemon=True)
+        self.renewal_thread.start()
 
 
 if __name__ == '__main__':
