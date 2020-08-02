@@ -179,6 +179,8 @@ class Task:
         #  wenn ich es mit getstate und setstate picklebar mache wird es aber bei der aktuellen implemention
         #  ausgehend von taskmanager probleme geben, da dann ein gespeicherter alter taskmanager
         #  entsteht und der der jedes mal die siztung startet....
+        # todo this time easy to solfe in setstate getstate
+        # fixme setstate and getstate have to be in persistencer class
 
     def deleteSubTask(self, task):
         self.sub_tasks.remove(task)
