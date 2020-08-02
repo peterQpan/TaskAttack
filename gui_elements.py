@@ -12,7 +12,7 @@ import PySimpleGUI as sg
 import task, tools
 
 
-def YesNoPopup(title:str, text:str, ok_button="Yes", cancel_button="No", size=(250, 70), keep_on_top=True,
+def YesNoPopup(title:str, text:str, ok_button="Yes", cancel_button="No", size=(250, 70), keep_on_top=True, #todo beauty deutsch/englisch
                *args, **kwargs):
     """
     popup window to do ok-chancel/yes-now and similar questions
@@ -39,13 +39,17 @@ class TaskFrameCreator:
     Factory to create PySimpleGui Frames which represents either a Task or an empty space of the same size
     """
 
-    @staticmethod
-    def sSize():
-        return 30
 
+    def __init__(self, size=30):
+        self.size = size
 
-    @staticmethod
-    def _basicTaskFrame(frame_name:str, name, priority, completed,
+    def sSize(self):
+        return self.size
+
+    def setSize(self, size):
+        self.size = size
+
+    def _basicTaskFrame(self, frame_name:str, name, priority, completed,
                         place_holder, option_button,
                         relief=sg.RELIEF_RAISED,
                         tooltip_text:str="", frame_color:str=None):
@@ -61,7 +65,7 @@ class TaskFrameCreator:
                                  [priority, completed],
                                  [place_holder, option_button]
                                  ],
-                         title=frame_name[:TaskFrameCreator.sSize()], relief=relief, size=(TaskFrameCreator.sSize() ,5),
+                         title=frame_name[-(self.sSize() -3):], relief=relief, size=(self.sSize() ,5),
                          tooltip=tooltip_text, background_color=frame_color)
         return frame
 
@@ -80,6 +84,9 @@ class TaskFrameCreator:
         tt += f"   Vollendet in Prozent:................................. {task.sCompleted():5.1f}   \n\n"
         tt += "    \n   ".join(textwrap.wrap(task.sDescription(), width=90))
         return tt
+    #todo date is shown yyyy-mm-dd 00:00:00 should i exclude the hours if its always zerro,
+    # or shouldnt i change it in case for later improvements whit exact time?!?
+    # as is write this down here i think i shouldnt
 
     @staticmethod
     def _isCompletedElement(task:task.Task, tooltip_text, background_color:str):
@@ -94,12 +101,12 @@ class TaskFrameCreator:
                                enable_events=True, tooltip=tooltip_text, background_color=background_color)
         return sg.Text(f"Vollendet: {task.sCompleted():6.2f}", tooltip=tooltip_text, background_color=background_color)
 
-
-    def _buttonMenuList(self):
+    @staticmethod
+    def _buttonMenuList():
         return ['Unused', ['Unteraufgabe', 'Isolieren', 'Bearbeiten', 'Löschen', 'Verschieben', 'Kopieren']]
 
     def _buttonMenu(self, task):
-        return sg.ButtonMenu('Options', self._buttonMenuList(), key=f'-BMENU-#7#{task.sPosition()}')
+        return sg.ButtonMenu('Options', self._buttonMenuList(), key=f'-BMENU-#7#{task.sPosition()}', border_width=2)
 
 
     def taskFrame(self, task:task.Task):
@@ -115,7 +122,7 @@ class TaskFrameCreator:
 
         frame_name = task.HierarchyTreePositionString()
 
-        aling_sg_object = sg.Text(text="", size=(self.sSize() - 15,1))
+        aling_sg_object = sg.Text(text="", size=(self.sSize() - 15,1), background_color=background_color)
         option_button_sg_object = self._buttonMenu(task)
 
         frame = self._basicTaskFrame(frame_name=frame_name, name=name_sg_object, priority=priority_sg_object,
@@ -125,12 +132,11 @@ class TaskFrameCreator:
         return frame
 
 
-    @staticmethod
-    def emptyTaskFrame():
+    def emptyTaskFrame(self):
         """
         :return: empty sg.Frame in same size than a task frame
         """
-        return sg.Frame(layout=[[sg.Text(text="", size=(TaskFrameCreator.sSize() -5, 5))]], title=" ",relief=sg.RELIEF_FLAT, size=(300, 50))
+        return sg.Frame(layout=[[sg.Text(text="", size=(self.sSize() -5, 5))]], title=" ",relief=sg.RELIEF_FLAT, size=(300, 50))
 
 
 class TaskInputWindowCreator:
@@ -138,10 +144,12 @@ class TaskInputWindowCreator:
 
     @staticmethod
     def _buttonLine():
-        return [sg.Submit("Übernehmen"), sg.Cancel("Abbrechen")]
+        return [sg.Submit("Übernehmen"), sg.Cancel("Abbrechen"), #sg.Button()
+                ]
 
     @staticmethod
     def _updateWithDates(values, window):
+        """updates window-values-dict with values fetched from date buttons"""
         values.update({"start": datetime.datetime(*time.strptime(window['-START_BUTTON-'].get_text(), "%Y-%m-%d")[:6])})
         try:
             values.update({"ende": datetime.datetime(*time.strptime(window['-END_BUTTON-'].get_text(), "%Y-%m-%d")[:6])})
@@ -152,9 +160,11 @@ class TaskInputWindowCreator:
         return values
 
     def inputValidation(self, window, masters_ende):
+        """validates imput for user abort,
+        only entering int in priority and int() them already,
+        subtask dont prolong master task"""
         while True:
             event, values = window.read()
-            print(f"inputValidation; event: {event}, values: {values}")
             if event in {"Abbrechen", None}:
                 break
             elif event == 'priority' and values['priority'] and values['priority'][-1] not in \
@@ -162,7 +172,6 @@ class TaskInputWindowCreator:
                 window['priority'].update(values['priority'][:-1])
             elif event == "Übernehmen":
                 values = self._updateWithDates(values, window)
-                print(f"#8972398u9  values: {values}, masters_ende: {masters_ende}")
                 if masters_ende and values["ende"] and values["ende"] > masters_ende:
                     window['Ende-KORREKTUR-'].update("Nicht später als Master-Task-Ende")
                 else:
@@ -192,11 +201,10 @@ class TaskInputWindowCreator:
         :return: calendar line for either start or end
         """
         button_text, date_tuple = self.calendarButtonParameter(calendar_date=calendar_date, s_or_e=s_or_e)
-        line = [sg.Text('Start:', size=(15, 1)),
+        line = [sg.Text(s_or_e, size=(15, 1)),
                 sg.CalendarButton(default_date_m_d_y=date_tuple, button_text=button_text,
                                   format="%Y-%m-%d", key=key, target=target),
                 sg.Text(key=f'{s_or_e}-KORREKTUR-', text_color="#FF0000", size=(35, 1))]
-        print(f"line... {line}")
         return line
 
     @staticmethod
@@ -260,7 +268,6 @@ class TaskInputWindowCreator:
         :param kwargs:
         :return:
         """
-        print(f"#90uojhajskd ende: {ende}")
         if not ende:
             ende = masters_ende
 
@@ -305,10 +312,8 @@ if __name__ == '__main__':
         window = sg.Window("test", layout=[[button, buttonb, buttonc],
                                            [buttond, buttone, buttonf],
                                            [buttong, buttonh, buttoni]])
-        print("blub")
 
         win_creator = TaskInputWindowCreator()
         event, values = win_creator.inputWindow(kind="Projekt", start=None)
         print(event, values)
-
 
