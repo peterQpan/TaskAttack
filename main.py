@@ -133,7 +133,7 @@ class TaskAttack:
         task.changeCompleted()
 
     def onIsolateTask(self):
-        # todo isolated task tree view
+        # todo dev isolated task tree view
         pass
 
     def onDeleteTask(self, task, *args, **kwargs):
@@ -142,11 +142,11 @@ class TaskAttack:
             task.delete()
 
     def onMoveTask(self):
-        # todo move task
+        # todo dev move task
         pass
 
     def onCopyTask(self):
-        # todo copy task
+        # todo dev copy task
         pass
 
     def _userExit(self, event, window):

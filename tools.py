@@ -51,20 +51,16 @@ class RedGreenHexColorMapping(ColorMapping):
         if task.sRemainingMinutes() <= 0:
             return self.mapping["expired"]
 
-        if task.sRemainingMinutes() < 21600:
-            return ["running_out"]
-
-
-        complete_time = task.sEnde() - task.sStart()
-        # todo beauty: make a Task.sCompleteTime() WHIT IN the time dependent mapping
-        complete_minutes = complete_time.total_seconds() // 60
-        percentage = int(100 / complete_minutes * task.sRemainingMinutes())
+        if task.sRemainingMinutes() < 720:
+            print(f"#10921 {task.sRemainingMinutes()}")
+            return self.mapping["running_out"]
 
         try:
-            return self.mapping[percentage]
+            return self.mapping[task.sTimePercentage()]
         except KeyError:
-            color_string = self._redGreenHexColor(percentage)
-            self.mapping[percentage] = color_string
+            print(f"percentage: {task.sTimePercentage()}")
+            color_string = self._redGreenHexColor(task.sTimePercentage())
+            self.mapping[task.sTimePercentage()] = color_string
             return color_string
 
     @staticmethod

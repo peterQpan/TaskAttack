@@ -12,7 +12,8 @@ import tools
 
 
 class Task:
-    def __init__(self, name:str, description:str=None, start=None, end=None, priority=21, master=None):
+    def __init__(self, name:str, description:str=None, start=None, end=None, priority=21, master=None,
+                 taskmanager:"Taskmanager"=None):
         self._remaining_timedelta = None
         self._remaining_minutes = None
         self._remaining_days = None
@@ -24,6 +25,7 @@ class Task:
         self.priority = priority
 
         self.master = master
+        self.taskmaster = taskmanager
         self.sub_tasks = []
         self._completed = 0
 
@@ -113,18 +115,33 @@ class Task:
             return self.master.subTaskPercentage()
 
     def sRemainingTimedelta(self):
+        # todo beauty: this method have to be more beautiful
         if self._remaining_timedelta is None:
             try:
-                self._remaining_timedelta = self.ende - tools.nowDateTime()
+                self._remaining_timedelta = self.sEnde() - tools.nowDateTime()
+                self._complete_time = self.sEnde() - self.sStart()
+                self._complete_minutes = self._complete_time.total_seconds() // 60
                 self._remaining_minutes = self._remaining_timedelta.total_seconds() // 60
                 self._remaining_days = self._remaining_timedelta.days
+                self._time_percentage = int(100 / self._complete_minutes * self._remaining_minutes)
             except TypeError as e:
                 print(f"#kakld89i error: {e.__traceback__}, {e.__repr__()}, {e.__traceback__.tb_lineno}")
                 self._remaining_timedelta = self._remaining_minutes = False
+                self._complete_time = False
+                self._complete_minutes = False
                 self._remaining_minutes = False
                 self._remaining_days = False
 
         return self._remaining_timedelta
+
+    def sCompleteTime(self):
+        return self._complete_time
+
+    def sTimePercentage(self):
+        return self._time_percentage
+
+    def sCompleteMinutes(self):
+        return self._complete_minutes
 
     def sRemainingDays(self):
         # todo beauty ---> how to avoid need for this check
@@ -153,8 +170,15 @@ class Task:
         self.sub_tasks.append(sub_task)
 
     def delete(self):
-        #fixme upward compapility with taskmanager, cant delete projects
-        self.master.deleteSubTask(self)
+        try:
+            self.master.deleteSubTask(self)
+        except:
+            self.taskmaster.deleteSubTask(task=self)
+
+        # todo this time: jetzt ist taskmanager ein attribut von task, taskmanager ist aber nicht picklbar,
+        #  wenn ich es mit getstate und setstate picklebar mache wird es aber bei der aktuellen implemention
+        #  ausgehend von taskmanager probleme geben, da dann ein gespeicherter alter taskmanager
+        #  entsteht und der der jedes mal die siztung startet....
 
     def deleteSubTask(self, task):
         self.sub_tasks.remove(task)
@@ -339,7 +363,8 @@ class Taskmanager:
     def addProject(self, name:str, description=None, start=None, end=None, priority:int=21):
         """
         creates a new project"""
-        new_project = Task(name=name, description=description, start=start, end=end, priority=priority)
+        new_project = Task(name=name, description=description, start=start, end=end, priority=priority,
+                           taskmanager=self)
         self.projekts.append(new_project)
         if not self.renewal_thread:
             self.startDataDeletionForRenewalThread()
@@ -445,6 +470,10 @@ class Taskmanager:
 
         self.renewal_thread = threading.Thread(target=renewal, args=(self.projekts, ), daemon=True)
         self.renewal_thread.start()
+
+    def deleteSubTask(self, task):
+        self.projekts.remove(task)
+        pass
 
 
 if __name__ == '__main__':
