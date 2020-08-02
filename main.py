@@ -340,6 +340,7 @@ if __name__ == '__main__':
 
 ## todo figure colorcheme someday task, full deadline, etc
 
+## todo beauty option button has no relief
 
 # todo beauty clear language interface either german OR english not a little bit of both --> todo dev language and translating class
 

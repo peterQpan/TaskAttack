@@ -25,14 +25,18 @@ class Task:
         self.priority = priority
 
         self.master = master
-        self.taskmaster = taskmanager
+        self.taskmanager = taskmanager
         self.sub_tasks = []
         self._completed = 0
 
         self._colorSheme = tools.RedGreenHexColorMapping()
 
     def __getstate__(self):
-        return self.__dict__
+        state = {x:y for x,y in self.__dict__.items()}
+        print(self.__dict__)
+        print(state)
+        state["taskmanager"] = None # todo beauty have to be in persistencer
+        return state
 
     def __setstate__(self, state):
         state.update({"_remeining_timedelta":None})
@@ -175,12 +179,6 @@ class Task:
         except:
             self.taskmaster.deleteSubTask(task=self)
 
-        # todo this time: jetzt ist taskmanager ein attribut von task, taskmanager ist aber nicht picklbar,
-        #  wenn ich es mit getstate und setstate picklebar mache wird es aber bei der aktuellen implemention
-        #  ausgehend von taskmanager probleme geben, da dann ein gespeicherter alter taskmanager
-        #  entsteht und der der jedes mal die siztung startet....
-        # todo this time easy to solfe in setstate getstate
-        # fixme setstate and getstate have to be in persistencer class
 
     def deleteSubTask(self, task):
         self.sub_tasks.remove(task)
@@ -328,6 +326,10 @@ class Task:
     def recoverSubtask(self, task):
         self.sub_tasks.append(task)
 
+    def setTaskManager(self, taskmanager):
+        # todo beauty hav to be in persistencer
+        self.taskmaster = taskmanager
+
 
 class Taskmanager:
     def __init__(self):
@@ -358,6 +360,7 @@ class Taskmanager:
             while True:
                 try:
                     project = pickle.load(fh)
+                    project.setTaskManager(self)
                     self.projekts.append(project)
                 except EOFError:
                     break
