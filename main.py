@@ -52,6 +52,7 @@ class TaskAttack:
         """
         :return: function mapping for window/global executable functions
         """
+        #todo beauty can i avoid redundance with _buttonMenuList() und this dict?!?
         return {#Globals:
                 "Neues Projekt": self.onAddProject, "Reload": self.onReload,
                 "Neue Projekt Tabelle": self.onNewFile, "Öffnen": self.onLoad, "Speichern": self.onSave,
@@ -63,7 +64,7 @@ class TaskAttack:
 
                 #ButtonCommands:
                 "Unteraufgabe": self.onNewSubTask, "Isolieren": self.onIsolateTask, "Bearbeiten": self.onWorkOnTask,
-                "Löschen": self.onDeleteTask, "Verschieben": self.onMoveTask, "Kopieren": self.onCopyTask
+                "Löschen": self.onDeleteTask, "Einfügen": self.onInsertTask, "Ausschneiden": self.onCutTask, "Kopieren": self.onCopyTask
                 }
 
     def onOptionButtonMenu(self, task, event, values, *args, **kwargs):
@@ -117,12 +118,10 @@ class TaskAttack:
         if self.last_deleted_task:
             self.last_deleted_task.recover()
 
-
     def onWorkOnTask(self, task, *args, **kwargs):
         event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation())
         if self._eventIsNotNone(event):
             task.update(**values)
-
 
     def onNewSubTask(self, task, *args, **kwargs):
         event, values = self.task_window_crator.inputWindow(kind="Aufgabe", masters_ende=task.sEnde())
@@ -141,13 +140,17 @@ class TaskAttack:
             self.last_deleted_task = task
             task.delete()
 
-    def onMoveTask(self):
-        # todo dev move task
-        pass
+    def onCutTask(self, task, *args, **kwargs):
+        self._clipboard = task
+        task.delete()
 
-    def onCopyTask(self):
-        # todo dev copy task
-        pass
+    def onCopyTask(self, task, *args, **kwargs):
+        self._clipboard = task
+
+    def onInsertTask(self, task, *args, **kwargs):
+        hard_copy = copy.deepcopy(self._clipboard)
+        hard_copy.setMaster(task)
+        task.insertClipbordTask(clipbord_task=hard_copy)
 
     def _userExit(self, event, window):
         """checks for and executes Exit if asked for"""
@@ -243,7 +246,6 @@ class TaskAttack:
                 #     raise RuntimeError("irgend etwas vergessen!!!!")
         return base_layout
 
-
     def getTaskFromMatrix(self, coordinates):
         """
         :param coordinates: tuple(int, int)
@@ -303,6 +305,7 @@ class TaskAttack:
         :return: main window
         """
         project_matrix = self.propperProjectMatrix()
+        tools.printMatrix("#333", project_matrix)
         layout = self.propperWindowLayout(self.sMenuBar(), project_matrix)
         main_window = sg.Window('TaskAtack Project and Taskmanager', layout,
                                 finalize=True, resizable=True, size=self.window_size, location=self.window_location)
@@ -322,15 +325,14 @@ class TaskAttack:
             self.autoSave()
 
 
+
 # todo complet documentation and code cleanup
 
 
 if __name__ == '__main__':
     main_gui_task_atack = TaskAttack()
 
-# todo dev kopieren von tasks
 
-# todo dev verschieben von tasks
 
 # todo dev isolate view von tasks
 

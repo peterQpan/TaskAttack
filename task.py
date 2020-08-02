@@ -283,7 +283,10 @@ class Task:
         """
         :return: the percentage of one task in proportion to the howl project
         """
-        return self.sPercentage() / len(self.sub_tasks)
+        try:
+            return self.sPercentage() / len(self.sub_tasks)
+        except:
+            print(f"self percentage: {self.sPercentage()} subtasks: {self.sub_tasks}")
 
     def recognizeMatrixPosition(self, depth, span):
         """
@@ -330,6 +333,12 @@ class Task:
         # todo beauty hav to be in persistencer
         self.taskmanager = taskmanager
 
+    def insertClipbordTask(self, clipbord_task):
+        self.sub_tasks.append(clipbord_task)
+
+    def setMaster(self, task):
+        self.master = task
+
 
 class Taskmanager:
     def __init__(self):
@@ -343,7 +352,7 @@ class Taskmanager:
     def reset(self):
         """task to perform if task manager has to reset i.e. new or load
         """
-        self.projekts = []
+        self.sub_tasks = []
         self.task_matrix = None
 
     def save(self, filename="projects.bin"):
@@ -351,7 +360,7 @@ class Taskmanager:
             os.mkdir("autosave")
 
         with open(filename, "wb") as fh:
-            for projekt in self.projekts:
+            for projekt in self.sub_tasks:
                 pickle.dump(projekt, fh)
 
     def load(self, file_path="projects.bin"):
@@ -361,7 +370,7 @@ class Taskmanager:
                 try:
                     project = pickle.load(fh)
                     project.setTaskManager(self)
-                    self.projekts.append(project)
+                    self.sub_tasks.append(project)
                 except EOFError:
                     break
 
@@ -370,7 +379,7 @@ class Taskmanager:
         creates a new project"""
         new_project = Task(name=name, description=description, start=start, end=end, priority=priority,
                            taskmanager=self)
-        self.projekts.append(new_project)
+        self.sub_tasks.append(new_project)
         if not self.renewal_thread:
             self.startDataDeletionForRenewalThread()
 
@@ -379,7 +388,7 @@ class Taskmanager:
         :return:int amount of columns >x< needed for diplaying task-structure
         """
         try:
-            return max([projekt.subTaskDepth() for projekt in self.projekts])
+            return max([projekt.subTaskDepth() for projekt in self.sub_tasks])
         except ValueError:
             print(f"noch keine projekte vorhanden")
 
@@ -388,7 +397,7 @@ class Taskmanager:
         :return:int amout of rows >y< needet for displaying task-structure
         """
         try:
-            return sum([projekt.rowExpansion() for projekt in self.projekts])
+            return sum([projekt.rowExpansion() for projekt in self.sub_tasks])
         except ValueError:
             print(f"noch keine projekte vorhanden")
 
@@ -420,7 +429,7 @@ class Taskmanager:
         :return:list_of_lists >>> the task filled display matrix
         """
         base_matrix = self.baseMatrix()
-        for task in self.projekts:
+        for task in self.sub_tasks:
             task: Task
             task.takePosition(base_matrix)
         return base_matrix
@@ -428,7 +437,7 @@ class Taskmanager:
     def recognizeMatrixPositions(self):
         """commands subtasks to recognize their position in the display matrix"""
         span_here = 0
-        for projekt in self.projekts:
+        for projekt in self.sub_tasks:
             projekt: Task
             projekt.recognizeMatrixPosition(depth=0, span=span_here)
             span_here += projekt.rowExpansion()
@@ -458,7 +467,7 @@ class Taskmanager:
         final function to create the finished display matrix
         :return: THEdisplay
         """
-        if not self.projekts:
+        if not self.sub_tasks:
             return [[]]
 
         self.recognizeMatrixPositions()
@@ -473,11 +482,11 @@ class Taskmanager:
                 print(f"#09u09u recursive reset triggered in thread")
                 [subtask.recursiveTimeDeltaReset() for subtask in subtasks]
 
-        self.renewal_thread = threading.Thread(target=renewal, args=(self.projekts, ), daemon=True)
+        self.renewal_thread = threading.Thread(target=renewal, args=(self.sub_tasks,), daemon=True)
         self.renewal_thread.start()
 
     def deleteSubTask(self, task):
-        self.projekts.remove(task)
+        self.sub_tasks.remove(task)
         pass
 
 
