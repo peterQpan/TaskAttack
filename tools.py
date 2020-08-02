@@ -14,16 +14,18 @@ class ColorMapping:
 
 
 class RedGreenHexColorMapping(ColorMapping):
-    # todo beauty--->
-    # todo dev make this class better inheritable or changeable for various different color schemes
     """
     generates color transition from red to green,
     to save computation it mapps his answers
     0:"#FF0000", 100:"00FF00"
     """
-    def __init__(self):
+    def __init__(self, color_scheme:dict={0:"#B90000", 100:"#00DC00", "completed":"#004400", "no_end": None,
+                                          "same_day": "#BBBB00", "expired": "#AF14AF", "running_out": "#880000"}):
+        # todo dev: make class complete changeable with init red_zero:red_hundred, green_zero:red_hundred,
+        #  blue_zero:blue:hundred and transition_method takes this without knowing and execute color transition
         super().__init__()
-        self.mapping.update({0:"#B90000", 100:"#00DC00"})
+        self.mapping.update(color_scheme)
+
 
     def __call__(self, task, *args, **kwargs):
         """
@@ -36,31 +38,29 @@ class RedGreenHexColorMapping(ColorMapping):
         :return: i.e. "#FF0000" hexstring_color which indicates the approximation to the deadline date
                 or none if there is no deadline
         """
+
         if task.sCompleted() == 100:
-            return "#004400"
+            return self.mapping["completed"]
 
         if not task.sEnde():
-            return None
+            return self.mapping["no_end"]
 
         if task.sStart() == task.sEnde():
-            return "#BBBB00" #yellow
+            return self.mapping["same_day"]
 
         if task.sRemainingMinutes() <= 0:
-            return "#AF14AF" #pink
+            return self.mapping["expired"]
 
-        if task.sRemainingDays() < 0:
-            return "#880000" #dark red
-
-
-        complete_time = task.ende - task.start
-        complete_minutes = complete_time.total_seconds() // 60
-        percentage = 100 / complete_minutes * task.sRemainingMinutes()
+        if task.sRemainingMinutes() < 720:
+            print(f"#10921 {task.sRemainingMinutes()}")
+            return self.mapping["running_out"]
 
         try:
-            return self.mapping[percentage]
+            return self.mapping[task.sTimePercentage()]
         except KeyError:
-            color_string = self._redGreenHexColor(percentage)
-            self.mapping[percentage] = color_string
+            print(f"percentage: {task.sTimePercentage()}")
+            color_string = self._redGreenHexColor(task.sTimePercentage())
+            self.mapping[task.sTimePercentage()] = color_string
             return color_string
 
     @staticmethod

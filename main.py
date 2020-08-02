@@ -133,7 +133,7 @@ class TaskAttack:
         task.changeCompleted()
 
     def onIsolateTask(self):
-        # todo isolated task tree view
+        # todo dev isolated task tree view
         pass
 
     def onDeleteTask(self, task, *args, **kwargs):
@@ -142,11 +142,11 @@ class TaskAttack:
             task.delete()
 
     def onMoveTask(self):
-        # todo move task
+        # todo dev move task
         pass
 
     def onCopyTask(self):
-        # todo copy task
+        # todo dev copy task
         pass
 
     def _userExit(self, event, window):
@@ -230,7 +230,7 @@ class TaskAttack:
         base_layout = copy.deepcopy(orginal_display_matrix)
 
         # todo beauty --->
-        # todo cocl more modularisation here?!?
+        #  delete out commented on 2020-08-04
         for y_index, y in enumerate(orginal_display_matrix):
             for x_index, element in enumerate(y):
                 if isinstance(element, Task):
@@ -336,11 +336,7 @@ if __name__ == '__main__':
 
 # todo scroll position beibehalten (not possible as i know)
 
-# todo vllt sollte ich alle farbvergleiche auf stunden basis machen anstatt auf tage?!?
-
-# todo beauty performance is ugly bad since i added button menus, how to solve?!?
-
-# todo beauty placeholder color
+# todo beauty look out for chances to easily improve performance
 
 ## todo figure colorcheme someday task, full deadline, etc
 
