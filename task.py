@@ -328,7 +328,7 @@ class Task:
 
     def setTaskManager(self, taskmanager):
         # todo beauty hav to be in persistencer
-        self.taskmaster = taskmanager
+        self.taskmanager = taskmanager
 
 
 class Taskmanager:
