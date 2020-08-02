@@ -12,7 +12,8 @@ import tools
 
 
 class Task:
-    def __init__(self, name:str, description:str=None, start=None, end=None, priority=21, master=None):
+    def __init__(self, name:str, description:str=None, start=None, end=None, priority=21, master=None,
+                 taskmanager:"Taskmanager"=None):
         self._remaining_timedelta = None
         self._remaining_minutes = None
         self._remaining_days = None
@@ -24,13 +25,18 @@ class Task:
         self.priority = priority
 
         self.master = master
+        self.taskmanager = taskmanager
         self.sub_tasks = []
         self._completed = 0
 
-        self._redGreenHexColor = tools.RedGreenHexColorMapping()
+        self._colorSheme = tools.RedGreenHexColorMapping()
 
     def __getstate__(self):
-        return self.__dict__
+        state = {x:y for x,y in self.__dict__.items()}
+        print(self.__dict__)
+        print(state)
+        state["taskmanager"] = None # todo beauty have to be in persistencer
+        return state
 
     def __setstate__(self, state):
         state.update({"_remeining_timedelta":None})
@@ -42,9 +48,9 @@ class Task:
     def __repr__(self):
         return f"Task: {self.sName()} {self.sStart()} {self.sCompleted()}"
 
+    # todo beauty delete out commented on 2020-08-04
     # @property
     # def completed(self):
-    #     #todo bring all this into sCompleted?!?
     #     if not self.sub_tasks:
     #         # try:
     #         return self._completed
@@ -113,18 +119,33 @@ class Task:
             return self.master.subTaskPercentage()
 
     def sRemainingTimedelta(self):
+        # todo beauty: this method have to be more beautiful
         if self._remaining_timedelta is None:
             try:
-                self._remaining_timedelta = self.ende - tools.nowDateTime()
+                self._remaining_timedelta = self.sEnde() - tools.nowDateTime()
+                self._complete_time = self.sEnde() - self.sStart()
+                self._complete_minutes = self._complete_time.total_seconds() // 60
                 self._remaining_minutes = self._remaining_timedelta.total_seconds() // 60
                 self._remaining_days = self._remaining_timedelta.days
+                self._time_percentage = int(100 / self._complete_minutes * self._remaining_minutes)
             except TypeError as e:
                 print(f"#kakld89i error: {e.__traceback__}, {e.__repr__()}, {e.__traceback__.tb_lineno}")
                 self._remaining_timedelta = self._remaining_minutes = False
+                self._complete_time = False
+                self._complete_minutes = False
                 self._remaining_minutes = False
                 self._remaining_days = False
 
         return self._remaining_timedelta
+
+    def sCompleteTime(self):
+        return self._complete_time
+
+    def sTimePercentage(self):
+        return self._time_percentage
+
+    def sCompleteMinutes(self):
+        return self._complete_minutes
 
     def sRemainingDays(self):
         # todo beauty ---> how to avoid need for this check
@@ -153,8 +174,11 @@ class Task:
         self.sub_tasks.append(sub_task)
 
     def delete(self):
-        #fixme upward compapility with taskmanager, cant delete projects
-        self.master.deleteSubTask(self)
+        try:
+            self.master.deleteSubTask(self)
+        except:
+            self.taskmaster.deleteSubTask(task=self)
+
 
     def deleteSubTask(self, task):
         self.sub_tasks.remove(task)
@@ -171,31 +195,31 @@ class Task:
             return all_tasks_under
 
     def taskDeadlineColor(self):
-        """
-        :return: i.e. "#FF0000" hexstring_color which indicates the approximation to the deadline date
-                or none if there is no deadline
-        """
-        #todo all this ifs in hexcolor class?!?
-        if not self.ende:
-            return None
-
-        if self.start == self.ende:
-            return "#BBBB00" #yellow
-
-        if self.sRemainingMinutes() <= 0:
-            return "#AF14AF" #pink
-
-        if self.sRemainingDays() < 0:
-            return "#880000" #dark red
-
-        if self.sCompleted() == 100:
-            return "#004400"
-
-        complete_time = self.ende - self.start
-        complete_minutes = complete_time.total_seconds() // 60
-        percentage = 100 / complete_minutes * self.sRemainingMinutes()
-
-        return self._redGreenHexColor(percentage)
+        # """
+        # :return: i.e. "#FF0000" hexstring_color which indicates the approximation to the deadline date
+        #         or none if there is no deadline
+        # """
+        # if not self.ende:
+        #     return None
+        #
+        # if self.sStart() == self.sEnde():
+        #     return "#BBBB00" #yellow
+        #
+        # if self.sRemainingMinutes() <= 0:
+        #     return "#AF14AF" #pink
+        #
+        # if self.sRemainingDays() < 0:
+        #     return "#880000" #dark red
+        #
+        # if self.sCompleted() == 100:
+        #     return "#004400"
+        #
+        # complete_time = self.ende - self.start
+        # complete_minutes = complete_time.total_seconds() // 60
+        # percentage = 100 / complete_minutes * self.sRemainingMinutes()
+        #
+        # return self._colorSheme(percentage)
+        return self._colorSheme(task=self)
 
     def HierarchyTreePositionString(self, lenght=30):
         # todo enable mapping or saving o something so that this function didnt have to run everytime,
@@ -302,6 +326,10 @@ class Task:
     def recoverSubtask(self, task):
         self.sub_tasks.append(task)
 
+    def setTaskManager(self, taskmanager):
+        # todo beauty hav to be in persistencer
+        self.taskmanager = taskmanager
+
 
 class Taskmanager:
     def __init__(self):
@@ -332,6 +360,7 @@ class Taskmanager:
             while True:
                 try:
                     project = pickle.load(fh)
+                    project.setTaskManager(self)
                     self.projekts.append(project)
                 except EOFError:
                     break
@@ -339,7 +368,8 @@ class Taskmanager:
     def addProject(self, name:str, description=None, start=None, end=None, priority:int=21):
         """
         creates a new project"""
-        new_project = Task(name=name, description=description, start=start, end=end, priority=priority)
+        new_project = Task(name=name, description=description, start=start, end=end, priority=priority,
+                           taskmanager=self)
         self.projekts.append(new_project)
         if not self.renewal_thread:
             self.startDataDeletionForRenewalThread()
@@ -445,6 +475,10 @@ class Taskmanager:
 
         self.renewal_thread = threading.Thread(target=renewal, args=(self.projekts, ), daemon=True)
         self.renewal_thread.start()
+
+    def deleteSubTask(self, task):
+        self.projekts.remove(task)
+        pass
 
 
 if __name__ == '__main__':
