@@ -103,7 +103,7 @@ class TaskFrameCreator:
 
     @staticmethod
     def _buttonMenuList():
-        return ['Unused', ['Unteraufgabe', 'Isolieren', 'Bearbeiten', 'Löschen', 'Verschieben', 'Kopieren']]
+        return ['Unused', ['Unteraufgabe', 'Isolieren', 'Bearbeiten', 'Löschen', 'Einfügen', "Ausschneiden", 'Kopieren']]
 
     def _buttonMenu(self, task):
         return sg.ButtonMenu('Options', self._buttonMenuList(), key=f'-BMENU-#7#{task.sPosition()}', border_width=2)
