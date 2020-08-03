@@ -29,7 +29,7 @@ class Task:
         self.sub_tasks = []
         self._completed = 0
 
-        self._colorSheme = tools.RedGreenHexColorMapping()
+        self._colorSheme = tools.ColorTransistor()
 
     def __getstate__(self):
         state = {x:y for x,y in self.__dict__.items()}
@@ -382,7 +382,8 @@ class Taskmanager:
         self.sub_tasks.append(new_project)
         if not self.renewal_thread:
             self.startDataDeletionForRenewalThread()
-
+    # todo dev, easyficationn, this functions have to cange to become uniform with task methods of
+    #  the same kind so isolated subtask view works easily and in the same matter
     def columnCount(self):
         """
         :return:int amount of columns >x< needed for diplaying task-structure

@@ -340,6 +340,8 @@ if __name__ == '__main__':
 
 # todo beauty look out for chances to easily improve performance
 
+# todo beauty --> uniform task and taskmanager
+
 ## todo figure colorcheme someday task, full deadline, etc
 
 ## todo beauty option button has no relief

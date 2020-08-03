@@ -8,36 +8,41 @@ import time
 from pip._vendor.colorama import Fore
 
 
-class ColorMapping:
-    def __init__(self):
-        self.mapping = {}
+class ColorTransistor:
+    def __init__(self, color_scheme:dict=None, transition_scheme=((0, 185), (220, 0), (0, 0))):
+        base_scheme = {0:"#B90000", 100:"#00DC00", "completed":"#004400", "no_end": None, "same_day": "#BBBB00",
+                       "expired": "#AF14AF", "running_out": "#880000"}
+        self.mapping = color_scheme if color_scheme else base_scheme
+        self.transition_scheme = transition_scheme
 
 
-class RedGreenHexColorMapping(ColorMapping):
-    """
-    generates color transition from red to green,
-    to save computation it mapps his answers
-    0:"#FF0000", 100:"00FF00"
-    """
-    def __init__(self, color_scheme:dict={0:"#B90000", 100:"#00DC00", "completed":"#004400", "no_end": None,
-                                          "same_day": "#BBBB00", "expired": "#AF14AF", "running_out": "#880000"}):
-        # todo dev: make class complete changeable with init red_zero:red_hundred, green_zero:red_hundred,
-        #  blue_zero:blue:hundred and transition_method takes this without knowing and execute color transition
-        super().__init__()
-        self.mapping.update(color_scheme)
+    @staticmethod
+    def hexStr(number:float):
+        hex_str = hex(int(number))
+        hex_str = hex_str.replace("0x", "")
+        if len(hex_str) < 2:
+            return "0" + hex_str
+        return hex_str
+
+
+    def transition(self, task,):
+        percentage:int = task.sTimePercentage()
+        hex_color_string = "#"
+
+        for zero, one in self.transition_scheme:
+            range_her = abs(one - zero)
+            if zero == one:
+                hex_color_string += self.hexStr(zero)
+            if zero < one:
+                hex_color_string += self.hexStr(range_her / 100 * (100 - percentage))
+            if zero > one:
+                hex_color_string += self.hexStr(range_her / 100 * percentage)
+
+        self.mapping[percentage] = hex_color_string
+        return hex_color_string
 
 
     def __call__(self, task, *args, **kwargs):
-        """
-        generates color transition from red to green,
-        to save computation it mapps his answers
-        0:"#FF0000", 100:"00FF00"
-        """
-
-        """
-        :return: i.e. "#FF0000" hexstring_color which indicates the approximation to the deadline date
-                or none if there is no deadline
-        """
 
         if task.sCompleted() == 100:
             return self.mapping["completed"]
@@ -58,29 +63,9 @@ class RedGreenHexColorMapping(ColorMapping):
         try:
             return self.mapping[task.sTimePercentage()]
         except KeyError:
-            print(f"percentage: {task.sTimePercentage()}")
-            color_string = self._redGreenHexColor(task.sTimePercentage())
-            self.mapping[task.sTimePercentage()] = color_string
-            return color_string
+            return self.transition(task=task)
 
-    @staticmethod
-    def _redGreenHexColor(percentage:float):
-        """
-        :param percentage: float from 0 to 100
-        :return: color hexstring ranging from "#FF0000"(red) at 100
-                to "#00FF00"(green) at 0
-        """
-        def hexStr(number:int):
-            hex_str = hex(number)
-            hex_str = hex_str.replace("0x", "")
-            if len(hex_str) < 2:
-                return "0" + hex_str
-            return hex_str
 
-        percentage = int(percentage)
-        green = int(220 / 100 * percentage)
-        red = int(185 / 100 * (100 - percentage))
-        return "#" + hexStr(red) + hexStr(green) + "00"
 
 
 def nowDateTime():
