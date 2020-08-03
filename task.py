@@ -12,7 +12,8 @@ import tools
 
 
 class Task:
-    def __init__(self, name:str, description:str=None, start=None, end=None, priority=21, master=None):
+    def __init__(self, name:str, description:str=None, start=None, end=None, priority=21, master=None,
+                 taskmanager:"Taskmanager"=None):
         self._remaining_timedelta = None
         self._remaining_minutes = None
         self._remaining_days = None
@@ -24,13 +25,18 @@ class Task:
         self.priority = priority
 
         self.master = master
+        self.taskmanager = taskmanager
         self.sub_tasks = []
         self._completed = 0
 
-        self._colorSheme = tools.RedGreenHexColorMapping()
+        self._colorSheme = tools.ColorTransistor()
 
     def __getstate__(self):
-        return self.__dict__
+        state = {x:y for x,y in self.__dict__.items()}
+        print(self.__dict__)
+        print(state)
+        state["taskmanager"] = None # todo beauty have to be in persistencer
+        return state
 
     def __setstate__(self, state):
         state.update({"_remeining_timedelta":None})
@@ -42,9 +48,9 @@ class Task:
     def __repr__(self):
         return f"Task: {self.sName()} {self.sStart()} {self.sCompleted()}"
 
+    # todo beauty delete out commented on 2020-08-04
     # @property
     # def completed(self):
-    #     #todo bring all this into sCompleted?!?
     #     if not self.sub_tasks:
     #         # try:
     #         return self._completed
@@ -113,18 +119,33 @@ class Task:
             return self.master.subTaskPercentage()
 
     def sRemainingTimedelta(self):
+        # todo beauty: this method have to be more beautiful
         if self._remaining_timedelta is None:
             try:
-                self._remaining_timedelta = self.ende - tools.nowDateTime()
+                self._remaining_timedelta = self.sEnde() - tools.nowDateTime()
+                self._complete_time = self.sEnde() - self.sStart()
+                self._complete_minutes = self._complete_time.total_seconds() // 60
                 self._remaining_minutes = self._remaining_timedelta.total_seconds() // 60
                 self._remaining_days = self._remaining_timedelta.days
+                self._time_percentage = int(100 / self._complete_minutes * self._remaining_minutes)
             except TypeError as e:
                 print(f"#kakld89i error: {e.__traceback__}, {e.__repr__()}, {e.__traceback__.tb_lineno}")
                 self._remaining_timedelta = self._remaining_minutes = False
+                self._complete_time = False
+                self._complete_minutes = False
                 self._remaining_minutes = False
                 self._remaining_days = False
 
         return self._remaining_timedelta
+
+    def sCompleteTime(self):
+        return self._complete_time
+
+    def sTimePercentage(self):
+        return self._time_percentage
+
+    def sCompleteMinutes(self):
+        return self._complete_minutes
 
     def sRemainingDays(self):
         # todo beauty ---> how to avoid need for this check
@@ -153,8 +174,11 @@ class Task:
         self.sub_tasks.append(sub_task)
 
     def delete(self):
-        #fixme upward compapility with taskmanager, cant delete projects
-        self.master.deleteSubTask(self)
+        try:
+            self.master.deleteSubTask(self)
+        except:
+            self.taskmaster.deleteSubTask(task=self)
+
 
     def deleteSubTask(self, task):
         self.sub_tasks.remove(task)
@@ -259,7 +283,10 @@ class Task:
         """
         :return: the percentage of one task in proportion to the howl project
         """
-        return self.sPercentage() / len(self.sub_tasks)
+        try:
+            return self.sPercentage() / len(self.sub_tasks)
+        except:
+            print(f"self percentage: {self.sPercentage()} subtasks: {self.sub_tasks}")
 
     def recognizeMatrixPosition(self, depth, span):
         """
@@ -302,6 +329,16 @@ class Task:
     def recoverSubtask(self, task):
         self.sub_tasks.append(task)
 
+    def setTaskManager(self, taskmanager):
+        # todo beauty hav to be in persistencer
+        self.taskmanager = taskmanager
+
+    def insertClipbordTask(self, clipbord_task):
+        self.sub_tasks.append(clipbord_task)
+
+    def setMaster(self, task):
+        self.master = task
+
 
 class Taskmanager:
     def __init__(self):
@@ -315,7 +352,7 @@ class Taskmanager:
     def reset(self):
         """task to perform if task manager has to reset i.e. new or load
         """
-        self.projekts = []
+        self.sub_tasks = []
         self.task_matrix = None
 
     def save(self, filename="projects.bin"):
@@ -323,7 +360,7 @@ class Taskmanager:
             os.mkdir("autosave")
 
         with open(filename, "wb") as fh:
-            for projekt in self.projekts:
+            for projekt in self.sub_tasks:
                 pickle.dump(projekt, fh)
 
     def load(self, file_path="projects.bin"):
@@ -332,24 +369,27 @@ class Taskmanager:
             while True:
                 try:
                     project = pickle.load(fh)
-                    self.projekts.append(project)
+                    project.setTaskManager(self)
+                    self.sub_tasks.append(project)
                 except EOFError:
                     break
 
     def addProject(self, name:str, description=None, start=None, end=None, priority:int=21):
         """
         creates a new project"""
-        new_project = Task(name=name, description=description, start=start, end=end, priority=priority)
-        self.projekts.append(new_project)
+        new_project = Task(name=name, description=description, start=start, end=end, priority=priority,
+                           taskmanager=self)
+        self.sub_tasks.append(new_project)
         if not self.renewal_thread:
             self.startDataDeletionForRenewalThread()
-
+    # todo dev, easyficationn, this functions have to cange to become uniform with task methods of
+    #  the same kind so isolated subtask view works easily and in the same matter
     def columnCount(self):
         """
         :return:int amount of columns >x< needed for diplaying task-structure
         """
         try:
-            return max([projekt.subTaskDepth() for projekt in self.projekts])
+            return max([projekt.subTaskDepth() for projekt in self.sub_tasks])
         except ValueError:
             print(f"noch keine projekte vorhanden")
 
@@ -358,7 +398,7 @@ class Taskmanager:
         :return:int amout of rows >y< needet for displaying task-structure
         """
         try:
-            return sum([projekt.rowExpansion() for projekt in self.projekts])
+            return sum([projekt.rowExpansion() for projekt in self.sub_tasks])
         except ValueError:
             print(f"noch keine projekte vorhanden")
 
@@ -390,7 +430,7 @@ class Taskmanager:
         :return:list_of_lists >>> the task filled display matrix
         """
         base_matrix = self.baseMatrix()
-        for task in self.projekts:
+        for task in self.sub_tasks:
             task: Task
             task.takePosition(base_matrix)
         return base_matrix
@@ -398,7 +438,7 @@ class Taskmanager:
     def recognizeMatrixPositions(self):
         """commands subtasks to recognize their position in the display matrix"""
         span_here = 0
-        for projekt in self.projekts:
+        for projekt in self.sub_tasks:
             projekt: Task
             projekt.recognizeMatrixPosition(depth=0, span=span_here)
             span_here += projekt.rowExpansion()
@@ -428,7 +468,7 @@ class Taskmanager:
         final function to create the finished display matrix
         :return: THEdisplay
         """
-        if not self.projekts:
+        if not self.sub_tasks:
             return [[]]
 
         self.recognizeMatrixPositions()
@@ -443,8 +483,12 @@ class Taskmanager:
                 print(f"#09u09u recursive reset triggered in thread")
                 [subtask.recursiveTimeDeltaReset() for subtask in subtasks]
 
-        self.renewal_thread = threading.Thread(target=renewal, args=(self.projekts, ), daemon=True)
+        self.renewal_thread = threading.Thread(target=renewal, args=(self.sub_tasks,), daemon=True)
         self.renewal_thread.start()
+
+    def deleteSubTask(self, task):
+        self.sub_tasks.remove(task)
+        pass
 
 
 if __name__ == '__main__':
