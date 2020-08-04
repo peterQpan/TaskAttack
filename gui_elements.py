@@ -39,8 +39,8 @@ class TaskFrameCreator:
     Factory to create PySimpleGui Frames which represents either a Task or an empty space of the same size
     """
 
-
     def __init__(self, size=30):
+        self.setBasichButtonMenuList()
         self.size = size
 
     def sSize(self):
@@ -98,12 +98,17 @@ class TaskFrameCreator:
                                enable_events=True, tooltip=tooltip_text, background_color=background_color)
         return sg.Text(f"Vollendet: {task.sCompleted():6.2f}", tooltip=tooltip_text, background_color=background_color)
 
-    @staticmethod
-    def _buttonMenuList():
-        return ['Unused', ['Unteraufgabe', 'Isolieren', 'Bearbeiten', 'Löschen', 'Verschieben', 'Kopieren']]
+    def _buttonMenuList(self):
+        return self._button_menu_list
+
+    def setBasichButtonMenuList(self):
+        self._button_menu_list = ['Unused', ['Unteraufgabe', 'Isolieren', 'Bearbeiten', 'Löschen', 'Einfügen', "Ausschneiden", 'Kopieren']]
+
+    def changeMenuListToIsolated(self):
+        self._button_menu_list = ['Unused', ['Unteraufgabe', 'Gesamtansicht', 'Bearbeiten', 'Löschen', 'Einfügen', "Ausschneiden", 'Kopieren']]
 
     def _buttonMenu(self, task):
-        return sg.ButtonMenu('Options', self._buttonMenuList(), key=f'-BMENU-#7#{task.sPosition()}')
+        return sg.ButtonMenu('Options', self._buttonMenuList(), key=f'-BMENU-#7#{task.sPosition()}', border_width=2)
 
 
     def taskFrame(self, task:task.Task):
@@ -119,7 +124,7 @@ class TaskFrameCreator:
 
         frame_name = task.HierarchyTreePositionString()
 
-        aling_sg_object = sg.Text(text="", size=(self.sSize() - 15,1))
+        aling_sg_object = sg.Text(text="", size=(self.sSize() - 15,1), background_color=background_color)
         option_button_sg_object = self._buttonMenu(task)
 
         frame = self._basicTaskFrame(frame_name=frame_name, name=name_sg_object, priority=priority_sg_object,
@@ -198,7 +203,7 @@ class TaskInputWindowCreator:
         :return: calendar line for either start or end
         """
         button_text, date_tuple = self.calendarButtonParameter(calendar_date=calendar_date, s_or_e=s_or_e)
-        line = [sg.Text('Start:', size=(15, 1)),
+        line = [sg.Text(s_or_e, size=(15, 1)),
                 sg.CalendarButton(default_date_m_d_y=date_tuple, button_text=button_text,
                                   format="%Y-%m-%d", key=key, target=target),
                 sg.Text(key=f'{s_or_e}-KORREKTUR-', text_color="#FF0000", size=(35, 1))]
@@ -313,5 +318,4 @@ if __name__ == '__main__':
         win_creator = TaskInputWindowCreator()
         event, values = win_creator.inputWindow(kind="Projekt", start=None)
         print(event, values)
-
 

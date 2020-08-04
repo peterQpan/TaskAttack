@@ -52,6 +52,10 @@ class TaskAttack:
         """
         :return: function mapping for window/global executable functions
         """
+        #todo beauty can i avoid redundance with _buttonMenuList() und this dict?!?
+        # correspondig functions an lists:
+        # gui_elements.TaskFrameCreator.setBasichButtonMenuList()
+        # gui_elements.TaskFrameCreator.changeMenuListToIsolated()
         return {#Globals:
                 "Neues Projekt": self.onAddProject, "Reload": self.onReload,
                 "Neue Projekt Tabelle": self.onNewFile, "Öffnen": self.onLoad, "Speichern": self.onSave,
@@ -63,7 +67,8 @@ class TaskAttack:
 
                 #ButtonCommands:
                 "Unteraufgabe": self.onNewSubTask, "Isolieren": self.onIsolateTask, "Bearbeiten": self.onWorkOnTask,
-                "Löschen": self.onDeleteTask, "Verschieben": self.onMoveTask, "Kopieren": self.onCopyTask
+                "Löschen": self.onDeleteTask, "Einfügen": self.onInsertTask, "Ausschneiden": self.onCutTask,
+                "Kopieren": self.onCopyTask, "Gesamtansicht": self.onBaseView
                 }
 
     def onOptionButtonMenu(self, task, event, values, *args, **kwargs):
@@ -109,7 +114,7 @@ class TaskAttack:
         event, values = self.task_window_crator.inputWindow(kind="Projekt", )
         if event in {"Abbrechen", None}:
             return
-        self.taskmanager.addProject(name=values['name'], description=values['description'], start=values['start'],
+        self.taskmanager.addSubTask(name=values['name'], description=values['description'], start=values['start'],
                                     end=values['ende'],
                                     priority=values['priority'])
 
@@ -117,12 +122,10 @@ class TaskAttack:
         if self.last_deleted_task:
             self.last_deleted_task.recover()
 
-
     def onWorkOnTask(self, task, *args, **kwargs):
         event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation())
         if self._eventIsNotNone(event):
             task.update(**values)
-
 
     def onNewSubTask(self, task, *args, **kwargs):
         event, values = self.task_window_crator.inputWindow(kind="Aufgabe", masters_ende=task.sEnde())
@@ -132,22 +135,30 @@ class TaskAttack:
     def onSetTaskAsCompleted(self, task, *args, **kwargs):
         task.changeCompleted()
 
-    def onIsolateTask(self):
-        # todo isolated task tree view
-        pass
+    def onIsolateTask(self, task, *args, **kwargs):
+        self.task_frames_creator.changeMenuListToIsolated()
+        self.taskmanager.isolatedTaskView(task)
+
+    def onBaseView(self, task, *args, **kwargs):
+        self.task_frames_creator.setBasichButtonMenuList()
+        self.taskmanager.deisolateTaskView(task)
 
     def onDeleteTask(self, task, *args, **kwargs):
         if gui_elements.YesNoPopup(title="Löschen", text="Wirklich löschen"):
             self.last_deleted_task = task
             task.delete()
 
-    def onMoveTask(self):
-        # todo move task
-        pass
+    def onCutTask(self, task, *args, **kwargs):
+        self._clipboard = task
+        task.delete()
 
-    def onCopyTask(self):
-        # todo copy task
-        pass
+    def onCopyTask(self, task, *args, **kwargs):
+        self._clipboard = task
+
+    def onInsertTask(self, task, *args, **kwargs):
+        hard_copy = copy.deepcopy(self._clipboard)
+        hard_copy.setMaster(task)
+        task.insertClipbordTask(clipbord_task=hard_copy)
 
     def _userExit(self, event, window):
         """checks for and executes Exit if asked for"""
@@ -158,7 +169,7 @@ class TaskAttack:
 
     def _setDataLossPreventionStatus(self, event):
         if event not in ('Neue Projekt Tabelle', 'Öffnen', 'Speichern', 'Speichern unter',
-                         'Exit', 'Reload', 'Hilfe', 'Über...'): #todo think should None be in this list?!?
+                         'Exit', 'Reload', 'Hilfe', 'Über...', None):
             self.unsaved_project = True
 
     @staticmethod
@@ -230,7 +241,7 @@ class TaskAttack:
         base_layout = copy.deepcopy(orginal_display_matrix)
 
         # todo beauty --->
-        # todo cocl more modularisation here?!?
+        #  delete out commented on 2020-08-04
         for y_index, y in enumerate(orginal_display_matrix):
             for x_index, element in enumerate(y):
                 if isinstance(element, Task):
@@ -242,7 +253,6 @@ class TaskAttack:
                 # else:
                 #     raise RuntimeError("irgend etwas vergessen!!!!")
         return base_layout
-
 
     def getTaskFromMatrix(self, coordinates):
         """
@@ -303,6 +313,7 @@ class TaskAttack:
         :return: main window
         """
         project_matrix = self.propperProjectMatrix()
+        tools.printMatrix("#333", project_matrix)
         layout = self.propperWindowLayout(self.sMenuBar(), project_matrix)
         main_window = sg.Window('TaskAtack Project and Taskmanager', layout,
                                 finalize=True, resizable=True, size=self.window_size, location=self.window_location)
@@ -328,23 +339,20 @@ class TaskAttack:
 if __name__ == '__main__':
     main_gui_task_atack = TaskAttack()
 
-# todo dev kopieren von tasks
+# todo beauty look out for chances to easily improve performance
 
-# todo dev verschieben von tasks
-
-# todo dev isolate view von tasks
-
-# todo scroll position beibehalten (not possible as i know)
-
-# todo vllt sollte ich alle farbvergleiche auf stunden basis machen anstatt auf tage?!?
-
-# todo beauty performance is ugly bad since i added button menus, how to solve?!?
-
-# todo beauty placeholder color
+# todo beauty --> uniform task and taskmanager
 
 ## todo figure colorcheme someday task, full deadline, etc
 
-## todo beauty option button has no relief
-
 # todo beauty clear language interface either german OR english not a little bit of both --> todo dev language and translating class
 
+
+# out or later scroll position beibehalten (not possible as i know)
+
+## out or later beauty option button has no relief
+
+#out or later gui_element.TaskFrameCreater._toolTipText
+# date is shown yyyy-mm-dd 00:00:00 should i exclude the hours if its always zerro,
+# or shouldnt i change it in case for later improvements whit exact time?!?
+# as is write this down here i think i shouldnt

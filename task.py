@@ -5,12 +5,19 @@ __email__ = "sebmueller.bt@gmail.com"
 import copy
 import os
 import pickle
+import threading
+import time
 
 import tools
 
 
 class Task:
-    def __init__(self, name:str, description:str=None, start=None, end=None, priority=21, master=None):
+    def __init__(self, name:str, description:str=None, start=None, end=None, priority=21, master=None,
+                 taskmanager:"Taskmanager"=None):
+        self._remaining_timedelta = None
+        self._remaining_minutes = None
+        self._remaining_days = None
+
         self.name = name
         self.description = description
         self.start = start if start else tools.nowDateTime()
@@ -18,15 +25,21 @@ class Task:
         self.priority = priority
 
         self.master = master
+        self.taskmanager = taskmanager
         self.sub_tasks = []
         self._completed = 0
 
-        self._redGreenHexColor = tools.RedGreenHexColorMapping()
+        self._colorSheme = tools.ColorTransistor()
 
     def __getstate__(self):
-        return self.__dict__
+        state = {x:y for x,y in self.__dict__.items()}
+        print(self.__dict__)
+        print(state)
+        state["taskmanager"] = None # out or later beauty have to be in persistencer
+        return state
 
     def __setstate__(self, state):
+        state.update({"_remeining_timedelta":None})
         self.__dict__.update(state)
 
     def __str__(self):
@@ -35,28 +48,18 @@ class Task:
     def __repr__(self):
         return f"Task: {self.sName()} {self.sStart()} {self.sCompleted()}"
 
-    @property
-    def completed(self):
-        #todo bring all this into sCompleted?!?
-        if not self.sub_tasks:
-            # try:
-            return self._completed
-            # except:
-                # self._completed = 0
-                # return self._completed
-        else:
-            zaehler = sum(x.completed for x in self.sub_tasks)
-            teiler = len(self.sub_tasks)
-            return zaehler / teiler
-
     def sCompleted(self, completed:int=None):
-        if completed is None:
-            return self.completed
+        if self.sub_tasks:
+            zaehler = sum(x.sCompleted() for x in self.sub_tasks)
+            teiler = len(self.sub_tasks)
+            print(f"zaehler/teiler: {zaehler /teiler}")
+            return zaehler / teiler
         else:
-            self.completed(completed)
-            #todo ?!?
-
-
+            if completed:
+                self._completed = completed
+            else:
+                print(self._completed)
+                return self._completed
 
     def sMastersEnde(self):
         if self.master:
@@ -101,21 +104,50 @@ class Task:
             return self.master.subTaskPercentage()
 
     def sRemainingTimedelta(self):
-        try:
-            #fixme some kind of mapping and time thread based actualisation since this function gets invoked 8 times
-            # just for one task for window renewel circle
-            return self.ende - tools.nowDateTime()
+        # todo beauty: this method have to be more beautiful
+        if self._remaining_timedelta is None:
+            try:
+                self._remaining_timedelta = self.sEnde() - tools.nowDateTime()
+                self._complete_time = self.sEnde() - self.sStart()
+                self._complete_minutes = self._complete_time.total_seconds() // 60
+                self._remaining_minutes = self._remaining_timedelta.total_seconds() // 60
+                self._remaining_days = self._remaining_timedelta.days
+                self._time_percentage = int(100 / self._complete_minutes * self._remaining_minutes)
+            except TypeError as e:
+                print(f"#kakld89i error: {e.__traceback__}, {e.__repr__()}, {e.__traceback__.tb_lineno}")
+                self._remaining_timedelta = self._remaining_minutes = False
+                self._complete_time = False
+                self._complete_minutes = False
+                self._remaining_minutes = False
+                self._remaining_days = False
 
-        except TypeError:
-            return None
+        return self._remaining_timedelta
+
+    def sCompleteTime(self):
+        return self._complete_time
+
+    def sTimePercentage(self):
+        return self._time_percentage
+
+    def sCompleteMinutes(self):
+        return self._complete_minutes
 
     def sRemainingDays(self):
-        if self.sRemainingTimedelta():
-            return self.sRemainingTimedelta().days
+        # todo beauty ---> how to avoid need for this check
+        if self._remaining_days is None:
+            self.sRemainingTimedelta()
+        return self._remaining_days
 
     def sRemainingMinutes(self):
-        if self.sRemainingTimedelta():
-            return self.sRemainingTimedelta().total_seconds() // 60
+        return self._remaining_minutes
+
+    def resetTimedelta(self):
+        self._remaining_timedelta = None
+
+    def recursiveTimeDeltaReset(self):
+        self.resetTimedelta()
+        print(f"time delta resetted")
+        [sub_task.recursiveTimeDeltaReset() for sub_task in self.sub_tasks]
 
     def changeCompleted(self):
         self._completed = 0 if self._completed else 100
@@ -124,9 +156,7 @@ class Task:
         sub_task = self.__class__(name, description, start, ende, priority, self)
         self.sub_tasks.append(sub_task)
 
-
     def delete(self):
-        #fixme upward compapility with taskmanager, cant delete projects
         self.master.deleteSubTask(self)
 
     def deleteSubTask(self, task):
@@ -144,31 +174,7 @@ class Task:
             return all_tasks_under
 
     def taskDeadlineColor(self):
-        """
-        :return: i.e. "#FF0000" hexstring_color which indicates the approximation to the deadline date
-                or none if there is no deadline
-        """
-        #todo all this ifs in hexcolor class?!?
-        if not self.ende:
-            return None
-
-        if self.start == self.ende:
-            return "#BBBB00" #purple
-
-        if self.sRemainingMinutes() <= 0:
-            return "#AF14AF"
-
-        if self.sRemainingDays() < 0:
-            return "#BB0000" #dark red
-
-        if self.completed == 1: #fixme dont work got no deep green taskframe if it gets completed
-            return "#004400"
-
-        complete_time = self.ende - self.start
-        complete_minutes = complete_time.total_seconds() // 60
-        percentage = 100 / complete_minutes * self.sRemainingMinutes()
-
-        return self._redGreenHexColor(percentage)
+        return self._colorSheme(task=self)
 
     def HierarchyTreePositionString(self, lenght=30):
         # todo enable mapping or saving o something so that this function didnt have to run everytime,
@@ -202,7 +208,7 @@ class Task:
         name, description, start, ende, priority, percentage, completed
         """
         dr = {"name":self.name, "description":self.description, "start": self.start, "ende": self.ende,
-              "priority": self.priority, "percentage":self.sPercentage(), "completed":self.completed,
+              "priority": self.priority, "percentage":self.sPercentage(), "completed":self.sCompleted,
               "masters_ende":self.sMastersEnde()}
         if self.master is None:
             dr.update({"kind": "Projekt"})
@@ -232,7 +238,10 @@ class Task:
         """
         :return: the percentage of one task in proportion to the howl project
         """
-        return self.sPercentage() / len(self.sub_tasks)
+        try:
+            return self.sPercentage() / len(self.sub_tasks)
+        except:
+            print(f"self percentage: {self.sPercentage()} subtasks: {self.sub_tasks}")
 
     def recognizeMatrixPosition(self, depth, span):
         """
@@ -255,6 +264,7 @@ class Task:
         self.start = start
         self.ende = ende
         self.priority = priority
+        self.resetTimedelta()
 
     def takePosition(self, base_matrix):
         """orders task to take own position in base_matrix, orders sub_task to do the same
@@ -274,9 +284,22 @@ class Task:
     def recoverSubtask(self, task):
         self.sub_tasks.append(task)
 
+    def setTaskManager(self, taskmanager):
+        # out or later beauty hav to be in persistencer, not an automation executed by the persistencer,
+        #  just the method totally unchanged for responsibility reasons
+        self.taskmanager = taskmanager
+
+    def insertClipbordTask(self, clipbord_task):
+        self.sub_tasks.append(clipbord_task)
+
+    def setMaster(self, task):
+        self.master = task
+
 
 class Taskmanager:
     def __init__(self):
+
+        self.renewal_thread = None
         self.task_matrix = None
         self.reset()
 
@@ -286,15 +309,17 @@ class Taskmanager:
     def reset(self):
         """task to perform if task manager has to reset i.e. new or load
         """
-        self.projekts = []
+        self.sub_tasks = []
+        self._side_packed_project = None
         self.task_matrix = None
+
 
     def save(self, filename="projects.bin"):
         if not os.path.isdir("autosave"):
             os.mkdir("autosave")
 
         with open(filename, "wb") as fh:
-            for projekt in self.projekts:
+            for projekt in self.sub_tasks:
                 pickle.dump(projekt, fh)
 
     def load(self, file_path="projects.bin"):
@@ -303,31 +328,55 @@ class Taskmanager:
             while True:
                 try:
                     project = pickle.load(fh)
-                    self.projekts.append(project)
+                    project.setTaskManager(self)
+                    self.sub_tasks.append(project)
                 except EOFError:
                     break
 
-    def addProject(self, name:str, description=None, start=None, end=None, priority:int=21):
+    def addSubTask(self, name:str, description=None, start=None, end=None, priority:int=21):
         """
         creates a new project"""
-        new_project = Task(name=name, description=description, start=start, end=end, priority=priority)
-        self.projekts.append(new_project)
+        new_project = Task(name=name, description=description, start=start, end=end, priority=priority,
+                           taskmanager=self)
+        self.sub_tasks.append(new_project)
+        if not self.renewal_thread:
+            self.startDataDeletionForRenewalThread()
 
-    def columnCount(self):
+    def deleteSubTask(self, task):
+        self.sub_tasks.remove(task)
+
+
+    # todo dev, easyficationn, this functions have to cange to become uniform with task methods of
+    #  the same kind so isolated subtask view works easily and in the same matter
+
+    def isolatedTaskView(self, task):
+        self._side_packed_project = self.sub_tasks
+        task.taskmanager = self #todo beauty get a method for this
+        self.sub_tasks = [task]
+
+
+    def deisolateTaskView(self, task, *args, **kwargs):
+
+        self.sub_tasks[0].taskmanager = None
+        self.sub_tasks = self._side_packed_project
+        self._side_packed_project = None
+
+
+    def subTaskDepth(self):
         """
         :return:int amount of columns >x< needed for diplaying task-structure
         """
         try:
-            return max([projekt.subTaskDepth() for projekt in self.projekts])
+            return max([projekt.subTaskDepth() for projekt in self.sub_tasks])
         except ValueError:
             print(f"noch keine projekte vorhanden")
 
-    def rowCount(self):
+    def rowExpansion(self):
         """
         :return:int amout of rows >y< needet for displaying task-structure
         """
         try:
-            return sum([projekt.rowExpansion() for projekt in self.projekts])
+            return sum([projekt.rowExpansion() for projekt in self.sub_tasks])
         except ValueError:
             print(f"noch keine projekte vorhanden")
 
@@ -335,8 +384,8 @@ class Taskmanager:
         """
         :return: columns, rows >>> x, y of complete Display-Matrix
         """
-        columns = self.columnCount()
-        rows = self.rowCount()
+        columns = self.subTaskDepth()
+        rows = self.rowExpansion()
         return columns, rows
 
     def baseMatrix(self):
@@ -359,7 +408,7 @@ class Taskmanager:
         :return:list_of_lists >>> the task filled display matrix
         """
         base_matrix = self.baseMatrix()
-        for task in self.projekts:
+        for task in self.sub_tasks:
             task: Task
             task.takePosition(base_matrix)
         return base_matrix
@@ -367,7 +416,7 @@ class Taskmanager:
     def recognizeMatrixPositions(self):
         """commands subtasks to recognize their position in the display matrix"""
         span_here = 0
-        for projekt in self.projekts:
+        for projekt in self.sub_tasks:
             projekt: Task
             projekt.recognizeMatrixPosition(depth=0, span=span_here)
             span_here += projekt.rowExpansion()
@@ -397,13 +446,24 @@ class Taskmanager:
         final function to create the finished display matrix
         :return: THEdisplay
         """
-        if not self.projekts:
+        if not self.sub_tasks:
             return [[]]
 
         self.recognizeMatrixPositions()
         self.task_matrix = self.createTaskMatix()
         display_matrix = self.addMasterTaskPlaceholderStrings(self.task_matrix)
         return display_matrix
+
+    def startDataDeletionForRenewalThread(self):
+        def renewal(subtasks):
+            while True:
+                time.sleep(7200)
+                print(f"#09u09u recursive reset triggered in thread")
+                [subtask.recursiveTimeDeltaReset() for subtask in subtasks]
+
+        self.renewal_thread = threading.Thread(target=renewal, args=(self.sub_tasks,), daemon=True)
+        self.renewal_thread.start()
+
 
 
 if __name__ == '__main__':
