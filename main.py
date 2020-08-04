@@ -64,7 +64,8 @@ class TaskAttack:
 
                 #ButtonCommands:
                 "Unteraufgabe": self.onNewSubTask, "Isolieren": self.onIsolateTask, "Bearbeiten": self.onWorkOnTask,
-                "Löschen": self.onDeleteTask, "Einfügen": self.onInsertTask, "Ausschneiden": self.onCutTask, "Kopieren": self.onCopyTask
+                "Löschen": self.onDeleteTask, "Einfügen": self.onInsertTask, "Ausschneiden": self.onCutTask,
+                "Kopieren": self.onCopyTask, "Gesamtansicht": self.onBaseView
                 }
 
     def onOptionButtonMenu(self, task, event, values, *args, **kwargs):
@@ -110,7 +111,7 @@ class TaskAttack:
         event, values = self.task_window_crator.inputWindow(kind="Projekt", )
         if event in {"Abbrechen", None}:
             return
-        self.taskmanager.addProject(name=values['name'], description=values['description'], start=values['start'],
+        self.taskmanager.addSubTask(name=values['name'], description=values['description'], start=values['start'],
                                     end=values['ende'],
                                     priority=values['priority'])
 
@@ -131,9 +132,13 @@ class TaskAttack:
     def onSetTaskAsCompleted(self, task, *args, **kwargs):
         task.changeCompleted()
 
-    def onIsolateTask(self):
-        # todo dev isolated task tree view
-        pass
+    def onIsolateTask(self, task, *args, **kwargs):
+        self.task_frames_creator.changeMenuListToIsolated()
+        self.taskmanager.isolatedTaskView(task)
+
+    def onBaseView(self, task, *args, **kwargs):
+        self.task_frames_creator.setBasichButtonMenuList()
+        self.taskmanager.deisolateTaskView(task)
 
     def onDeleteTask(self, task, *args, **kwargs):
         if gui_elements.YesNoPopup(title="Löschen", text="Wirklich löschen"):
@@ -323,7 +328,6 @@ class TaskAttack:
             self.window_location = main_window.current_location()
             main_window.close()
             self.autoSave()
-
 
 
 # todo complet documentation and code cleanup

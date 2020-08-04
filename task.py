@@ -174,10 +174,7 @@ class Task:
         self.sub_tasks.append(sub_task)
 
     def delete(self):
-        try:
-            self.master.deleteSubTask(self)
-        except:
-            self.taskmaster.deleteSubTask(task=self)
+        self.master.deleteSubTask(self)
 
 
     def deleteSubTask(self, task):
@@ -342,6 +339,7 @@ class Task:
 
 class Taskmanager:
     def __init__(self):
+
         self.renewal_thread = None
         self.task_matrix = None
         self.reset()
@@ -353,7 +351,9 @@ class Taskmanager:
         """task to perform if task manager has to reset i.e. new or load
         """
         self.sub_tasks = []
+        self._side_packed_project = None
         self.task_matrix = None
+
 
     def save(self, filename="projects.bin"):
         if not os.path.isdir("autosave"):
@@ -374,7 +374,7 @@ class Taskmanager:
                 except EOFError:
                     break
 
-    def addProject(self, name:str, description=None, start=None, end=None, priority:int=21):
+    def addSubTask(self, name:str, description=None, start=None, end=None, priority:int=21):
         """
         creates a new project"""
         new_project = Task(name=name, description=description, start=start, end=end, priority=priority,
@@ -382,9 +382,28 @@ class Taskmanager:
         self.sub_tasks.append(new_project)
         if not self.renewal_thread:
             self.startDataDeletionForRenewalThread()
+
+    def deleteSubTask(self, task):
+        self.sub_tasks.remove(task)
+
+
     # todo dev, easyficationn, this functions have to cange to become uniform with task methods of
     #  the same kind so isolated subtask view works easily and in the same matter
-    def columnCount(self):
+
+    def isolatedTaskView(self, task):
+        self._side_packed_project = self.sub_tasks
+        task.taskmanager = self #todo beauty get a method for this
+        self.sub_tasks = [task]
+
+
+    def deisolateTaskView(self, task, *args, **kwargs):
+
+        self.sub_tasks[0].taskmanager = None
+        self.sub_tasks = self._side_packed_project
+        self._side_packed_project = None
+
+
+    def subTaskDepth(self):
         """
         :return:int amount of columns >x< needed for diplaying task-structure
         """
@@ -393,7 +412,7 @@ class Taskmanager:
         except ValueError:
             print(f"noch keine projekte vorhanden")
 
-    def rowCount(self):
+    def rowExpansion(self):
         """
         :return:int amout of rows >y< needet for displaying task-structure
         """
@@ -406,8 +425,8 @@ class Taskmanager:
         """
         :return: columns, rows >>> x, y of complete Display-Matrix
         """
-        columns = self.columnCount()
-        rows = self.rowCount()
+        columns = self.subTaskDepth()
+        rows = self.rowExpansion()
         return columns, rows
 
     def baseMatrix(self):
@@ -486,9 +505,6 @@ class Taskmanager:
         self.renewal_thread = threading.Thread(target=renewal, args=(self.sub_tasks,), daemon=True)
         self.renewal_thread.start()
 
-    def deleteSubTask(self, task):
-        self.sub_tasks.remove(task)
-        pass
 
 
 if __name__ == '__main__':
