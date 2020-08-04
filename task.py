@@ -35,7 +35,7 @@ class Task:
         state = {x:y for x,y in self.__dict__.items()}
         print(self.__dict__)
         print(state)
-        state["taskmanager"] = None # todo beauty have to be in persistencer
+        state["taskmanager"] = None # out or later beauty have to be in persistencer
         return state
 
     def __setstate__(self, state):
@@ -47,20 +47,6 @@ class Task:
 
     def __repr__(self):
         return f"Task: {self.sName()} {self.sStart()} {self.sCompleted()}"
-
-    # todo beauty delete out commented on 2020-08-04
-    # @property
-    # def completed(self):
-    #     if not self.sub_tasks:
-    #         # try:
-    #         return self._completed
-    #         # except:
-    #             # self._completed = 0
-    #             # return self._completed
-    #     else:
-    #         zaehler = sum(x.completed for x in self.sub_tasks)
-    #         teiler = len(self.sub_tasks)
-    #         return zaehler / teiler
 
     def sCompleted(self, completed:int=None):
         if self.sub_tasks:
@@ -74,7 +60,6 @@ class Task:
             else:
                 print(self._completed)
                 return self._completed
-
 
     def sMastersEnde(self):
         if self.master:
@@ -156,7 +141,6 @@ class Task:
     def sRemainingMinutes(self):
         return self._remaining_minutes
 
-
     def resetTimedelta(self):
         self._remaining_timedelta = None
 
@@ -164,7 +148,6 @@ class Task:
         self.resetTimedelta()
         print(f"time delta resetted")
         [sub_task.recursiveTimeDeltaReset() for sub_task in self.sub_tasks]
-
 
     def changeCompleted(self):
         self._completed = 0 if self._completed else 100
@@ -175,7 +158,6 @@ class Task:
 
     def delete(self):
         self.master.deleteSubTask(self)
-
 
     def deleteSubTask(self, task):
         self.sub_tasks.remove(task)
@@ -192,30 +174,6 @@ class Task:
             return all_tasks_under
 
     def taskDeadlineColor(self):
-        # """
-        # :return: i.e. "#FF0000" hexstring_color which indicates the approximation to the deadline date
-        #         or none if there is no deadline
-        # """
-        # if not self.ende:
-        #     return None
-        #
-        # if self.sStart() == self.sEnde():
-        #     return "#BBBB00" #yellow
-        #
-        # if self.sRemainingMinutes() <= 0:
-        #     return "#AF14AF" #pink
-        #
-        # if self.sRemainingDays() < 0:
-        #     return "#880000" #dark red
-        #
-        # if self.sCompleted() == 100:
-        #     return "#004400"
-        #
-        # complete_time = self.ende - self.start
-        # complete_minutes = complete_time.total_seconds() // 60
-        # percentage = 100 / complete_minutes * self.sRemainingMinutes()
-        #
-        # return self._colorSheme(percentage)
         return self._colorSheme(task=self)
 
     def HierarchyTreePositionString(self, lenght=30):
@@ -327,7 +285,8 @@ class Task:
         self.sub_tasks.append(task)
 
     def setTaskManager(self, taskmanager):
-        # todo beauty hav to be in persistencer
+        # out or later beauty hav to be in persistencer, not an automation executed by the persistencer,
+        #  just the method totally unchanged for responsibility reasons
         self.taskmanager = taskmanager
 
     def insertClipbordTask(self, clipbord_task):

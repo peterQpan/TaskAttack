@@ -53,6 +53,9 @@ class TaskAttack:
         :return: function mapping for window/global executable functions
         """
         #todo beauty can i avoid redundance with _buttonMenuList() und this dict?!?
+        # correspondig functions an lists:
+        # gui_elements.TaskFrameCreator.setBasichButtonMenuList()
+        # gui_elements.TaskFrameCreator.changeMenuListToIsolated()
         return {#Globals:
                 "Neues Projekt": self.onAddProject, "Reload": self.onReload,
                 "Neue Projekt Tabelle": self.onNewFile, "Öffnen": self.onLoad, "Speichern": self.onSave,
@@ -336,19 +339,20 @@ class TaskAttack:
 if __name__ == '__main__':
     main_gui_task_atack = TaskAttack()
 
-
-
-# todo dev isolate view von tasks
-
-# todo scroll position beibehalten (not possible as i know)
-
 # todo beauty look out for chances to easily improve performance
 
 # todo beauty --> uniform task and taskmanager
 
 ## todo figure colorcheme someday task, full deadline, etc
 
-## todo beauty option button has no relief
-
 # todo beauty clear language interface either german OR english not a little bit of both --> todo dev language and translating class
 
+
+# out or later scroll position beibehalten (not possible as i know)
+
+## out or later beauty option button has no relief
+
+#out or later gui_element.TaskFrameCreater._toolTipText
+# date is shown yyyy-mm-dd 00:00:00 should i exclude the hours if its always zerro,
+# or shouldnt i change it in case for later improvements whit exact time?!?
+# as is write this down here i think i shouldnt
