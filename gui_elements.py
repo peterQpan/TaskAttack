@@ -39,8 +39,8 @@ class TaskFrameCreator:
     Factory to create PySimpleGui Frames which represents either a Task or an empty space of the same size
     """
 
-
     def __init__(self, size=30):
+        self.setBasichButtonMenuList()
         self.size = size
 
     def sSize(self):
@@ -84,9 +84,6 @@ class TaskFrameCreator:
         tt += f"   Vollendet in Prozent:................................. {task.sCompleted():5.1f}   \n\n"
         tt += "    \n   ".join(textwrap.wrap(task.sDescription(), width=90))
         return tt
-    #todo date is shown yyyy-mm-dd 00:00:00 should i exclude the hours if its always zerro,
-    # or shouldnt i change it in case for later improvements whit exact time?!?
-    # as is write this down here i think i shouldnt
 
     @staticmethod
     def _isCompletedElement(task:task.Task, tooltip_text, background_color:str):
@@ -101,9 +98,14 @@ class TaskFrameCreator:
                                enable_events=True, tooltip=tooltip_text, background_color=background_color)
         return sg.Text(f"Vollendet: {task.sCompleted():6.2f}", tooltip=tooltip_text, background_color=background_color)
 
-    @staticmethod
-    def _buttonMenuList():
-        return ['Unused', ['Unteraufgabe', 'Isolieren', 'Bearbeiten', 'Löschen', 'Einfügen', "Ausschneiden", 'Kopieren']]
+    def _buttonMenuList(self):
+        return self._button_menu_list
+
+    def setBasichButtonMenuList(self):
+        self._button_menu_list = ['Unused', ['Unteraufgabe', 'Isolieren', 'Bearbeiten', 'Löschen', 'Einfügen', "Ausschneiden", 'Kopieren']]
+
+    def changeMenuListToIsolated(self):
+        self._button_menu_list = ['Unused', ['Unteraufgabe', 'Gesamtansicht', 'Bearbeiten', 'Löschen', 'Einfügen', "Ausschneiden", 'Kopieren']]
 
     def _buttonMenu(self, task):
         return sg.ButtonMenu('Options', self._buttonMenuList(), key=f'-BMENU-#7#{task.sPosition()}', border_width=2)
