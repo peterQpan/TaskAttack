@@ -9,6 +9,7 @@ import threading
 import time
 
 import tools
+from internationalisation import inter
 
 
 class Task:
@@ -157,7 +158,11 @@ class Task:
         self.sub_tasks.append(sub_task)
 
     def delete(self):
-        self.master.deleteSubTask(self)
+        try:
+            self.master.deleteSubTask(self)
+        except:
+            self.taskmanager.deleteSubTask(task=self)
+
 
     def deleteSubTask(self, task):
         self.sub_tasks.remove(task)
@@ -211,9 +216,9 @@ class Task:
               "priority": self.priority, "percentage":self.sPercentage(), "completed":self.sCompleted,
               "masters_ende":self.sMastersEnde()}
         if self.master is None:
-            dr.update({"kind": "Projekt"})
+            dr.update({"kind": inter.project})
         else:
-            dr.update({"kind": "Aufgabe"})
+            dr.update({"kind": inter.task})
         return dr
 
     def rowExpansion(self):
@@ -314,7 +319,7 @@ class Taskmanager:
         self.task_matrix = None
 
 
-    def save(self, filename="projects.bin"):
+    def save(self, filename="dev-auto.atk"):
         if not os.path.isdir("autosave"):
             os.mkdir("autosave")
 
@@ -322,7 +327,7 @@ class Taskmanager:
             for projekt in self.sub_tasks:
                 pickle.dump(projekt, fh)
 
-    def load(self, file_path="projects.bin"):
+    def load(self, file_path="dev-auto.atk"):
         self.reset()
         with open(file_path, "rb") as fh:
             while True:

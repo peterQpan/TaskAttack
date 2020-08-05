@@ -8,11 +8,12 @@ import time
 from time import strftime
 
 import PySimpleGUI as sg
+from  internationalisation import  inter
 
 import task, tools
 
 
-def YesNoPopup(title:str, text:str, ok_button="Yes", cancel_button="No", size=(250, 70), keep_on_top=True, #todo beauty deutsch/englisch
+def YesNoPopup(title:str, text:str, ok_button=inter.yes, cancel_button=inter.no, size=(250, 70), keep_on_top=True,
                *args, **kwargs):
     """
     popup window to do ok-chancel/yes-now and similar questions
@@ -77,12 +78,14 @@ class TaskFrameCreator:
         tt = ""
         tt += f"   {task.HierarchyTreePositionString()}\n\n"
         tt += f"   {task.sName()}\n\n"
-        tt += f"   Start: {task.sStart()}   Ende:{task.sEnde()}   PR: {task.sPriority():3d}   \n"
-        tt += f"   Verbleibende Tage:.................................. {task.sRemainingDays()}   \n"
-        tt += f"   Prozentualer Anteil am gesamt projekt:.. {task.sPercentage()}   \n"
-        tt += f"   Anzahl Unteraufgaben:............................. {len(task.sSubTasks()) if task.sSubTasks() else '0'}   \n"
-        tt += f"   Vollendet in Prozent:................................. {task.sCompleted():5.1f}   \n\n"
+        tt += f"   {inter.start}: {task.sStart()}   {inter.end}:{task.sEnde()}   {inter.priority}: {task.sPriority():3d}   \n"
+        tt += f"   {inter.rem_days}:.................................. {task.sRemainingDays()}   \n"
+        tt += f"   {inter.project_part_percentage}:.. {task.sPercentage()}   \n"
+        tt += f"   {inter.sub_task_amount}:............................. {len(task.sSubTasks()) if task.sSubTasks() else '0'}   \n"
+        tt += f"   {inter.percent_compled}:................................. {task.sCompleted():5.1f}   \n\n"
         tt += "    \n   ".join(textwrap.wrap(task.sDescription(), width=90))
+
+        # todo beauty format string length to give a uniform appearance
         return tt
 
     @staticmethod
@@ -94,21 +97,21 @@ class TaskFrameCreator:
         """
         default = True if task.sCompleted() else False
         if type(task.sCompleted()) == int:
-            return sg.Checkbox(text=" Completed", key=f"compl-#7#{str(task.sPosition())}", default=default,
+            return sg.Checkbox(text=inter.completed, key=f"compl-#7#{str(task.sPosition())}", default=default,
                                enable_events=True, tooltip=tooltip_text, background_color=background_color)
-        return sg.Text(f"Vollendet: {task.sCompleted():6.2f}", tooltip=tooltip_text, background_color=background_color)
+        return sg.Text(f"{inter.completed}: {task.sCompleted():6.2f}", tooltip=tooltip_text, background_color=background_color)
 
     def _buttonMenuList(self):
         return self._button_menu_list
 
     def setBasichButtonMenuList(self):
-        self._button_menu_list = ['Unused', ['Unteraufgabe', 'Isolieren', 'Bearbeiten', 'Löschen', 'Einfügen', "Ausschneiden", 'Kopieren']]
+        self._button_menu_list = inter.b_b_m_l
 
     def changeMenuListToIsolated(self):
-        self._button_menu_list = ['Unused', ['Unteraufgabe', 'Gesamtansicht', 'Bearbeiten', 'Löschen', 'Einfügen', "Ausschneiden", 'Kopieren']]
+        self._button_menu_list = inter.c_b_m_l
 
     def _buttonMenu(self, task):
-        return sg.ButtonMenu('Options', self._buttonMenuList(), key=f'-BMENU-#7#{task.sPosition()}', border_width=2)
+        return sg.ButtonMenu(inter.options, self._buttonMenuList(), key=f'-BMENU-#7#{task.sPosition()}', border_width=2)
 
 
     def taskFrame(self, task:task.Task):
@@ -119,7 +122,7 @@ class TaskFrameCreator:
         background_color = task.taskDeadlineColor()
 
         name_sg_object = sg.Text(text=task.sName(), size=(self.sSize() - 5, 1), tooltip=tooltip_text, background_color=background_color)
-        priority_sg_object = sg.Text(text=f"PR:.{task.sPriority():3d}", tooltip=tooltip_text, background_color=background_color)
+        priority_sg_object = sg.Text(text=f"{inter.short_pr}:.{task.sPriority():3d}", tooltip=tooltip_text, background_color=background_color)
         completed_sg_object = self._isCompletedElement(task, tooltip_text=tooltip_text, background_color=background_color)
 
         frame_name = task.HierarchyTreePositionString()
@@ -146,7 +149,7 @@ class TaskInputWindowCreator:
 
     @staticmethod
     def _buttonLine():
-        return [sg.Submit("Übernehmen"), sg.Cancel("Abbrechen"), #sg.Button()
+        return [sg.Submit(inter.ok), sg.Cancel(inter.cancel), #sg.Button()
                 ]
 
     @staticmethod
@@ -167,19 +170,17 @@ class TaskInputWindowCreator:
         subtask dont prolong master task"""
         while True:
             event, values = window.read()
-            if event in {"Abbrechen", None}:
+            if event in {inter.cancel, None}:
                 break
             elif event == 'priority' and values['priority'] and values['priority'][-1] not in \
                         {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"}:
                 window['priority'].update(values['priority'][:-1])
-            elif event == "Übernehmen":
+            elif event == inter.ok:
                 values = self._updateWithDates(values, window)
                 if masters_ende and values["ende"] and values["ende"] > masters_ende:
-                    window['Ende-KORREKTUR-'].update("Nicht später als Master-Task-Ende")
+                    window['Ende-KORREKTUR-'].update(inter.not_later_than_master)
                 else:
                     break
-            elif event == "Löschen":
-                break
         try:
             values.update({'priority':int(values['priority'])})
         except ValueError:
@@ -192,10 +193,10 @@ class TaskInputWindowCreator:
         :param priority:
         :return:
         """
-        return [sg.Text('Priorität: (1-99)', size=(15, 1)),
+        return [sg.Text(f'{inter.priority}: (1-99)', size=(15, 1)),
                 sg.InputText(default_text=priority, key='priority', enable_events=True)]
 
-    def calenderLine(self, calendar_date:datetime.datetime, s_or_e="Start", key='-START_BUTTON-', target='-START_BUTTON-'):
+    def calenderLine(self, calendar_date:datetime.datetime, s_or_e=inter.start, key='-START_BUTTON-', target='-START_BUTTON-'):
         """
         :param s_or_e: "Start" or "Ende"
         :param key: button key to fetch value
@@ -215,7 +216,7 @@ class TaskInputWindowCreator:
         :param description: task description
         :return: label and description multiple line text input
         """
-        return [sg.Text('Beschreibung:', size=(15, 1)),
+        return [sg.Text(text=inter.description, size=(15, 1)),
                 sg.Multiline(default_text=description, size=(45,20), key='description')]
 
     @staticmethod
@@ -225,7 +226,7 @@ class TaskInputWindowCreator:
         :param name: task name
         :return: label and text input for nameline
         """
-        return [sg.Text(f'{kind}name:', size=(15, 1)), sg.InputText(default_text=name, key='name')]
+        return [sg.Text(text=f'{kind}name:', size=(15, 1)), sg.InputText(default_text=name, key='name')]
 
     @staticmethod
     def _calendarButtonText(calendar_date:datetime.datetime):
@@ -237,7 +238,7 @@ class TaskInputWindowCreator:
         calendar_text = strftime(f"%Y-%m-%d", calendar_date.timetuple())
         return calendar_text
 
-    def calendarButtonParameter(self, calendar_date:datetime.datetime=None, s_or_e="Start"):
+    def calendarButtonParameter(self, calendar_date:datetime.datetime=None, s_or_e=inter.start): # todo s_or_e is part of logic... maby no good idea to  internationalize it?!?
         """
         :param calendar_date: datetime.datetime
         :param s_or_e: string "Start" or "Ende"
@@ -247,7 +248,7 @@ class TaskInputWindowCreator:
             calendar_text = self._calendarButtonText(calendar_date)
         else:
             calendar_date = tools.nowDateTime()
-            calendar_text = self._calendarButtonText(calendar_date) if s_or_e == "Start" else s_or_e
+            calendar_text = self._calendarButtonText(calendar_date) if s_or_e == inter.start else s_or_e
         calendar_date_tuple = (calendar_date.month, calendar_date.day, calendar_date.year)
         return calendar_text, calendar_date_tuple
 
@@ -277,7 +278,7 @@ class TaskInputWindowCreator:
             self._nameLine(name=name, kind=kind),
             self._descriptionLine(description=description),
             self.calenderLine(calendar_date=start),
-            self.calenderLine(calendar_date=ende, s_or_e="Ende", key='-END_BUTTON-', target='-END_BUTTON-'),
+            self.calenderLine(calendar_date=ende, s_or_e=inter.end, key='-END_BUTTON-', target='-END_BUTTON-'),
             self._priorityLine(priority=priority),
             self._buttonLine()
         ]

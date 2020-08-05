@@ -11,6 +11,7 @@ import time
 
 import gui_elements, tools
 from gui_elements import TaskInputWindowCreator, TaskFrameCreator
+from internationalisation import inter
 from task import Taskmanager, Task
 import PySimpleGUI as sg
 
@@ -34,15 +35,11 @@ class TaskAttack:
 
     @staticmethod
     def sMenuBar():
-        return (['Datei', ['Neue Projekt Tabelle', 'Öffnen', 'Speichern', 'Speichern unter', 'Exit']],
-                ['Projekt', ['Neues Projekt']],
-                ['Bearbeiten', ['Widerherstellen']],
-                ['Fenster', ['Reload']],
-                ['Hilfe', 'Über...'])
+        return inter.menu_bar
 
     @staticmethod
     def sTableDummy():
-        return [sg.Text(text="Projekts", size=(20, 20))]
+        return [sg.Text(text=inter.projects, size=(20, 20))]
 
     def sLastUsedFolder(self):
         if self.last_file_path:
@@ -56,19 +53,22 @@ class TaskAttack:
         # correspondig functions an lists:
         # gui_elements.TaskFrameCreator.setBasichButtonMenuList()
         # gui_elements.TaskFrameCreator.changeMenuListToIsolated()
+
+        #todo this time change function mapping with inter.strings
+
         return {#Globals:
-                "Neues Projekt": self.onAddProject, "Reload": self.onReload,
-                "Neue Projekt Tabelle": self.onNewFile, "Öffnen": self.onLoad, "Speichern": self.onSave,
-                "Speichern unter": self.onSaveAt, "Widerherstellen": self.onRecoverDeletedTask,
+                inter.new_project: self.onAddProject, inter.reload: self.onReload,
+                inter.new_project_sheet: self.onNewFile, inter.open: self.onLoad, inter.save: self.onSave,
+                inter.save_at: self.onSaveAt, inter.restore_task: self.onRestoreTask,
 
                 #Locals:
-                "bearb-": self.onWorkOnTask, "subta-": self.onNewSubTask, "compl-": self.onSetTaskAsCompleted,
+                "bearb-": self.onEditTask, "subta-": self.onNewSubTask, "compl-": self.onSetTaskAsCompleted,
                 "-BMENU-": self.onOptionButtonMenu,
 
                 #ButtonCommands:
-                "Unteraufgabe": self.onNewSubTask, "Isolieren": self.onIsolateTask, "Bearbeiten": self.onWorkOnTask,
-                "Löschen": self.onDeleteTask, "Einfügen": self.onInsertTask, "Ausschneiden": self.onCutTask,
-                "Kopieren": self.onCopyTask, "Gesamtansicht": self.onBaseView
+                inter.sub_task: self.onNewSubTask, inter.isolate: self.onIsolateTask, inter.edit: self.onEditTask,
+                inter.delete: self.onDeleteTask, inter.insert: self.onInsertTask, inter.cut: self.onCutTask,
+                inter.copy: self.onCopyTask, inter.tree_view: self.onTreeView
                 }
 
     def onOptionButtonMenu(self, task, event, values, *args, **kwargs):
@@ -79,7 +79,7 @@ class TaskAttack:
 
     def onLoad(self, *args, **kwargs):
         self.dataLossPrevention()
-        file_path = sg.PopupGetFile("Öffnen", initial_folder=self.sLastUsedFolder(),
+        file_path = sg.PopupGetFile(message=inter.open, initial_folder=self.sLastUsedFolder(),
                                     file_types=(("TaskAtack", "*.tak"),), keep_on_top=True)
         if file_path:
             self.last_file_path = file_path
@@ -87,7 +87,7 @@ class TaskAttack:
 
     def onSaveAt(self, *args, **kwargs):
         self.unsaved_project = False
-        file_path = sg.PopupGetFile("Speichern in", save_as=True, file_types=(("TaskAtack", "*.tak"),),
+        file_path = sg.PopupGetFile(message=inter.save_at, save_as=True, file_types=(("TaskAtack", "*.tak"),),
                                     initial_folder=self.sLastUsedFolder(), keep_on_top=True, default_extension=".tak")
         file_path = self._completeFilePathWithExtension(file_path)
         if file_path:
@@ -111,24 +111,24 @@ class TaskAttack:
         self.reset()
 
     def onAddProject(self, *args, **kwargs):
-        event, values = self.task_window_crator.inputWindow(kind="Projekt", )
-        if event in {"Abbrechen", None}:
+        event, values = self.task_window_crator.inputWindow(kind=inter.project, )
+        if event in {inter.cancel, None}:
             return
         self.taskmanager.addSubTask(name=values['name'], description=values['description'], start=values['start'],
                                     end=values['ende'],
                                     priority=values['priority'])
 
-    def onRecoverDeletedTask(self, *args, **kwargs):
+    def onRestoreTask(self, *args, **kwargs):
         if self.last_deleted_task:
             self.last_deleted_task.recover()
 
-    def onWorkOnTask(self, task, *args, **kwargs):
+    def onEditTask(self, task, *args, **kwargs):
         event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation())
         if self._eventIsNotNone(event):
             task.update(**values)
 
     def onNewSubTask(self, task, *args, **kwargs):
-        event, values = self.task_window_crator.inputWindow(kind="Aufgabe", masters_ende=task.sEnde())
+        event, values = self.task_window_crator.inputWindow(kind=inter.task, masters_ende=task.sEnde())
         if self._eventIsNotNone(event):
             task.addSubTask(**values)
 
@@ -139,12 +139,12 @@ class TaskAttack:
         self.task_frames_creator.changeMenuListToIsolated()
         self.taskmanager.isolatedTaskView(task)
 
-    def onBaseView(self, task, *args, **kwargs):
+    def onTreeView(self, task, *args, **kwargs):
         self.task_frames_creator.setBasichButtonMenuList()
         self.taskmanager.deisolateTaskView(task)
 
     def onDeleteTask(self, task, *args, **kwargs):
-        if gui_elements.YesNoPopup(title="Löschen", text="Wirklich löschen"):
+        if gui_elements.YesNoPopup(title=inter.delete, text=inter.realy_delete):
             self.last_deleted_task = task
             task.delete()
 
@@ -162,14 +162,14 @@ class TaskAttack:
 
     def _userExit(self, event, window):
         """checks for and executes Exit if asked for"""
-        if event in ("Exit", None):
+        if event in (inter.exit, None):
             self.dataLossPrevention()
             window.close()
             sys.exit(0)
 
     def _setDataLossPreventionStatus(self, event):
-        if event not in ('Neue Projekt Tabelle', 'Öffnen', 'Speichern', 'Speichern unter',
-                         'Exit', 'Reload', 'Hilfe', 'Über...', None):
+        if event not in (inter.new_project_sheet, inter.open, inter.save, inter.save_at,
+                         inter.exit, inter.reload, inter.help, inter.about, None):
             self.unsaved_project = True
 
     @staticmethod
@@ -214,7 +214,7 @@ class TaskAttack:
         """checks if there is an open unsaved file and asks for wish to save
         """
         if self.unsaved_project:
-            if gui_elements.YesNoPopup(title="Offenes Projekt", text="Speichern?"):
+            if gui_elements.YesNoPopup(title=inter.open_project, text=f"{inter.save}?"):
                 self.onSaveAt()
 
     def autoSave(self):
@@ -247,11 +247,9 @@ class TaskAttack:
                 if isinstance(element, Task):
                     frame_here = self.task_frames_creator.taskFrame(element)
                     base_layout[y_index][x_index] = frame_here
-                else:# isinstance(element, str):
+                else:
                     frame_here = self.task_frames_creator.emptyTaskFrame()
                     base_layout[y_index][x_index] = frame_here
-                # else:
-                #     raise RuntimeError("irgend etwas vergessen!!!!")
         return base_layout
 
     def getTaskFromMatrix(self, coordinates):
@@ -268,7 +266,7 @@ class TaskAttack:
         :param event: sg.window.read()[0]
         :return: true if not close or Abrechen
         """
-        if event and event != "Abbrechen":
+        if event and event != inter.cancel:
             return True
         return False
 
@@ -315,7 +313,7 @@ class TaskAttack:
         project_matrix = self.propperProjectMatrix()
         tools.printMatrix("#333", project_matrix)
         layout = self.propperWindowLayout(self.sMenuBar(), project_matrix)
-        main_window = sg.Window('TaskAtack Project and Taskmanager', layout,
+        main_window = sg.Window(title=inter.app_name, layout=layout,
                                 finalize=True, resizable=True, size=self.window_size, location=self.window_location)
         return main_window
 
