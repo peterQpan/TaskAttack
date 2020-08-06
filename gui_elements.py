@@ -45,15 +45,19 @@ class TaskFrameCreator:
         self.size = size
 
     def sSize(self):
+        """
+        :return: int:
+        """
         return self.size
 
-    def setSize(self, size):
+    def setSize(self, size:int):
+        """
+        :param size: sets width of a frame / x-axis size
+        """
         self.size = size
 
-    def _basicTaskFrame(self, frame_name:str, name, priority, completed,
-                        place_holder, option_button,
-                        relief=sg.RELIEF_RAISED,
-                        tooltip_text:str="", frame_color:str=None):
+    def _basicTaskFrame(self, frame_name:str, name, priority, completed, place_holder, option_button,
+                        relief=sg.RELIEF_RAISED, tooltip_text:str="", frame_color:str=None):
         """task frame creation
         :param name: simplegu element name line
         :param priority: simplegui priority line
@@ -101,17 +105,30 @@ class TaskFrameCreator:
                                enable_events=True, tooltip=tooltip_text, background_color=background_color)
         return sg.Text(f"{inter.completed}: {task.sCompleted():6.2f}", tooltip=tooltip_text, background_color=background_color)
 
-    def _buttonMenuList(self):
+    def _optionButtonMenuList(self):
+        """
+        :return: list of list, sg.ButtonMenu.layout for option button menu
+        """
         return self._button_menu_list
 
     def setBasichButtonMenuList(self):
+        """
+        fetches basic option button menu list of list from internationalisation module
+        """
         self._button_menu_list = inter.b_b_m_l
 
     def changeMenuListToIsolated(self):
+        """
+        fetches altered >tree view< option button menu list of list from internationalisation module
+        """
+
         self._button_menu_list = inter.c_b_m_l
 
     def _buttonMenu(self, task):
-        return sg.ButtonMenu(inter.options, self._buttonMenuList(), key=f'-BMENU-#7#{task.sPosition()}', border_width=2)
+        """
+        :return: option menu button for every task frame
+        """
+        return sg.ButtonMenu(inter.options, self._optionButtonMenuList(), key=f'-BMENU-#7#{task.sPosition()}', border_width=2)
 
 
     def taskFrame(self, task:task.Task):
@@ -149,8 +166,7 @@ class TaskInputWindowCreator:
 
     @staticmethod
     def _buttonLine():
-        return [sg.Submit(inter.ok), sg.Cancel(inter.cancel), #sg.Button()
-                ]
+        return [sg.Submit(inter.ok), sg.Cancel(inter.cancel)]
 
     @staticmethod
     def _updateWithDates(values, window):

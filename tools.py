@@ -10,6 +10,11 @@ from pip._vendor.colorama import Fore
 
 class ColorTransistor:
     def __init__(self, color_scheme:dict=None, transition_scheme=((0, 185), (220, 0), (0, 0))):
+        """
+        :param color_scheme: mapping for predefined colors
+        :param transition_scheme: red-green-blue 255max each
+                                  (zero-percent-representation, hundred-percentage-representage)
+        """
         base_scheme = {0:"#B90000", 100:"#00DC00", "completed":"#004400", "no_end": None, "same_day": "#BBBB00",
                        "expired": "#AF14AF", "running_out": "#880000"}
         self.mapping = color_scheme if color_scheme else base_scheme
@@ -26,6 +31,10 @@ class ColorTransistor:
 
 
     def transition(self, task,):
+        """
+        :param task:
+        :return: corresponding frame-hex-color to time percentage of task
+        """
         percentage:int = task.sTimePercentage()
         hex_color_string = "#"
 
