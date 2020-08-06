@@ -15,20 +15,21 @@ from internationalisation import inter
 class Task:
     def __init__(self, name:str, description:str=None, start=None, end=None, priority=21, master=None,
                  taskmanager:"Taskmanager"=None):
-        self._remaining_timedelta = None
-        self._remaining_minutes = None
-        self._remaining_days = None
 
         self.name = name
         self.description = description
         self.start = start if start else tools.nowDateTime()
         self.ende = end
         self.priority = priority
-
         self.master = master
         self.taskmanager = taskmanager
+
         self.sub_tasks = []
+
         self._completed = 0
+        self._remaining_timedelta = None
+        self._remaining_minutes = None
+        self._remaining_days = None
 
         self._colorSheme = tools.ColorTransistor()
 
@@ -36,10 +37,14 @@ class Task:
         state = {x:y for x,y in self.__dict__.items()}
         print(self.__dict__)
         print(state)
-        state["taskmanager"] = None # out or later beauty have to be in persistencer
+        #since taskmanager is an atribute of task, and task gets pickled,
+        # but i woulnt taskmanager pickled as well it has to be exclude bevor,
+        # i do this at the getstate-step
+        state["taskmanager"] = None # out or later have to be in persistencer
         return state
 
     def __setstate__(self, state):
+        #todo this time
         state.update({"_remeining_timedelta":None})
         self.__dict__.update(state)
 
@@ -50,6 +55,9 @@ class Task:
         return f"Task: {self.sName()} {self.sStart()} {self.sCompleted()}"
 
     def sCompleted(self, completed:int=None):
+        """
+        returns the completed percentage of an task, if value is provided, this value will be set
+        """
         if self.sub_tasks:
             zaehler = sum(x.sCompleted() for x in self.sub_tasks)
             teiler = len(self.sub_tasks)
@@ -67,6 +75,7 @@ class Task:
             return self.master.sEnde()
 
     def sMastersPriority(self):
+        # todo dev install masters priority like date.end cant self.priority cant be smaller than masters priority
         if self.master:
             return self.master.sPriority()
 
@@ -96,7 +105,7 @@ class Task:
 
     def sPercentage(self):
         """
-        personal percentage weight of the single task in proportion to the howl project
+        personal percentage weight of the single task in proportion to the hole project
         :return:
         """
         if self.master is None:
@@ -105,7 +114,12 @@ class Task:
             return self.master.subTaskPercentage()
 
     def sRemainingTimedelta(self):
+        """sets all time related values so they dont have to be computed every window renewal,
+        self._remaining_timedelta gets resat to None from Master-over-all-renewal-thread, so the actuality
+        is ensured, as well
+        :return datetime.timedelta of tasks remaining time from now time"""
         # todo beauty: this method have to be more beautiful
+
         if self._remaining_timedelta is None:
             try:
                 self._remaining_timedelta = self.sEnde() - tools.nowDateTime()
@@ -143,9 +157,14 @@ class Task:
         return self._remaining_minutes
 
     def resetTimedelta(self):
+        # todo think should this distinguish, between None and False because of self.sRemainingTimedelta()
         self._remaining_timedelta = None
 
     def recursiveTimeDeltaReset(self):
+        """
+        method for master-time-renewal-thread, resets _remaining_timedelta,
+        so anew computation is needed and executed
+        """
         self.resetTimedelta()
         print(f"time delta resetted")
         [sub_task.recursiveTimeDeltaReset() for sub_task in self.sub_tasks]
@@ -200,6 +219,8 @@ class Task:
         """
         :return:list of str with own task hierarchy tree
         """
+        # todo beauty this needs some kind of mapping too, hiere it is like the problem of fibonacci-recursion,
+        #  while not quadratic but redundant for sure
         if self.master:
             master_strings_list_here = self.master.hierarchyTreePositionList() + [f"{self.name}"]
 
@@ -355,13 +376,18 @@ class Taskmanager:
     #  the same kind so isolated subtask view works easily and in the same matter
 
     def isolatedTaskView(self, task):
+        """
+        isolate one task ond gives him the hole sheet space to look and work on
+        :param task:
+        """
         self._side_packed_project = self.sub_tasks
         task.taskmanager = self #todo beauty get a method for this
         self.sub_tasks = [task]
 
 
-    def deisolateTaskView(self, task, *args, **kwargs):
-
+    def deisolateTaskView(self, *args, **kwargs):
+        """
+        brings isolated view back to complete tree view of all the tasks"""
         self.sub_tasks[0].taskmanager = None
         self.sub_tasks = self._side_packed_project
         self._side_packed_project = None
@@ -460,6 +486,7 @@ class Taskmanager:
         return display_matrix
 
     def startDataDeletionForRenewalThread(self):
+        """starts a thread that resets task-time-mapping, so actuality is ensured"""
         def renewal(subtasks):
             while True:
                 time.sleep(7200)

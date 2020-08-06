@@ -35,10 +35,16 @@ class TaskAttack:
 
     @staticmethod
     def sMenuBar():
+        """
+        :return: list of list: sg.Menu.layout
+        """
         return inter.menu_bar
 
     @staticmethod
     def sTableDummy():
+        """
+        :return: table dummy needed on an empty sheet
+        """
         return [sg.Text(text=inter.projects, size=(20, 20))]
 
     def sLastUsedFolder(self):
@@ -53,8 +59,6 @@ class TaskAttack:
         # correspondig functions an lists:
         # gui_elements.TaskFrameCreator.setBasichButtonMenuList()
         # gui_elements.TaskFrameCreator.changeMenuListToIsolated()
-
-        #todo this time change function mapping with inter.strings
 
         return {#Globals:
                 inter.new_project: self.onAddProject, inter.reload: self.onReload,
@@ -168,6 +172,7 @@ class TaskAttack:
             sys.exit(0)
 
     def _setDataLossPreventionStatus(self, event):
+        """looks for user action and sets flag for not saved question, if new data is created"""
         if event not in (inter.new_project_sheet, inter.open, inter.save, inter.save_at,
                          inter.exit, inter.reload, inter.help, inter.about, None):
             self.unsaved_project = True
@@ -184,6 +189,11 @@ class TaskAttack:
         return x, y
 
     def executeEvent(self, event, window, values, *args, **kwargs):
+        """takes event, values and window and executes corresponding action from command-mapping
+        :param event: user_event
+        :param window: TaskAttack-window
+        :param values: dict sg.values
+        """
         self._userExit(event=event, window=window)
         self._setDataLossPreventionStatus(event)
 
@@ -240,8 +250,6 @@ class TaskAttack:
         orginal_display_matrix = self.taskmanager.displayMatrix()
         base_layout = copy.deepcopy(orginal_display_matrix)
 
-        # todo beauty --->
-        #  delete out commented on 2020-08-04
         for y_index, y in enumerate(orginal_display_matrix):
             for x_index, element in enumerate(y):
                 if isinstance(element, Task):
