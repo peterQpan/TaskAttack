@@ -126,15 +126,19 @@ class Internationalisation:
 
     @property
     def b_b_m_l(self):
+        """
+        fetches menu entries from chosen language for basic-button-menu-list
+        :return: list of list sg.ButtonMenu.layout
+        """
         return ['Unused', [self.sub_task, self.isolate, self.edit, self.delete, self.insert, self.cut, self.copy]]
 
     @property
     def c_b_m_l(self):
+        """
+        fetches menu entries from chosen language for canged-button-menu-list
+        :return: list of list sg.ButtonMenu.layout
+        """
         return ['Unused', [self.sub_task, self.tree_view, self.edit, self.delete, self.insert, self.cut, self.copy]]
-
-
-
-
 
 
 inter = Internationalisation("de")
