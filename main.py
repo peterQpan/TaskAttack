@@ -9,27 +9,31 @@ import sys
 import threading
 import time
 
-import gui_elements, tools
+import PySimpleGUI as sg
+
+import gui_elements
+import tools
 from gui_elements import TaskInputWindowCreator, TaskFrameCreator
 from internationalisation import inter
 from task import Taskmanager, Task
-import PySimpleGUI as sg
 
 
 class TaskAttack:
     def __init__(self):
 
+
+        self.last_file_path = ""
+        self.unsaved_project = False
         self.last_deleted_task = None
+        self.auto_save_thread = None
+
         self.taskmanager = Taskmanager()
         self.task_window_crator = TaskInputWindowCreator()
         self.task_frames_creator = TaskFrameCreator()
 
-        self.unsaved_project = False
-        self.auto_save_thread = None
-        self.last_file_path = ""
-
         self.window_size = sg.Window.get_screen_size()
         self.window_location = (None, None)
+
 
         self.mainLoop()
 
@@ -55,10 +59,10 @@ class TaskAttack:
         """
         :return: function mapping for window/global executable functions
         """
-        #todo beauty can i avoid redundance with _buttonMenuList() und this dict?!?
-        # correspondig functions an lists:
-        # gui_elements.TaskFrameCreator.setBasichButtonMenuList()
-        # gui_elements.TaskFrameCreator.changeMenuListToIsolated()
+        # correspondig lists:
+        # inter.menu_bar
+        # inter.b_b_m_l
+        # inter.c_b_m_l
 
         return {#Globals:
                 inter.new_project: self.onAddProject, inter.reload: self.onReload,
@@ -71,7 +75,7 @@ class TaskAttack:
 
                 #ButtonCommands:
                 inter.sub_task: self.onNewSubTask, inter.isolate: self.onIsolateTask, inter.edit: self.onEditTask,
-                inter.delete: self.onDeleteTask, inter.insert: self.onInsertTask, inter.cut: self.onCutTask,
+                inter.delete: self.onDeleteTask, inter.paste: self.onInsertTask, inter.cut: self.onCutTask,
                 inter.copy: self.onCopyTask, inter.tree_view: self.onTreeView
                 }
 
@@ -333,32 +337,37 @@ class TaskAttack:
             event, values = main_window.read()
             print(f"mainloop: event: {event}, values: {values}")
             self.executeEvent(event=event, window=main_window, values=values)
-            self.window_size = main_window.size  # todo breaks down sometimes, why?!?
+            self.window_size = main_window.size  # remember breaks down sometimes, why?!?
             self.window_location = main_window.current_location()
             main_window.close()
             self.autoSave()
 
 
-# todo complet documentation and code cleanup
 
 
 if __name__ == '__main__':
     main_gui_task_atack = TaskAttack()
 
-# todo beauty look out for chances to easily improve performance
+
+# todo complet documentation and code cleanup
 
 # todo beauty --> uniform task and taskmanager
 
-## todo figure colorcheme someday task, full deadline, etc
-
-# todo beauty clear language interface either german OR english not a little bit of both --> todo dev language and translating class
+# todo beauty make priority a must with up and down buttons and prechosen 5 --> middle 0-9
 
 
-# out or later scroll position beibehalten (not possible as i know)
 
-## out or later beauty option button has no relief
+# remember beauty look out for chances to easily improve performance
 
-#out or later gui_element.TaskFrameCreater._toolTipText
+
+
+# remember or later scroll position beibehalten (not possible as i know)
+
+
+#remember or later gui_element.TaskFrameCreater._toolTipText
 # date is shown yyyy-mm-dd 00:00:00 should i exclude the hours if its always zerro,
 # or shouldnt i change it in case for later improvements whit exact time?!?
 # as is write this down here i think i shouldnt
+
+
+

@@ -42,7 +42,7 @@ class Internationalisation:
         self.sub_task = 'Unteraufgabe'
         self.isolate = "Isolieren"
         self.delete = "Löschen"
-        self.insert = "Einfügen"
+        self.paste = "Einfügen"
         self.cut = "Ausschneiden"
         self.copy = "Kopieren"
         self.tree_view = "Gesammtansicht"
@@ -95,7 +95,7 @@ class Internationalisation:
         self.sub_task = 'Subtask'
         self.isolate = "Isolate"
         self.delete = "Delete"
-        self.insert = "Insert"
+        self.paste = "Paste"
         self.cut = "Cut"
         self.copy = "Copy"
         self.tree_view = "Tree view"
@@ -130,7 +130,7 @@ class Internationalisation:
         fetches menu entries from chosen language for basic-button-menu-list
         :return: list of list sg.ButtonMenu.layout
         """
-        return ['Unused', [self.sub_task, self.isolate, self.edit, self.delete, self.insert, self.cut, self.copy]]
+        return ['Unused', [self.sub_task, self.isolate, self.edit, self.delete, self.paste, self.cut, self.copy]]
 
     @property
     def c_b_m_l(self):
@@ -138,7 +138,7 @@ class Internationalisation:
         fetches menu entries from chosen language for canged-button-menu-list
         :return: list of list sg.ButtonMenu.layout
         """
-        return ['Unused', [self.sub_task, self.tree_view, self.edit, self.delete, self.insert, self.cut, self.copy]]
+        return ['Unused', [self.sub_task, self.tree_view, self.edit, self.delete, self.paste, self.cut, self.copy]]
 
 
-inter = Internationalisation("de")
+inter = Internationalisation("en")

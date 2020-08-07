@@ -13,9 +13,12 @@ from internationalisation import inter
 
 
 class Task:
+
     def __init__(self, name:str, description:str=None, start=None, end=None, priority=21, master=None,
                  taskmanager:"Taskmanager"=None):
 
+        self._hierarchy_tree_positions_string = None
+        self._hierarchy_tree_positions = None
         self.name = name
         self.description = description
         self.start = start if start else tools.nowDateTime()
@@ -25,13 +28,15 @@ class Task:
         self.taskmanager = taskmanager
 
         self.sub_tasks = []
-
         self._completed = 0
+
+        self._colorSheme = tools.ColorTransistor()
+
+        # MAPPINGS
         self._remaining_timedelta = None
         self._remaining_minutes = None
         self._remaining_days = None
 
-        self._colorSheme = tools.ColorTransistor()
 
     def __getstate__(self):
         state = {x:y for x,y in self.__dict__.items()}
@@ -44,8 +49,7 @@ class Task:
         return state
 
     def __setstate__(self, state):
-        #todo this time
-        state.update({"_remeining_timedelta":None})
+        state.update({"_remeining_timedelta":None, "taskmanager":None})
         self.__dict__.update(state)
 
     def __str__(self):
@@ -80,6 +84,7 @@ class Task:
             return self.master.sPriority()
 
     def sName(self):
+
         return self.name
 
     def sDescription(self):
@@ -113,30 +118,6 @@ class Task:
         else:
             return self.master.subTaskPercentage()
 
-    def sRemainingTimedelta(self):
-        """sets all time related values so they dont have to be computed every window renewal,
-        self._remaining_timedelta gets resat to None from Master-over-all-renewal-thread, so the actuality
-        is ensured, as well
-        :return datetime.timedelta of tasks remaining time from now time"""
-        # todo beauty: this method have to be more beautiful
-
-        if self._remaining_timedelta is None:
-            try:
-                self._remaining_timedelta = self.sEnde() - tools.nowDateTime()
-                self._complete_time = self.sEnde() - self.sStart()
-                self._complete_minutes = self._complete_time.total_seconds() // 60
-                self._remaining_minutes = self._remaining_timedelta.total_seconds() // 60
-                self._remaining_days = self._remaining_timedelta.days
-                self._time_percentage = int(100 / self._complete_minutes * self._remaining_minutes)
-            except TypeError as e:
-                print(f"#kakld89i error: {e.__traceback__}, {e.__repr__()}, {e.__traceback__.tb_lineno}")
-                self._remaining_timedelta = self._remaining_minutes = False
-                self._complete_time = False
-                self._complete_minutes = False
-                self._remaining_minutes = False
-                self._remaining_days = False
-
-        return self._remaining_timedelta
 
     def sCompleteTime(self):
         return self._complete_time
@@ -148,7 +129,6 @@ class Task:
         return self._complete_minutes
 
     def sRemainingDays(self):
-        # todo beauty ---> how to avoid need for this check
         if self._remaining_days is None:
             self.sRemainingTimedelta()
         return self._remaining_days
@@ -156,18 +136,86 @@ class Task:
     def sRemainingMinutes(self):
         return self._remaining_minutes
 
-    def resetTimedelta(self):
-        # todo think should this distinguish, between None and False because of self.sRemainingTimedelta()
-        self._remaining_timedelta = None
+    def _setAllTimeMappings(self):
+        """computes all time related values to the time-mapping-atributes"""
+        self._remaining_timedelta = self.sEnde() - tools.nowDateTime()
+        self._complete_time = self.sEnde() - self.sStart()
+        self._complete_minutes = self._complete_time.total_seconds() // 60
+        self._remaining_minutes = self._remaining_timedelta.total_seconds() // 60
+        self._remaining_days = self._remaining_timedelta.days
+        self._time_percentage = int(100 / self._complete_minutes * self._remaining_minutes)
 
-    def recursiveTimeDeltaReset(self):
+
+    def _setAllTimeMappingsFalse(self):
+        self._remaining_timedelta = self._remaining_minutes = False
+        self._complete_time = False
+        self._complete_minutes = False
+        self._remaining_minutes = False
+        self._remaining_days = False
+
+    def sRemainingTimedelta(self):
+        """sets all time related values so they dont have to be computed every window renewal,
+        self._remaining_timedelta gets resat to None from Master-over-all-renewal-thread, so the actuality
+        is ensured, as well
+        :return datetime.timedelta of tasks remaining time from now time"""
+        if self._remaining_timedelta is None:
+            try:
+                self._setAllTimeMappings()
+            except TypeError as e:
+                print(f"#kakld89i error: {e.__traceback__}, {e.__repr__()}, {e.__traceback__.tb_lineno}")
+                self._setAllTimeMappingsFalse()
+
+        return self._remaining_timedelta
+
+    def _conditionalTimedeltaReset(self):
+        """sets _remaining_timedelta to None if not False, false indicates no end date, so there is no need
+        to change this"""
+        if self._remaining_timedelta is not False:
+            self._remaining_timedelta = None
+
+    def recursiveConditionalTimedeltaReset(self):
         """
-        method for master-time-renewal-thread, resets _remaining_timedelta,
+        method for master-time-renewal-thread, resets _remaining_timedelta conditionally,
         so anew computation is needed and executed
         """
-        self.resetTimedelta()
+        self._conditionalTimedeltaReset()
         print(f"time delta resetted")
-        [sub_task.recursiveTimeDeltaReset() for sub_task in self.sub_tasks]
+        [sub_task.recursiveConditionalTimedeltaReset() for sub_task in self.sub_tasks]
+
+    def mappingsRecursivelyAcknowledgeTaskChange(self):
+        """resets "trigger"-mappings recursively, so maybe changed values get new computed/updated """
+        self._mappingsAcknowledgeTaskChange()
+        [sub_task.mappingsRecursivelyAcknowledgeTaskChange() for sub_task in self.sub_tasks]
+
+    def _mappingsAcknowledgeTaskChange(self):
+        """resets "trigger"-mappings, so maybe changed values get new computed/updated """
+        self._remaining_timedelta = None
+        self._hierarchy_tree_positions_string = None
+        self._hierarchy_tree_positions = None
+
+    def hierarchyTreePositionString(self, lenght=30):
+        """
+        :return: string of tree herachie like: projectname/mastertask/mastertask/
+        """
+        if self._hierarchy_tree_positions_string is None:
+            if self._hierarchyTreePositionList()[:-1]:
+                self._hierarchy_tree_positions_string = "/" + "/".join(self._hierarchyTreePositionList()[:-1])
+            else:
+                return " "
+        return self._hierarchy_tree_positions_string[-lenght:]
+
+
+    def _hierarchyTreePositionList(self):
+        """
+        :return:list of str with own task hierarchy tree
+        """
+        if self.master:
+            if self._hierarchy_tree_positions is None:
+                self._hierarchy_tree_positions = self.master._hierarchyTreePositionList() + [f"{self.name}"]
+            return self._hierarchy_tree_positions
+        else:
+            return [f"{self.name}"]
+
 
     def changeCompleted(self):
         self._completed = 0 if self._completed else 100
@@ -177,11 +225,12 @@ class Task:
         self.sub_tasks.append(sub_task)
 
     def delete(self):
-        try:
+        if self.master:
             self.master.deleteSubTask(self)
-        except:
+            if self.taskmanager:
+                self.taskmanager.deisolateTaskView()
+        else:
             self.taskmanager.deleteSubTask(task=self)
-
 
     def deleteSubTask(self, task):
         self.sub_tasks.remove(task)
@@ -199,34 +248,6 @@ class Task:
 
     def taskDeadlineColor(self):
         return self._colorSheme(task=self)
-
-    def HierarchyTreePositionString(self, lenght=30):
-        # todo enable mapping or saving o something so that this function didnt have to run everytime,
-        # todo because it is runing twice alone in task frame creator, each window generation, #todo think maby better optimize use in frame creation
-        #  maby ther is a even better way than mapping or saving, becaus after implementig moving tasks
-        #  araound this mapping will bug araund
-        """
-        :return: string of tree herachie like: projectname/mastertask/mastertask/
-        """
-        list_h = self.hierarchyTreePositionList()[:-1]
-        if list_h:
-            string = "/" + "/".join(list_h)
-            return string[-lenght:]
-        else:
-            return " "
-
-    def hierarchyTreePositionList(self):
-        """
-        :return:list of str with own task hierarchy tree
-        """
-        # todo beauty this needs some kind of mapping too, hiere it is like the problem of fibonacci-recursion,
-        #  while not quadratic but redundant for sure
-        if self.master:
-            master_strings_list_here = self.master.hierarchyTreePositionList() + [f"{self.name}"]
-
-            return master_strings_list_here
-        else:
-            return [f"{self.name}"]
 
     def sDataRepresentation(self):
         """
@@ -290,7 +311,7 @@ class Task:
         self.start = start
         self.ende = ende
         self.priority = priority
-        self.resetTimedelta()
+        self.mappingsRecursivelyAcknowledgeTaskChange()
 
     def takePosition(self, base_matrix):
         """orders task to take own position in base_matrix, orders sub_task to do the same
@@ -316,6 +337,7 @@ class Task:
         self.taskmanager = taskmanager
 
     def insertClipbordTask(self, clipbord_task):
+        clipbord_task.mappingsRecursivelyAcknowledgeTaskChange()
         self.sub_tasks.append(clipbord_task)
 
     def setMaster(self, task):
@@ -369,11 +391,11 @@ class Taskmanager:
             self.startDataDeletionForRenewalThread()
 
     def deleteSubTask(self, task):
+        if task is self._side_packed_project:
+            task.delete()
+
         self.sub_tasks.remove(task)
 
-
-    # todo dev, easyficationn, this functions have to cange to become uniform with task methods of
-    #  the same kind so isolated subtask view works easily and in the same matter
 
     def isolatedTaskView(self, task):
         """
@@ -381,7 +403,7 @@ class Taskmanager:
         :param task:
         """
         self._side_packed_project = self.sub_tasks
-        task.taskmanager = self #todo beauty get a method for this
+        task.setTaskManager(self)
         self.sub_tasks = [task]
 
 
@@ -465,7 +487,7 @@ class Taskmanager:
             for x_index, x in enumerate(y):
                 print(f"x_index: {x_index}, x: {x}")
                 if isinstance(x, Task):
-                    all_masters_strings_list = x.HierarchyTreePositionString()
+                    all_masters_strings_list = x.hierarchyTreePositionString()
                     actual_task = ">".join(all_masters_strings_list)
                 else:
                     if actual_task:
@@ -491,7 +513,7 @@ class Taskmanager:
             while True:
                 time.sleep(7200)
                 print(f"#09u09u recursive reset triggered in thread")
-                [subtask.recursiveTimeDeltaReset() for subtask in subtasks]
+                [subtask.recursiveConditionalTimedeltaReset() for subtask in subtasks]
 
         self.renewal_thread = threading.Thread(target=renewal, args=(self.sub_tasks,), daemon=True)
         self.renewal_thread.start()

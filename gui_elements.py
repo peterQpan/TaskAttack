@@ -75,21 +75,24 @@ class TaskFrameCreator:
         return frame
 
     @staticmethod
+    def nAIt(wantet_value):
+        return "N.A." if not wantet_value else wantet_value
+
+    @staticmethod
     def _toolTipText(task:task.Task):
         """
         :return: full plain textual representation of an task.Task() suitable as tooltip_text
         """
         tt = ""
-        tt += f"   {task.HierarchyTreePositionString()}\n\n"
+        tt += f"   {task.hierarchyTreePositionString()}\n\n"
         tt += f"   {task.sName()}\n\n"
-        tt += f"   {inter.start}: {task.sStart()}   {inter.end}:{task.sEnde()}   {inter.priority}: {task.sPriority():3d}   \n"
-        tt += f"   {inter.rem_days}:.................................. {task.sRemainingDays()}   \n"
-        tt += f"   {inter.project_part_percentage}:.. {task.sPercentage()}   \n"
-        tt += f"   {inter.sub_task_amount}:............................. {len(task.sSubTasks()) if task.sSubTasks() else '0'}   \n"
-        tt += f"   {inter.percent_compled}:................................. {task.sCompleted():5.1f}   \n\n"
+        tt += f"   {inter.start}: {task.sStart()}   {inter.end}:v{TaskFrameCreator.nAIt(task.sEnde())}   {inter.priority}: {task.sPriority()}   \n"
+        tt += f"   {inter.rem_days}:..................................... {TaskFrameCreator.nAIt(task.sRemainingDays())}   \n"
+        tt += f"   {inter.project_part_percentage}:............... {task.sPercentage()}%   \n"
+        tt += f"   {inter.sub_task_amount}:............................... {len(task.sSubTasks()) if task.sSubTasks() else '0'}   \n"
+        tt += f"   {inter.percent_compled}:............................. {task.sCompleted():5.1f}%   \n\n"
         tt += "    \n   ".join(textwrap.wrap(task.sDescription(), width=90))
 
-        # todo beauty format string length to give a uniform appearance
         return tt
 
     @staticmethod
@@ -142,7 +145,7 @@ class TaskFrameCreator:
         priority_sg_object = sg.Text(text=f"{inter.short_pr}:.{task.sPriority():3d}", tooltip=tooltip_text, background_color=background_color)
         completed_sg_object = self._isCompletedElement(task, tooltip_text=tooltip_text, background_color=background_color)
 
-        frame_name = task.HierarchyTreePositionString()
+        frame_name = task.hierarchyTreePositionString()
 
         aling_sg_object = sg.Text(text="", size=(self.sSize() - 15,1), background_color=background_color)
         option_button_sg_object = self._buttonMenu(task)
@@ -254,7 +257,7 @@ class TaskInputWindowCreator:
         calendar_text = strftime(f"%Y-%m-%d", calendar_date.timetuple())
         return calendar_text
 
-    def calendarButtonParameter(self, calendar_date:datetime.datetime=None, s_or_e=inter.start): # todo s_or_e is part of logic... maby no good idea to  internationalize it?!?
+    def calendarButtonParameter(self, calendar_date:datetime.datetime=None, s_or_e=inter.start):
         """
         :param calendar_date: datetime.datetime
         :param s_or_e: string "Start" or "Ende"
