@@ -136,7 +136,7 @@ class TaskAttack:
             task.update(**values)
 
     def onNewSubTask(self, task, *args, **kwargs):
-        event, values = self.task_window_crator.inputWindow(kind=inter.task, masters_ende=task.sEnde())
+        event, values = self.task_window_crator.inputWindow(kind=inter.task, masters_ende=task.sEnde(), masters_priority=task.sPriority())
         if self._eventIsNotNone(event):
             task.addSubTask(**values)
 
@@ -352,9 +352,6 @@ if __name__ == '__main__':
 # todo complet documentation and code cleanup
 
 # todo beauty --> uniform task and taskmanager
-
-# todo beauty make priority a must with up and down buttons and prechosen 5 --> middle 0-9
-
 
 
 # remember beauty look out for chances to easily improve performance

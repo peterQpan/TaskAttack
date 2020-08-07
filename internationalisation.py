@@ -59,6 +59,8 @@ class Internationalisation:
         self.percent_compled = "Vollendet in Prozent"
         self.completed = "Vollendet"
         self.not_later_than_master = "Nicht später als Master-Task"
+        self.not_less_important_than_master = "Nicht geringer als Master-Task"
+
         self.description = "Beschreibung"
         self.task = "Aufgabe"
         self.app_name = "TaskAttack Projekt und Taskmanager"
@@ -112,9 +114,11 @@ class Internationalisation:
         self.percent_compled = "Completed in percent"
         self.completed = "Completed"
         self.not_later_than_master = "Not later than master task"
+        self.not_less_important_than_master = "Not lesser than master task"
         self.description = "Description"
         self.task = "Task"
         self.app_name = "TaskAttack Project and Taskmanager"
+
 
     @property
     def menu_bar(self):
@@ -130,7 +134,7 @@ class Internationalisation:
         fetches menu entries from chosen language for basic-button-menu-list
         :return: list of list sg.ButtonMenu.layout
         """
-        return ['Unused', [self.sub_task, self.isolate, self.edit, self.delete, self.paste, self.cut, self.copy]]
+        return ['Unused', [self.sub_task, self.edit, self.isolate, self.delete, self.cut, self.paste, self.copy]]
 
     @property
     def c_b_m_l(self):
@@ -138,7 +142,7 @@ class Internationalisation:
         fetches menu entries from chosen language for canged-button-menu-list
         :return: list of list sg.ButtonMenu.layout
         """
-        return ['Unused', [self.sub_task, self.tree_view, self.edit, self.delete, self.paste, self.cut, self.copy]]
+        return ['Unused', [self.sub_task, self.edit, self.tree_view, self.delete, self.cut, self.paste, self.copy]]
 
 
 inter = Internationalisation("en")

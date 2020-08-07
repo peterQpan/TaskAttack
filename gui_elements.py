@@ -183,7 +183,7 @@ class TaskInputWindowCreator:
             values.update({"ende":None})
         return values
 
-    def inputValidation(self, window, masters_ende):
+    def inputValidation(self, window, masters_ende, masters_priority):
         """validates imput for user abort,
         only entering int in priority and int() them already,
         subtask dont prolong master task"""
@@ -191,29 +191,34 @@ class TaskInputWindowCreator:
             event, values = window.read()
             if event in {inter.cancel, None}:
                 break
-            elif event == 'priority' and values['priority'] and values['priority'][-1] not in \
-                        {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"}:
-                window['priority'].update(values['priority'][:-1])
+            elif event == 'priority' and masters_priority:
+                if values['priority'] > masters_priority:
+                    window['priority'].update(masters_priority)
+                    window['priority-KORREKTUR-'].update(inter.not_less_important_than_master)
             elif event == inter.ok:
                 values = self._updateWithDates(values, window)
                 if masters_ende and values["ende"] and values["ende"] > masters_ende:
                     window['Ende-KORREKTUR-'].update(inter.not_later_than_master)
                 else:
                     break
-        try:
-            values.update({'priority':int(values['priority'])})
-        except ValueError:
-            values.update({'priority':0})
         return event, values
 
     @staticmethod
-    def _priorityLine(priority):
+    def _priorityLine(priority, masters_priority):
         """
         :param priority:
         :return:
         """
-        return [sg.Text(f'{inter.priority}: (1-99)', size=(15, 1)),
-                sg.InputText(default_text=priority, key='priority', enable_events=True)]
+        #todo beauty this two lines: AND sholud i let this like master is 6 initialvalue is 6
+        # or better every initialvalue is 4 undless master is better?!?
+        inital_value = priority if priority else masters_priority
+        inital_value = inital_value if inital_value else 4
+
+        return [sg.Text(f'{inter.priority}: (0-9)', size=(15, 1)),
+                sg.Spin(values=[0,1,2,3,4,5,6,7,8,9], initial_value=inital_value,
+                        size=(2,1), key='priority', enable_events=True),
+                sg.Text(key='priority-KORREKTUR-', text_color="#FF0000", size=(35, 1))]
+                # sg.InputText(default_text=priority, key='priority', enable_events=True)]
 
     def calenderLine(self, calendar_date:datetime.datetime, s_or_e=inter.start, key='-START_BUTTON-', target='-START_BUTTON-'):
         """
@@ -273,7 +278,7 @@ class TaskInputWindowCreator:
 
     def inputWindow(self, kind:str, name:str='', description:str='',
                     start:datetime.datetime=None, ende:datetime.datetime=None,
-                    priority='', masters_ende:datetime.datetime=None, keep_on_top=True,
+                    priority='', masters_priority=None, masters_ende:datetime.datetime=None, keep_on_top=True,
                     *args, **kwargs
                     ):
         """
@@ -293,16 +298,17 @@ class TaskInputWindowCreator:
         if not ende:
             ende = masters_ende
 
+
         layout = [
             self._nameLine(name=name, kind=kind),
             self._descriptionLine(description=description),
             self.calenderLine(calendar_date=start),
             self.calenderLine(calendar_date=ende, s_or_e=inter.end, key='-END_BUTTON-', target='-END_BUTTON-'),
-            self._priorityLine(priority=priority),
+            self._priorityLine(priority=priority, masters_priority=masters_priority),
             self._buttonLine()
         ]
         window = sg.Window(kind, layout, keep_on_top=keep_on_top)
-        event, values = self.inputValidation(window, masters_ende)
+        event, values = self.inputValidation(window, masters_ende, masters_priority)
         values = self._updateWithDates(values, window)
         window.close()
         return event, values

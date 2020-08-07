@@ -256,7 +256,7 @@ class Task:
         """
         dr = {"name":self.name, "description":self.description, "start": self.start, "ende": self.ende,
               "priority": self.priority, "percentage":self.sPercentage(), "completed":self.sCompleted,
-              "masters_ende":self.sMastersEnde()}
+              "masters_ende":self.sMastersEnde(), "masters_priority":self.sMastersPriority()}
         if self.master is None:
             dr.update({"kind": inter.project})
         else:
