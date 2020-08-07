@@ -55,10 +55,10 @@ class TaskAttack:
         """
         :return: function mapping for window/global executable functions
         """
-        #todo beauty can i avoid redundance with _buttonMenuList() und this dict?!?
-        # correspondig functions an lists:
-        # gui_elements.TaskFrameCreator.setBasichButtonMenuList()
-        # gui_elements.TaskFrameCreator.changeMenuListToIsolated()
+        # correspondig lists:
+        # inter.menu_bar
+        # inter.b_b_m_l
+        # inter.c_b_m_l
 
         return {#Globals:
                 inter.new_project: self.onAddProject, inter.reload: self.onReload,
@@ -71,7 +71,7 @@ class TaskAttack:
 
                 #ButtonCommands:
                 inter.sub_task: self.onNewSubTask, inter.isolate: self.onIsolateTask, inter.edit: self.onEditTask,
-                inter.delete: self.onDeleteTask, inter.insert: self.onInsertTask, inter.cut: self.onCutTask,
+                inter.delete: self.onDeleteTask, inter.paste: self.onInsertTask, inter.cut: self.onCutTask,
                 inter.copy: self.onCopyTask, inter.tree_view: self.onTreeView
                 }
 
@@ -351,8 +351,8 @@ if __name__ == '__main__':
 
 ## todo figure colorcheme someday task, full deadline, etc
 
-# todo beauty clear language interface either german OR english not a little bit of both --> todo dev language and translating class
 
+sg.Window
 
 # out or later scroll position beibehalten (not possible as i know)
 
