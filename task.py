@@ -14,10 +14,6 @@ from internationalisation import inter
 
 class Task:
 
-
-    _complete_minutes: bool
-    _complete_time: bool
-
     def __init__(self, name:str, description:str=None, start=None, end=None, priority=21, master=None,
                  taskmanager:"Taskmanager"=None):
 
@@ -122,30 +118,6 @@ class Task:
         else:
             return self.master.subTaskPercentage()
 
-    def sRemainingTimedelta(self):
-        """sets all time related values so they dont have to be computed every window renewal,
-        self._remaining_timedelta gets resat to None from Master-over-all-renewal-thread, so the actuality
-        is ensured, as well
-        :return datetime.timedelta of tasks remaining time from now time"""
-        # todo beauty: this method have to be more beautiful
-
-        if self._remaining_timedelta is None:
-            try:
-                self._remaining_timedelta = self.sEnde() - tools.nowDateTime()
-                self._complete_time = self.sEnde() - self.sStart()
-                self._complete_minutes = self._complete_time.total_seconds() // 60
-                self._remaining_minutes = self._remaining_timedelta.total_seconds() // 60
-                self._remaining_days = self._remaining_timedelta.days
-                self._time_percentage = int(100 / self._complete_minutes * self._remaining_minutes)
-            except TypeError as e:
-                print(f"#kakld89i error: {e.__traceback__}, {e.__repr__()}, {e.__traceback__.tb_lineno}")
-                self._remaining_timedelta = self._remaining_minutes = False
-                self._complete_time = False
-                self._complete_minutes = False
-                self._remaining_minutes = False
-                self._remaining_days = False
-
-        return self._remaining_timedelta
 
     def sCompleteTime(self):
         return self._complete_time
@@ -157,7 +129,6 @@ class Task:
         return self._complete_minutes
 
     def sRemainingDays(self):
-        # todo beauty ---> how to avoid need for this check
         if self._remaining_days is None:
             self.sRemainingTimedelta()
         return self._remaining_days
@@ -165,7 +136,38 @@ class Task:
     def sRemainingMinutes(self):
         return self._remaining_minutes
 
-    def conditionalTimedeltaReset(self):
+    def _setAllTimeMappings(self):
+        """computes all time related values to the time-mapping-atributes"""
+        self._remaining_timedelta = self.sEnde() - tools.nowDateTime()
+        self._complete_time = self.sEnde() - self.sStart()
+        self._complete_minutes = self._complete_time.total_seconds() // 60
+        self._remaining_minutes = self._remaining_timedelta.total_seconds() // 60
+        self._remaining_days = self._remaining_timedelta.days
+        self._time_percentage = int(100 / self._complete_minutes * self._remaining_minutes)
+
+
+    def _setAllTimeMappingsFalse(self):
+        self._remaining_timedelta = self._remaining_minutes = False
+        self._complete_time = False
+        self._complete_minutes = False
+        self._remaining_minutes = False
+        self._remaining_days = False
+
+    def sRemainingTimedelta(self):
+        """sets all time related values so they dont have to be computed every window renewal,
+        self._remaining_timedelta gets resat to None from Master-over-all-renewal-thread, so the actuality
+        is ensured, as well
+        :return datetime.timedelta of tasks remaining time from now time"""
+        if self._remaining_timedelta is None:
+            try:
+                self._setAllTimeMappings()
+            except TypeError as e:
+                print(f"#kakld89i error: {e.__traceback__}, {e.__repr__()}, {e.__traceback__.tb_lineno}")
+                self._setAllTimeMappingsFalse()
+
+        return self._remaining_timedelta
+
+    def _conditionalTimedeltaReset(self):
         """sets _remaining_timedelta to None if not False, false indicates no end date, so there is no need
         to change this"""
         if self._remaining_timedelta is not False:
@@ -176,14 +178,14 @@ class Task:
         method for master-time-renewal-thread, resets _remaining_timedelta conditionally,
         so anew computation is needed and executed
         """
-        self.conditionalTimedeltaReset()
+        self._conditionalTimedeltaReset()
         print(f"time delta resetted")
         [sub_task.recursiveConditionalTimedeltaReset() for sub_task in self.sub_tasks]
 
-    def _mappingsRecursivelyAcknowledgeTaskChange(self):
+    def mappingsRecursivelyAcknowledgeTaskChange(self):
         """resets "trigger"-mappings recursively, so maybe changed values get new computed/updated """
         self._mappingsAcknowledgeTaskChange()
-        [sub_task._mappingsAcknowledgeTaskChange() for sub_task in self.sub_tasks]
+        [sub_task.mappingsRecursivelyAcknowledgeTaskChange() for sub_task in self.sub_tasks]
 
     def _mappingsAcknowledgeTaskChange(self):
         """resets "trigger"-mappings, so maybe changed values get new computed/updated """
@@ -309,7 +311,7 @@ class Task:
         self.start = start
         self.ende = ende
         self.priority = priority
-        self._mappingsRecursivelyAcknowledgeTaskChange()
+        self.mappingsRecursivelyAcknowledgeTaskChange()
 
     def takePosition(self, base_matrix):
         """orders task to take own position in base_matrix, orders sub_task to do the same
@@ -335,7 +337,7 @@ class Task:
         self.taskmanager = taskmanager
 
     def insertClipbordTask(self, clipbord_task):
-        clipbord_task._mappingsRecursivelyAcknowledgeTaskChange()
+        clipbord_task.mappingsRecursivelyAcknowledgeTaskChange()
         self.sub_tasks.append(clipbord_task)
 
     def setMaster(self, task):
@@ -401,7 +403,7 @@ class Taskmanager:
         :param task:
         """
         self._side_packed_project = self.sub_tasks
-        task.taskmanager = self #todo beauty get a method for this
+        task.setTaskManager(self)
         self.sub_tasks = [task]
 
 
