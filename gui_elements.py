@@ -3,12 +3,14 @@ __copyright__ = "Just Me"
 __email__ = "sebmueller.bt@gmail.com"
 
 import datetime
+import os
+import sys
 import textwrap
 import time
 from time import strftime
 
 import PySimpleGUI as sg
-from  internationalisation import  inter
+from internationalisation import inter
 
 import task, tools
 
@@ -33,6 +35,63 @@ def YesNoPopup(title:str, text:str, ok_button=inter.yes, cancel_button=inter.no,
     if event == ok_button:
         return True
     return False
+
+def _completeFilePathWithExtension(file_path, target_extension:str=".tak"):
+    """
+    checks file path for ".atk" extension and adds it if necessary
+    :param file_path: "file_path_string"
+    :return: "some "file_path_string.tak"
+    """
+    file_name, extension = os.path.splitext(file_path)
+    print(f"check!!!::: {file_name} : {extension}")
+    if not extension:
+        file_path += target_extension
+    return file_path
+
+
+def newResultFilePopup(file_name:str, filetype:str, file_ext:str=".ods"):
+    assert len(file_ext) == 4
+    layout = [[sg.Text(inter.file_name, size=(15,1)),
+               sg.Input(default_text=f"{file_name}.{file_ext}", size=(30,1), key='-FILE-NAME-'),
+               sg.FileSaveAs(inter.save_at, file_types=((filetype, file_ext),), )],
+
+              [sg.Text(inter.short_description, size=(15,1)),
+               sg.Input(size=(30,1), enable_events=True, key='-SHORT_DESCRIPTIOM-'),
+               sg.Ok()]]
+    window = sg.Window(title=f"{filetype} erstellen", layout=layout)
+    while True:
+        event, values = window.read()
+        if event is None:
+            return None
+        elif event == '-SHORT_DESCRIPTIOM-' and len(values['-SHORT_DESCRIPTIOM-']) > 30:
+            window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-1])
+        elif event == "Ok":  #could be else but for fast later additions withoutt trouble i will be very precise
+            file_name = values['-FILE-NAME-']
+            file_name = _completeFilePathWithExtension(file_name, file_ext)
+            short_description = values['-SHORT_DESCRIPTIOM-']
+            print(f"file_name: {file_name}; short description: {short_description}")
+            return file_name, short_description
+
+newResultFilePopup("projedt_so", "Tabellenkalkulation", ".ods")
+
+sys.exit(0)
+
+
+class ResultFileCreator:
+
+    def __init__(self):
+        self._file_templates = {inter.writer:"/templates/writer_template.odt",
+                                inter.spreadsheet:"/templates/spreadsheet_template.ods",
+                                inter.presentation:"/templates/presentation_template.ods",
+                                inter.drawing:"/templates/drawing_template.odg",
+                                inter.database:"/templates/database_template.odb",
+                                inter.gimp:"/templates/gimp_template.odb",
+                                inter.inkscape:"/templates/inkscape_template.odb"}
+
+
+    # def createResult(self, task, file_type):
+
+
 
 
 class TaskFrameCreator:

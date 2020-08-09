@@ -95,8 +95,10 @@ class TaskAttack:
 
     def onSaveAt(self, *args, **kwargs):
         self.unsaved_project = False
-        file_path = sg.PopupGetFile(message=inter.save_at, save_as=True, file_types=(("TaskAtack", "*.tak"),),
-                                    initial_folder=self.sLastUsedFolder(), keep_on_top=True, default_extension=".tak")
+        #todo this time fill in self_made_save_at_popup
+        
+        # file_path = sg.PopupGetFile(message=inter.save_at, save_as=True, file_types=(("TaskAtack", "*.tak"),),
+        #                             initial_folder=self.sLastUsedFolder(), keep_on_top=True, default_extension=".tak")
         file_path = self._completeFilePathWithExtension(file_path)
         if file_path:
             self.last_file_path = file_path
@@ -213,6 +215,7 @@ class TaskAttack:
             action = self.sFunctionMapping()[command]
             action()
 
+    #todo this time bring this out in own class
     def _completeFilePathWithExtension(self, file_path):
         """
         checks file path for ".atk" extension and adds it if necessary
@@ -348,18 +351,16 @@ class TaskAttack:
 if __name__ == '__main__':
     main_gui_task_atack = TaskAttack()
 
+# todo dev implement data creation by outside programs like writer, gimp, etc
+#  additional to that there have to be a save_file library and mapping
 
 # todo complet documentation and code cleanup
 
 # todo beauty --> uniform task and taskmanager
 
-
 # remember beauty look out for chances to easily improve performance
 
-
-
 # remember or later scroll position beibehalten (not possible as i know)
-
 
 #remember or later gui_element.TaskFrameCreater._toolTipText
 # date is shown yyyy-mm-dd 00:00:00 should i exclude the hours if its always zerro,

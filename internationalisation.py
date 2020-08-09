@@ -40,6 +40,9 @@ class Internationalisation:
         self.about = "Über..."
 
         self.sub_task = 'Unteraufgabe'
+        self.compose_results = "Verfasse Resultate"
+        self.results = "Results"
+
         self.isolate = "Isolieren"
         self.delete = "Löschen"
         self.paste = "Einfügen"
@@ -64,6 +67,8 @@ class Internationalisation:
         self.description = "Beschreibung"
         self.task = "Aufgabe"
         self.app_name = "TaskAttack Projekt und Taskmanager"
+        self.file_name = "Dateiname"
+        self.short_description = "Kurzbeschreibung"
 
     def setEnglish(self):
         # Buttons
@@ -95,6 +100,9 @@ class Internationalisation:
         self.about = "About..."
 
         self.sub_task = 'Subtask'
+        self.compose_results = "Compose result"
+        self.results = "Results"
+        self.compose_results, ["writer", "spreadsheet", "gimp"], self.results, ["file1", "file2"]
         self.isolate = "Isolate"
         self.delete = "Delete"
         self.paste = "Paste"
@@ -118,6 +126,8 @@ class Internationalisation:
         self.description = "Description"
         self.task = "Task"
         self.app_name = "TaskAttack Project and Taskmanager"
+        self.file_name = "Filename"
+        self.short_description ="Short Description"
 
 
     @property
@@ -134,7 +144,10 @@ class Internationalisation:
         fetches menu entries from chosen language for basic-button-menu-list
         :return: list of list sg.ButtonMenu.layout
         """
-        return ['Unused', [self.sub_task, self.edit, self.isolate, self.delete, self.cut, self.paste, self.copy]]
+        return ['Unused', [self.sub_task, self.edit,
+                           self.compose_results, ["writer", "spreadsheet", "gimp"],
+                           self.results, ["file1", "file2"],
+                           self.isolate, self.delete, self.cut, self.paste, self.copy]]
 
     @property
     def c_b_m_l(self):
@@ -142,7 +155,10 @@ class Internationalisation:
         fetches menu entries from chosen language for canged-button-menu-list
         :return: list of list sg.ButtonMenu.layout
         """
-        return ['Unused', [self.sub_task, self.edit, self.tree_view, self.delete, self.cut, self.paste, self.copy]]
+        return ['Unused', [self.sub_task, self.edit,
+                           self.compose_results, ["writer", "spreadsheet", "gimp"],
+                           self.results, ["file1", "file2"],
+                           self.tree_view, self.delete, self.cut, self.paste, self.copy]]
 
 
 inter = Internationalisation("en")
