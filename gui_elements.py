@@ -4,15 +4,20 @@ __email__ = "sebmueller.bt@gmail.com"
 
 import datetime
 import os
+import shutil
 import sys
 import textwrap
+import threading
 import time
 from time import strftime
 
 import PySimpleGUI as sg
+from pip._vendor.colorama import Fore
+
 from internationalisation import inter
 
 import task, tools
+from tools import nowDateTime
 
 
 def YesNoPopup(title:str, text:str, ok_button=inter.yes, cancel_button=inter.no, size=(250, 70), keep_on_top=True,
@@ -49,49 +54,78 @@ def _completeFilePathWithExtension(file_path, target_extension:str=".tak"):
     return file_path
 
 
-def newResultFilePopup(file_name:str, filetype:str, file_ext:str=".ods"):
-    assert len(file_ext) == 4
-    layout = [[sg.Text(inter.file_name, size=(15,1)),
-               sg.Input(default_text=f"{file_name}.{file_ext}", size=(30,1), key='-FILE-NAME-'),
-               sg.FileSaveAs(inter.save_at, file_types=((filetype, file_ext),), )],
-
-              [sg.Text(inter.short_description, size=(15,1)),
-               sg.Input(size=(30,1), enable_events=True, key='-SHORT_DESCRIPTIOM-'),
-               sg.Ok()]]
-    window = sg.Window(title=f"{filetype} erstellen", layout=layout)
-    while True:
-        event, values = window.read()
-        if event is None:
-            return None
-        elif event == '-SHORT_DESCRIPTIOM-' and len(values['-SHORT_DESCRIPTIOM-']) > 30:
-            window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-1])
-        elif event == "Ok":  #could be else but for fast later additions withoutt trouble i will be very precise
-            file_name = values['-FILE-NAME-']
-            file_name = _completeFilePathWithExtension(file_name, file_ext)
-            short_description = values['-SHORT_DESCRIPTIOM-']
-            print(f"file_name: {file_name}; short description: {short_description}")
-            return file_name, short_description
-
-newResultFilePopup("projedt_so", "Tabellenkalkulation", ".ods")
-
-sys.exit(0)
-
-
 class ResultFileCreator:
 
     def __init__(self):
-        self._file_templates = {inter.writer:"/templates/writer_template.odt",
-                                inter.spreadsheet:"/templates/spreadsheet_template.ods",
-                                inter.presentation:"/templates/presentation_template.ods",
-                                inter.drawing:"/templates/drawing_template.odg",
-                                inter.database:"/templates/database_template.odb",
-                                inter.gimp:"/templates/gimp_template.odb",
-                                inter.inkscape:"/templates/inkscape_template.odb"}
+        self._external_threads = []
+        self._file_templates = {inter.writer:("/templates/writer_template.odt", ".odt"),
+                                inter.spreadsheet:("/templates/spreadsheet_template.ods", ".ods"),
+                                inter.presentation:("/templates/presentation_template.odp", ".odp"),
+                                inter.drawing:("/templates/drawing_template.odg", ".odg"),
+                                inter.database:("/templates/database_template.odb", ".odb"),
+                                inter.gimp:("/templates/gimp_template.xcf", ".xcf"),
+                                inter.svg:("/templates/inkscape_template.svg", ".svg")}
+
+    def _newLayout(self, file_name, file_ext, kind_of_program):
+        #todo save as *.tak, and maby even open, can be merged here
+        file_name_line =[sg.Text(inter.file_name, size=(15, 1)),
+                  sg.Input(default_text=f"{file_name}{file_ext}", size=(30, 1), key='-FILE-NAME-'),
+                  sg.FileSaveAs(inter.save_at, file_types=((kind_of_program, file_ext),))]
+        description_line = [sg.Text(inter.short_description, size=(15, 1)),
+                  sg.Input(size=(30, 1), enable_events=True, key='-SHORT_DESCRIPTIOM-'),
+                  sg.Ok()]
+        return [file_name_line, description_line]
+
+    def newResultFilePopup(self, file_name: str, kind_of_program: str, file_ext: str = ".ods"):
+        assert len(file_ext) == 4
+        layout = self._newLayout(file_name=file_name, file_ext=file_ext, kind_of_program=kind_of_program)
+        window = sg.Window(title=inter.createResultFileTitle(kind_of_program=kind_of_program) , layout=layout)
+        while True:
+            event, values = window.read()
+            if event is None:
+                return None
+            elif event == '-SHORT_DESCRIPTIOM-' and len(values['-SHORT_DESCRIPTIOM-']) > 30:
+                window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-1])
+            elif event == "Ok":  # could be else but for fast later additions withoutt trouble i will be very precise
+                file_name = values['-FILE-NAME-']
+                file_name = _completeFilePathWithExtension(file_name, file_ext)
+                short_description = values['-SHORT_DESCRIPTIOM-']
+                print(f"file_name: {file_name}; short description: {short_description}")
+                window.close()
+                return os.path.abspath(file_name), short_description
+
+    def _startExternAplicationThread(self, file_path):
+        thread = threading.Thread(target=os.system, args=(f"xdg-open '{file_path}'", ))
+        thread.start()
+        self._external_threads.append(thread)
 
 
-    # def createResult(self, task, file_type):
+    def createResult(self, task:task.Task, kind_of_porogramm):
+        file_name = self.createTaskFileName(task)
+        while True:
+            try:
+                file_path, short_description = self.newResultFilePopup(
+                        file_name=file_name, kind_of_program=kind_of_porogramm, file_ext=self._file_templates[kind_of_porogramm][1])
+            except TypeError:
+                break
+            if os.path.exists(file_path):
+                if not YesNoPopup(title=inter.save_at, text=inter.allready_exists_override):
+                    continue
+            self._createAndEditResultFile(kind_of_porogramm, file_path)
+            task.addResultsFileAndDescription(file_path, short_description)
+            break
 
+    def _createAndEditResultFile(self, kind_of_porogramm, file_path):
+        template_file_path = self._file_templates[kind_of_porogramm][0]
+        cwd = os.getcwd()
+        complete_file_path = cwd + template_file_path
+        shutil.copy(complete_file_path, file_path)
+        self._startExternAplicationThread(file_path)
 
+    def createTaskFileName(self, task):
+        nameing_list = task.hierarchyTreePositionList()
+        nowtime_str = str(nowDateTime()).replace(" ", "_")
+        return f"{nowtime_str}_{nameing_list[0]}_{nameing_list[-1]}"
 
 
 class TaskFrameCreator:

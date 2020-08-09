@@ -17,6 +17,7 @@ class Task:
     def __init__(self, name:str, description:str=None, start=None, end=None, priority=21, master=None,
                  taskmanager:"Taskmanager"=None):
 
+        self._results = []
         self._hierarchy_tree_positions_string = None
         self._hierarchy_tree_positions = None
         self.name = name
@@ -198,20 +199,20 @@ class Task:
         :return: string of tree herachie like: projectname/mastertask/mastertask/
         """
         if self._hierarchy_tree_positions_string is None:
-            if self._hierarchyTreePositionList()[:-1]:
-                self._hierarchy_tree_positions_string = "/" + "/".join(self._hierarchyTreePositionList()[:-1])
+            if self.hierarchyTreePositionList()[:-1]:
+                self._hierarchy_tree_positions_string = "/" + "/".join(self.hierarchyTreePositionList()[:-1])
             else:
                 return " "
         return self._hierarchy_tree_positions_string[-lenght:]
 
 
-    def _hierarchyTreePositionList(self):
+    def hierarchyTreePositionList(self):
         """
         :return:list of str with own task hierarchy tree
         """
         if self.master:
             if self._hierarchy_tree_positions is None:
-                self._hierarchy_tree_positions = self.master._hierarchyTreePositionList() + [f"{self.name}"]
+                self._hierarchy_tree_positions = self.master.hierarchyTreePositionList() + [f"{self.name}"]
             return self._hierarchy_tree_positions
         else:
             return [f"{self.name}"]
@@ -342,6 +343,9 @@ class Task:
 
     def setMaster(self, task):
         self.master = task
+
+    def addResultsFileAndDescription(self, file_path, short_description):
+        self._results.append((file_path, short_description))
 
 
 class Taskmanager:
@@ -488,7 +492,7 @@ class Taskmanager:
                 print(f"x_index: {x_index}, x: {x}")
                 if isinstance(x, Task):
                     all_masters_strings_list = x.hierarchyTreePositionString()
-                    actual_task = ">".join(all_masters_strings_list)
+                    actual_tasfile_typek = ">".join(all_masters_strings_list)
                 else:
                     if actual_task:
                         display_matrix_to_work_on[y_index][x_index] = actual_task

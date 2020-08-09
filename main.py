@@ -30,6 +30,7 @@ class TaskAttack:
         self.taskmanager = Taskmanager()
         self.task_window_crator = TaskInputWindowCreator()
         self.task_frames_creator = TaskFrameCreator()
+        self.result_file_creator = gui_elements.ResultFileCreator()
 
         self.window_size = sg.Window.get_screen_size()
         self.window_location = (None, None)
@@ -76,14 +77,24 @@ class TaskAttack:
                 #ButtonCommands:
                 inter.sub_task: self.onNewSubTask, inter.isolate: self.onIsolateTask, inter.edit: self.onEditTask,
                 inter.delete: self.onDeleteTask, inter.paste: self.onInsertTask, inter.cut: self.onCutTask,
-                inter.copy: self.onCopyTask, inter.tree_view: self.onTreeView
+                inter.copy: self.onCopyTask, inter.tree_view: self.onTreeView,
+
+                #Extern Programms
+                inter.writer: self.onCreateResult, inter.spreadsheet: self.onCreateResult,
+                inter.presentation:self.onCreateResult, inter.database: self.onCreateResult, inter.drawing:
+                self.onCreateResult, inter.gimp: self.onCreateResult, inter.svg: self.onCreateResult,
+
                 }
+    def onCreateResult(self, task, event, values, command, *args, **kwargs):
+
+        self.result_file_creator.createResult(task=task, kind_of_porogramm=command)
+        pass
 
     def onOptionButtonMenu(self, task, event, values, *args, **kwargs):
         """Method for Button menu command mapping"""
         command = values[event]
         action = self.sFunctionMapping()[command]
-        action(task)
+        action(task=task, values=values, command=command, event=event)
 
     def onLoad(self, *args, **kwargs):
         self.dataLossPrevention()
@@ -97,8 +108,8 @@ class TaskAttack:
         self.unsaved_project = False
         #todo this time fill in self_made_save_at_popup
         
-        # file_path = sg.PopupGetFile(message=inter.save_at, save_as=True, file_types=(("TaskAtack", "*.tak"),),
-        #                             initial_folder=self.sLastUsedFolder(), keep_on_top=True, default_extension=".tak")
+        file_path = sg.PopupGetFile(message=inter.save_at, save_as=True, file_types=(("TaskAtack", "*.tak"),),
+                                    initial_folder=self.sLastUsedFolder(), keep_on_top=True, default_extension=".tak")
         file_path = self._completeFilePathWithExtension(file_path)
         if file_path:
             self.last_file_path = file_path
@@ -210,7 +221,7 @@ class TaskAttack:
             int_coordinates = self._getCoordinatesAsInts(string_coordinates)
             task = self.getTaskFromMatrix(coordinates=int_coordinates)
             action = self.sFunctionMapping()[command]
-            action(task=task, values=values, event=event)
+            action(task=task, values=values, event=event, command=command)
         else:
             action = self.sFunctionMapping()[command]
             action()

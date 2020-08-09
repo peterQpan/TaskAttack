@@ -50,6 +50,15 @@ class Internationalisation:
         self.copy = "Kopieren"
         self.tree_view = "Gesammtansicht"
 
+        self.writer = "Text"
+        self.spreadsheet = "Tabellenkalkulation"
+        self.presentation = "Präsentation"
+        self.database = "Datenbank"
+        self.drawing = "Office-Zeichnung"
+        self.gimp = "Pixel-Grafik"
+        self.svg = "Vektor-Grafik"
+
+
         # texts
         self.projects = "Projekte"
         self.realy_delete = "Wirklich löschen"
@@ -69,6 +78,11 @@ class Internationalisation:
         self.app_name = "TaskAttack Projekt und Taskmanager"
         self.file_name = "Dateiname"
         self.short_description = "Kurzbeschreibung"
+
+
+
+        
+
 
     def setEnglish(self):
         # Buttons
@@ -102,13 +116,20 @@ class Internationalisation:
         self.sub_task = 'Subtask'
         self.compose_results = "Compose result"
         self.results = "Results"
-        self.compose_results, ["writer", "spreadsheet", "gimp"], self.results, ["file1", "file2"]
         self.isolate = "Isolate"
         self.delete = "Delete"
         self.paste = "Paste"
         self.cut = "Cut"
         self.copy = "Copy"
         self.tree_view = "Tree view"
+
+        self.writer = "Writer"
+        self.spreadsheet = "Spreadsheet"
+        self.presentation = "Presentation"
+        self.database = "Database"
+        self.drawing = "Drawing"
+        self.gimp = "Pixel-Manipulation"
+        self.svg = "Vektor-Manipulation"
 
         # texts
         self.projects = "Projects"
@@ -128,7 +149,19 @@ class Internationalisation:
         self.app_name = "TaskAttack Project and Taskmanager"
         self.file_name = "Filename"
         self.short_description ="Short Description"
+        self.create_result_file = f"Create {kind_of_program}"
 
+    def createResultFileTitle(self, kind_of_program):
+        if self.not_later_than_master == "Not later than master task":
+            return f"Create {kind_of_program}"
+        elif self.not_less_important_than_master == "Nicht geringer als Master-Task":
+            return f"{kind_of_program} erstellen"
+        else:
+            raise NotImplementedError("Language not completely implemented")
+
+    @property
+    def chreate_result_menu(self):
+        return [self.writer, self.spreadsheet, self.presentation, self.database, self.drawing, self.gimp, self.svg]
 
     @property
     def menu_bar(self):
@@ -145,7 +178,7 @@ class Internationalisation:
         :return: list of list sg.ButtonMenu.layout
         """
         return ['Unused', [self.sub_task, self.edit,
-                           self.compose_results, ["writer", "spreadsheet", "gimp"],
+                           self.compose_results, self.chreate_result_menu,
                            self.results, ["file1", "file2"],
                            self.isolate, self.delete, self.cut, self.paste, self.copy]]
 
@@ -156,9 +189,10 @@ class Internationalisation:
         :return: list of list sg.ButtonMenu.layout
         """
         return ['Unused', [self.sub_task, self.edit,
-                           self.compose_results, ["writer", "spreadsheet", "gimp"],
+                           self.compose_results, self.chreate_result_menu,
                            self.results, ["file1", "file2"],
                            self.tree_view, self.delete, self.cut, self.paste, self.copy]]
+
 
 
 inter = Internationalisation("en")
