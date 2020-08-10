@@ -16,17 +16,19 @@ import tools
 from gui_elements import TaskInputWindowCreator, TaskFrameCreator, MyGuiToolbox
 from internationalisation import inter
 from task import Taskmanager, Task
+from threading import Thread
 
 
 class TaskAttack:
     def __init__(self):
 
 
+        self.unsaved_project = False
+        self.last_deleted_task:Task = None
+        self.auto_save_thread:Thread = None
+        self._clipboard:Task = None
         self._extern_threads = []
         self.last_file_path = ""
-        self.unsaved_project = False
-        self.last_deleted_task = None
-        self.auto_save_thread = None
 
         self.taskmanager = Taskmanager()
         self.mygtb = MyGuiToolbox()
@@ -36,7 +38,6 @@ class TaskAttack:
 
         self.window_size = sg.Window.get_screen_size()
         self.window_location = (None, None)
-
 
         self.mainLoop()
 
@@ -53,6 +54,15 @@ class TaskAttack:
         :return: table dummy needed on an empty sheet
         """
         return [sg.Text(text=inter.projects, size=(20, 20))]
+
+    @staticmethod
+    def onSetTaskAsCompleted(task, *args, **kwargs):
+        task.changeCompleted()
+
+    @staticmethod
+    def onReload(*args, **kwargs):
+        """does nothing so loop starts anew and matrix and window gets build anew"""
+        pass
 
     def sLastUsedFolder(self):
         if self.last_file_path:
@@ -86,33 +96,17 @@ class TaskAttack:
                 inter.writer: self.onCreateResult, inter.spreadsheet: self.onCreateResult,
                 inter.presentation:self.onCreateResult, inter.database: self.onCreateResult, inter.drawing:
                 self.onCreateResult, inter.gimp: self.onCreateResult, inter.svg: self.onCreateResult,
-
                 }
+
     def onCreateResult(self, task, event, values, command, *args, **kwargs):
-
-        self.result_file_creator.createResult(task=task, kind_of_porogramm=command)
-        pass
-
-    def _executeSelfCreatedFileDemand(self, event, values):
-        command = values[event]
-        _, _, file_path = command.rpartition(" <-> ")
-        print(f"datei die geöffnet werden soll: {file_path}")
-        #todo beauty this is redundant make a tool method or something
-        if os.path.isfile(file_path):
-            print(f"----------------> starte {file_path}")
-            tools.startExternAplicationThread(file_path=file_path, threads=self._extern_threads)
-
-    def _executeBasichButtonMenuComands(self, values, event, task):
-        command = values[event]
-        action = self.sFunctionMapping()[command]
-        action(task=task, values=values, command=command, event=event)
+        self.result_file_creator.newResultFile(task=task, kind_of_porogramm=command)
 
     def onOptionButtonMenu(self, task, event, values, *args, **kwargs):
         """Method for Button menu command mapping"""
         try:
-            self._executeBasichButtonMenuComands(values=values, event=event, task=task)
+            self._executeBasicOptionButtonMenuCommands(values=values, event=event, task=task)
         except KeyError:
-            self._executeSelfCreatedFileDemand(event=event, values=values)
+            self._executeCreatedFile(event=event, values=values)
 
     def onLoad(self, *args, **kwargs):
         self.dataLossPrevention()
@@ -126,7 +120,7 @@ class TaskAttack:
         self.unsaved_project = False
         file_path = sg.PopupGetFile(message=inter.save_at, save_as=True, file_types=(("TaskAtack", "*.tak"),),
                                     initial_folder=self.sLastUsedFolder(), keep_on_top=True, default_extension=".tak")
-        file_path = self._completeFilePathWithExtension(file_path)
+        file_path = tools.completeFilePathWithExtension(file_path)
         if file_path:
             self.last_file_path = file_path
             self.taskmanager.save(file_path)
@@ -137,10 +131,6 @@ class TaskAttack:
             self.taskmanager.save(self.last_file_path)
         else:
             self.onSaveAt()
-
-    def onReload(self, *args, **kwargs):
-        """does nothing so loop starts anew and matrix and window gets build anew"""
-        pass
 
     def onNewFile(self, *args, **kwargs):
         self.dataLossPrevention()
@@ -164,19 +154,14 @@ class TaskAttack:
     def onEditTask(self, task, *args, **kwargs):
         event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation())
         print(F"#125456 event: {event}; vlues: {values}")
-
-        if self._eventIsNotNone(event):
+        if tools.eventIsNotNone(event):
             task.update(**values)
 
     def onNewSubTask(self, task, *args, **kwargs):
         event, values = self.task_window_crator.inputWindow(kind=inter.task, masters_ende=task.sEnde(), masters_priority=task.sPriority())
         print(F"#987453 event: {event}; vlues: {values}")
-
-        if self._eventIsNotNone(event):
+        if tools.eventIsNotNone(event):
             task.addSubTask(**values)
-
-    def onSetTaskAsCompleted(self, task, *args, **kwargs):
-        task.changeCompleted()
 
     def onIsolateTask(self, task, *args, **kwargs):
         self.task_frames_creator.changeMenuListToIsolated()
@@ -203,6 +188,31 @@ class TaskAttack:
         hard_copy.setMaster(task)
         task.insertClipbordTask(clipbord_task=hard_copy)
 
+    @staticmethod
+    def _getCoordinatesAsInts(coordinates):
+        """strips button event down to button coordinates
+        :return: button matrix coordinates
+        """
+        coordinates = coordinates.replace("(", "")
+        coordinates = coordinates.replace(")", "")
+        coordinates = coordinates.replace(",", "")
+        y, x = [int(x) for x in coordinates.split()]
+        return x, y
+
+    def _executeCreatedFile(self, event, values):
+        """Opens already existing task-result-file in system corresponding program like libre office or else """
+        command = values[event]
+        _, _, file_path = command.rpartition(" <-> ")
+        if os.path.isfile(file_path):
+            tools.startExternAplicationThread(file_path=file_path, threads=self._extern_threads)
+
+    def _executeBasicOptionButtonMenuCommands(self, values, event, task):
+        """executes the basic commands of the option Button menue"""
+        command = values[event]
+        action = self.sFunctionMapping()[command]
+        action(task=task, values=values, command=command, event=event)
+
+
     def _userExit(self, event, window):
         """checks for and executes Exit if asked for"""
         if event in (inter.exit, None):
@@ -216,16 +226,15 @@ class TaskAttack:
                          inter.exit, inter.reload, inter.help, inter.about, None):
             self.unsaved_project = True
 
-    @staticmethod
-    def _getCoordinatesAsInts(coordinates):
-        """strips button event down to button coordinates
-        :return: button matrix coordinates
+    def _executeCoordinateCommand(self, string_coordinates:str, command:str, values:dict, event:str):
         """
-        coordinates = coordinates.replace("(", "")
-        coordinates = coordinates.replace(")", "")
-        coordinates = coordinates.replace(",", "")
-        y, x = [int(x) for x in coordinates.split()]
-        return x, y
+        executes Task specific commands, which alters with every task
+        :param string_coordinates: task matrix coordinates
+        """
+        int_coordinates = self._getCoordinatesAsInts(string_coordinates)
+        task = self.getTaskFromMatrix(coordinates=int_coordinates)
+        action = self.sFunctionMapping()[command]
+        action(task=task, values=values, event=event, command=command)
 
     def executeEvent(self, event, window, values, *args, **kwargs):
         """takes event, values and window and executes corresponding action from command-mapping
@@ -240,25 +249,11 @@ class TaskAttack:
         print(f"command: {command}, string_coordinates:{string_coordinates}")
 
         if string_coordinates:
-            int_coordinates = self._getCoordinatesAsInts(string_coordinates)
-            task = self.getTaskFromMatrix(coordinates=int_coordinates)
-            action = self.sFunctionMapping()[command]
-            action(task=task, values=values, event=event, command=command)
+            self._executeCoordinateCommand(string_coordinates=string_coordinates, command=command,
+                                           values= values, event=event)
         else:
             action = self.sFunctionMapping()[command]
             action()
-
-    #todo this time bring this out in own class
-    def _completeFilePathWithExtension(self, file_path):
-        """
-        checks file path for ".atk" extension and adds it if necessary
-        :param file_path: "file_path_string"
-        :return: "some "file_path_string.tak"
-        """
-        file_name, extension = os.path.splitext(file_path)
-        if not extension:
-            file_path += ".tak"
-        return file_path
 
     def dataLossPrevention(self):
         """checks if there is an open unsaved file and asks for wish to save
@@ -307,16 +302,6 @@ class TaskAttack:
         """
         task_matrix = self.taskmanager.sTaskMatrix()
         return task_matrix[coordinates[0]][coordinates[1]]
-
-    @staticmethod
-    def _eventIsNotNone(event):
-        """checks event for None, Abbrechen
-        :param event: sg.window.read()[0]
-        :return: true if not close or Abrechen
-        """
-        if event and event != inter.cancel:
-            return True
-        return False
 
     def propperWindowLayout(self, menu_bar, project_matrix):
         """creates tree layout either with project_matrix if available, or with a table dummy
@@ -379,8 +364,6 @@ class TaskAttack:
             self.window_location = main_window.current_location()
             main_window.close()
             self.autoSave()
-
-
 
 
 if __name__ == '__main__':

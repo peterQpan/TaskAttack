@@ -64,6 +64,9 @@ class Internationalisation:
         self.realy_delete = "Wirklich löschen"
         self.open_project = "Offenes Projekt"
         self.priority = "Priorität"
+        self.low = "low"
+        self.high = "high"
+
         self.short_pr = "PR"
         self.rem_days = "Verbleibende Tage"
         self.project_part_percentage = "Prozentualer Anteil am gesamt Projekt"
@@ -71,7 +74,7 @@ class Internationalisation:
         self.percent_compled = "Vollendet in Prozent"
         self.completed = "Vollendet"
         self.not_later_than_master = "Nicht später als Master-Task"
-        self.not_less_important_than_master = "Nicht geringer als Master-Task"
+        self.really_less_important_than_master = "Wirklich unwichtiger als Master-Task?!?"
 
         self.description = "Beschreibung"
         self.task = "Aufgabe"
@@ -136,6 +139,10 @@ class Internationalisation:
         self.realy_delete = "Realy delete"
         self.open_project = "Open project"
         self.priority = "Priority"
+
+        self.low = "low"
+        self.high = "high"
+
         self.short_pr = "PR"
         self.rem_days = "Remaining Days"
         self.project_part_percentage = "Percentage to the hole project"
@@ -143,7 +150,7 @@ class Internationalisation:
         self.percent_compled = "Completed in percent"
         self.completed = "Completed"
         self.not_later_than_master = "Not later than master task"
-        self.not_less_important_than_master = "Not lesser than master task"
+        self.really_less_important_than_master = "Really less important tham master task?!?"
         self.description = "Description"
         self.task = "Task"
         self.app_name = "TaskAttack Project and Taskmanager"
@@ -153,7 +160,7 @@ class Internationalisation:
     def createResultFileTitle(self, kind_of_program):
         if self.not_later_than_master == "Not later than master task":
             return f"Create {kind_of_program}"
-        elif self.not_less_important_than_master == "Nicht geringer als Master-Task":
+        elif self.really_less_important_than_master == "Nicht geringer als Master-Task":
             return f"{kind_of_program} erstellen"
         else:
             raise NotImplementedError("Language not completely implemented")

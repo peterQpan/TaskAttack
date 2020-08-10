@@ -8,7 +8,7 @@ import shutil
 import textwrap
 import threading
 import time
-from copy import copy, deepcopy
+from copy import deepcopy
 from time import strftime
 
 import PySimpleGUI as sg
@@ -70,34 +70,6 @@ class MyGuiToolbox:
             return True
         return False
 
-    @staticmethod
-    def _completeFilePathWithExtension(file_path, target_extension: str = ".tak"):
-        """
-        checks file path for ".atk" extension and adds it if necessary
-        :param file_path: "file_path_string"
-        :return: "some "file_path_string.tak"
-        """
-        file_name, extension = os.path.splitext(file_path)
-        # print(f"check!!!::: {file_name} : {extension}")
-        if not extension:
-            file_path += target_extension
-        return file_path
-
-
-
-
-# def _completeFilePathWithExtension(file_path, target_extension:str=".tak"):
-#     """
-#     checks file path for ".atk" extension and adds it if necessary
-#     :param file_path: "file_path_string"
-#     :return: "some "file_path_string.tak"
-#     """
-#     file_name, extension = os.path.splitext(file_path)
-#     # print(f"check!!!::: {file_name} : {extension}")
-#     if not extension:
-#         file_path += target_extension
-#     return file_path
-
 
 class ResultFileCreator:
 
@@ -112,7 +84,7 @@ class ResultFileCreator:
                                 inter.svg:("/templates/inkscape_template.svg", ".svg")}
 
     def _newLayout(self, file_name, file_ext, kind_of_program):
-        #todo save as *.tak, and maby even open, can be merged here
+        """creates new layout for file name / save as; short descripton pop up window"""
         file_name_line =[sg.Text(inter.file_name, size=(15, 1)),
                   sg.Input(default_text=f"{file_name}{file_ext}", size=(30, 1), key='-FILE-NAME-'),
                   sg.FileSaveAs(inter.save_at, file_types=((kind_of_program, file_ext),))]
@@ -121,60 +93,76 @@ class ResultFileCreator:
                   sg.Ok()]
         return [file_name_line, description_line]
 
-    def newResultFilePopup(self, file_name: str, kind_of_program: str, file_ext: str = ".ods"):
+    def _correctInputEnforcement(self, window, values):
+        """
+        takes care that short description dont gets longer than 30 figures
+        and that not the file_name <-> short desciption seperator gets used by the user
+        """
+        if len(values['-SHORT_DESCRIPTIOM-']) > 30:
+            window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-1])
+        elif values['-SHORT_DESCRIPTIOM-'][-3:] == "<->":
+            window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-3])
+
+    def _newResultFilePopup(self, file_name: str, kind_of_program: str, file_ext: str = ".ods"):
+        """
+        gets file_name and short file description for new task result file
+        :return: filename, short_description
+        """
         assert len(file_ext) == 4
         layout = self._newLayout(file_name=file_name, file_ext=file_ext, kind_of_program=kind_of_program)
         window = sg.Window(title=inter.createResultFileTitle(kind_of_program=kind_of_program) , layout=layout)
         while True:
             event, values = window.read()
             print(F"#099823 event: {event}; vlues: {values}")
-
             if event is None:
                 return None
             elif event == '-SHORT_DESCRIPTIOM-':
-                if len(values['-SHORT_DESCRIPTIOM-']) > 30:
-                    window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-1])
-                elif values['-SHORT_DESCRIPTIOM-'][-3:] == "<->":
-                    window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-3])
+                self._correctInputEnforcement(window=window, values=values)
             elif event == "Ok":  # could be else but for fast later additions withoutt trouble i will be very precise
-                file_name = values['-FILE-NAME-']
-                file_name = MyGuiToolbox._completeFilePathWithExtension(file_name, file_ext)
-                short_description = values['-SHORT_DESCRIPTIOM-']
-                # print(f"file_name: {file_name}; short description: {short_description}")
-                window.close()
+                file_name, short_description = self._fetchResultFileParameters(values=values, file_ext=file_ext)
                 return file_name, short_description
 
-    def startExternAplicationThread(self, file_path):
-        thread = threading.Thread(target=os.system, args=(f"xdg-open '{file_path}'", ))
-        thread.start()
-        self._external_threads.append(thread)
+    def _copyFileTemplateAndOpenExternalApplicationToEditIt(self, kind_of_porogramm, file_path):
+        template_file_path = self._file_templates[kind_of_porogramm][0]
+        # todo make an documents folder-project-save-structure
+        shutil.copy(tools.venvAbsPath(template_file_path), file_path)
+        tools.startExternAplicationThread(file_path=file_path, threads=self._external_threads)
 
+    def _createSuggestingTaskFileName(self, task):
+        """
+        creats a suggested task filename depending on task name, project name, date and time
+        :return :str file_name
+        """
+        nameing_list = task.hierarchyTreePositionList()
+        nowtime_str = str(nowDateTime()).replace(" ", "_")
+        return f"{nowtime_str}_{nameing_list[0]}_{nameing_list[-1]}"
 
-    def createResult(self, task:task.Task, kind_of_porogramm):
-        file_name = self.createTaskFileName(task)
+    def _fetchResultFileParameters(self, values, file_ext):
+        """gets filename and short description from popup window and returns it"""
+        file_name = values['-FILE-NAME-']
+        file_path = tools.completeFilePathWithExtension(file_name, file_ext)
+        short_description = values['-SHORT_DESCRIPTIOM-']
+        window.close()
+        return file_path, short_description
+
+    def newResultFile(self, task:task.Task, kind_of_porogramm):
+        """
+        creates new result file
+        :param kind_of_porogramm: inter.presentation, inter.spreadsheet, etc...
+        """
+        file_name = self._createSuggestingTaskFileName(task)
         while True:
             try:
-                file_path, short_description = self.newResultFilePopup(
+                file_path, short_description = self._newResultFilePopup(
                         file_name=file_name, kind_of_program=kind_of_porogramm, file_ext=self._file_templates[kind_of_porogramm][1])
             except TypeError:
                 break
             if os.path.exists(file_path):
                 if not MyGuiToolbox.YesNoPopup(title=inter.save_at, text=inter.allready_exists_override):
                     continue
-            self._createAndEditResultFile(kind_of_porogramm, file_path)
+            self._copyFileTemplateAndOpenExternalApplicationToEditIt(kind_of_porogramm, file_path)
             task.addResultsFileAndDescription(file_path, short_description)
             break
-
-    def _createAndEditResultFile(self, kind_of_porogramm, file_path):
-        template_file_path = self._file_templates[kind_of_porogramm][0]
-        # todo make an documents folder-project-save-structure
-        shutil.copy(tools.venvAbsPath(template_file_path), file_path)
-        tools.startExternAplicationThread(file_path=file_path, threads=self._external_threads)
-
-    def createTaskFileName(self, task):
-        nameing_list = task.hierarchyTreePositionList()
-        nowtime_str = str(nowDateTime()).replace(" ", "_")
-        return f"{nowtime_str}_{nameing_list[0]}_{nameing_list[-1]}"
 
 
 class TaskFrameCreator:
@@ -351,8 +339,7 @@ class TaskInputWindowCreator:
                 break
             elif event == 'priority' and masters_priority:
                 if values['priority'] > masters_priority:
-                    window['priority'].update(masters_priority)
-                    window['priority-KORREKTUR-'].update(inter.not_less_important_than_master)
+                    window['priority-KORREKTUR-'].update(inter.really_less_important_than_master)
             elif event == inter.ok:
                 values = self._updateWithDates(values, window)
                 if masters_ende and values["ende"] and values["ende"] > masters_ende:
@@ -370,9 +357,9 @@ class TaskInputWindowCreator:
         #todo beauty this two lines: AND sholud i let this like master is 6 initialvalue is 6
         # or better every initialvalue is 4 undless master is better?!?
         inital_value = priority if priority else masters_priority
-        inital_value = inital_value if inital_value else 4
+        inital_value = inital_value if inital_value else 5
 
-        return [sg.Text(f'{inter.priority}: (0-9)', size=(15, 1)),
+        return [sg.Text(f'{inter.priority}: {inter.low} (0-9) {inter.high}', size=(15, 1)),
                 sg.Spin(values=[0,1,2,3,4,5,6,7,8,9], initial_value=inital_value,
                         size=(2,1), key='priority', enable_events=True),
                 sg.Text(key='priority-KORREKTUR-', text_color="#FF0000", size=(35, 1))]
