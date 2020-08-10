@@ -65,6 +65,7 @@ class TaskAttack:
         # inter.menu_bar
         # inter.b_b_m_l
         # inter.c_b_m_l
+        #inter.chreate_result_menu
 
         return {#Globals:
                 inter.new_project: self.onAddProject, inter.reload: self.onReload,
@@ -152,6 +153,8 @@ class TaskAttack:
 
     def onAddProject(self, *args, **kwargs):
         event, values = self.task_window_crator.inputWindow(kind=inter.project, )
+        print(F"#23442 event: {event}; vlues: {values}")
+
         if event in {inter.cancel, None}:
             return
         self.taskmanager.addSubTask(name=values['name'], description=values['description'], start=values['start'],
@@ -164,11 +167,15 @@ class TaskAttack:
 
     def onEditTask(self, task, *args, **kwargs):
         event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation())
+        print(F"#125456 event: {event}; vlues: {values}")
+
         if self._eventIsNotNone(event):
             task.update(**values)
 
     def onNewSubTask(self, task, *args, **kwargs):
         event, values = self.task_window_crator.inputWindow(kind=inter.task, masters_ende=task.sEnde(), masters_priority=task.sPriority())
+        print(F"#987453 event: {event}; vlues: {values}")
+
         if self._eventIsNotNone(event):
             task.addSubTask(**values)
 
@@ -368,6 +375,8 @@ class TaskAttack:
         while True:
             main_window = self.mainWindow()
             event, values = main_window.read()
+            print(F"#98765 event: {event}; vlues: {values}")
+
             # print(f"mainloop: event: {event}, values: {values}")
             self.executeEvent(event=event, window=main_window, values=values)
             self.window_size = main_window.size  # remember breaks down sometimes, why?!?
@@ -397,7 +406,11 @@ if __name__ == '__main__':
 # or shouldnt i change it in case for later improvements whit exact time?!?
 # as is write this down here i think i shouldnt
 
+# todo folder creation in documents
+# todo ad a little file sing to task frame to indicate existence of results
 
-#todo dev make a Qt version
+# todo dev make a Qt version
+
+
 
 

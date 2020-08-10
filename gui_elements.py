@@ -8,6 +8,7 @@ import shutil
 import textwrap
 import threading
 import time
+from copy import copy, deepcopy
 from time import strftime
 
 import PySimpleGUI as sg
@@ -34,6 +35,8 @@ def YesNoPopup(title:str, text:str, ok_button=inter.yes, cancel_button=inter.no,
               [sg.Button(button_text=ok_button), sg.Button(button_text=cancel_button)]]
     window = sg.Window(title=title, layout=layout, auto_size_buttons=True, keep_on_top=keep_on_top, size=size)
     event, values = window.read()
+    print(F"#092976o23 event: {event}; vlues: {values}")
+
     window.close()
     if event == ok_button:
         return True
@@ -80,6 +83,8 @@ class ResultFileCreator:
         window = sg.Window(title=inter.createResultFileTitle(kind_of_program=kind_of_program) , layout=layout)
         while True:
             event, values = window.read()
+            print(F"#099823 event: {event}; vlues: {values}")
+
             if event is None:
                 return None
             elif event == '-SHORT_DESCRIPTIOM-':
@@ -226,7 +231,7 @@ class TaskFrameCreator:
         """
         :return: option menu button for every task frame
         """
-        original_button_list = self._optionButtonMenuList().copy()
+        original_button_list = deepcopy(self._optionButtonMenuList())
         original_button_list[1][5] = []
         results = task.sResults()
         if results:
@@ -297,6 +302,8 @@ class TaskInputWindowCreator:
         subtask dont prolong master task"""
         while True:
             event, values = window.read()
+            print(F"#897868912 event: {event}; vlues: {values}")
+
             if event in {inter.cancel, None}:
                 break
             elif event == 'priority' and masters_priority:
@@ -417,6 +424,7 @@ class TaskInputWindowCreator:
         ]
         window = sg.Window(kind, layout, keep_on_top=keep_on_top)
         event, values = self.inputValidation(window, masters_ende, masters_priority)
+        print(F"#0823823 event: {event}; vlues: {values}")
         values = self._updateWithDates(values, window)
         window.close()
         return event, values
@@ -442,8 +450,7 @@ if __name__ == '__main__':
         buttonh = task_button_creator.emptyTaskFrame()
         buttoni = task_button_creator.taskFrame(task_here)
         event, values = window.read()
-        print(event, values)
-        # time.sleep(4)
+        print(F"#0823823 event: {event}; vlues: {values}")
         window.close()
         window = sg.Window("test", layout=[[button, buttonb, buttonc],
                                            [buttond, buttone, buttonf],
