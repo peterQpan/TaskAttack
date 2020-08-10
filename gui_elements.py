@@ -19,40 +19,84 @@ from internationalisation import inter
 from tools import nowDateTime
 
 
-def YesNoPopup(title:str, text:str, ok_button=inter.yes, cancel_button=inter.no, size=(250, 70), keep_on_top=True,
-               *args, **kwargs):
-    """
-    popup window to do ok-chancel/yes-now and similar questions
-    :param title: The title that will be displayed in the Titlebar and on the Taskbar
-    :param text: The text that will be displayed in the popup
-    :param ok_button: The text on the "ok button"
-    :param cancel_button: the text on the "cancel button"
-    :param size: size of the popup
-    :param keep_on_top: If True, window will be created on top of all other windows on screen.
-    :return: True or False corresponding to users button click
-    """
-    layout = [[sg.Text(text=text)],
-              [sg.Button(button_text=ok_button), sg.Button(button_text=cancel_button)]]
-    window = sg.Window(title=title, layout=layout, auto_size_buttons=True, keep_on_top=keep_on_top, size=size)
-    event, values = window.read()
-    print(F"#092976o23 event: {event}; vlues: {values}")
+# def YesNoPopup(title:str, text:str, ok_button=inter.yes, cancel_button=inter.no, size=(250, 70), keep_on_top=True,
+#                *args, **kwargs):
+#     """
+#     popup window to do ok-chancel/yes-now and similar questions
+#     :param title: The title that will be displayed in the Titlebar and on the Taskbar
+#     :param text: The text that will be displayed in the popup
+#     :param ok_button: The text on the "ok button"
+#     :param cancel_button: the text on the "cancel button"
+#     :param size: size of the popup
+#     :param keep_on_top: If True, window will be created on top of all other windows on screen.
+#     :return: True or False corresponding to users button click
+#     """
+#     layout = [[sg.Text(text=text)],
+#               [sg.Button(button_text=ok_button), sg.Button(button_text=cancel_button)]]
+#     window = sg.Window(title=title, layout=layout, auto_size_buttons=True, keep_on_top=keep_on_top, size=size)
+#     event, values = window.read()
+#     print(F"#092976o23 event: {event}; vlues: {values}")
+#
+#     window.close()
+#     if event == ok_button:
+#         return True
+#     return False
 
-    window.close()
-    if event == ok_button:
-        return True
-    return False
 
-def _completeFilePathWithExtension(file_path, target_extension:str=".tak"):
-    """
-    checks file path for ".atk" extension and adds it if necessary
-    :param file_path: "file_path_string"
-    :return: "some "file_path_string.tak"
-    """
-    file_name, extension = os.path.splitext(file_path)
-    # print(f"check!!!::: {file_name} : {extension}")
-    if not extension:
-        file_path += target_extension
-    return file_path
+
+class MyGuiToolbox:
+
+    @staticmethod
+    def YesNoPopup(title:str, text:str, ok_button=inter.yes, cancel_button=inter.no, size=(250, 70), keep_on_top=True,
+                   *args, **kwargs):
+        """
+        popup window to do ok-chancel/yes-now and similar questions
+        :param title: The title that will be displayed in the Titlebar and on the Taskbar
+        :param text: The text that will be displayed in the popup
+        :param ok_button: The text on the "ok button"
+        :param cancel_button: the text on the "cancel button"
+        :param size: size of the popup
+        :param keep_on_top: If True, window will be created on top of all other windows on screen.
+        :return: True or False corresponding to users button click
+        """
+        layout = [[sg.Text(text=text)],
+                  [sg.Button(button_text=ok_button), sg.Button(button_text=cancel_button)]]
+        window = sg.Window(title=title, layout=layout, auto_size_buttons=True, keep_on_top=keep_on_top, size=size)
+        event, values = window.read()
+        print(F"#092976o23 event: {event}; vlues: {values}")
+
+        window.close()
+        if event == ok_button:
+            return True
+        return False
+
+    @staticmethod
+    def _completeFilePathWithExtension(file_path, target_extension: str = ".tak"):
+        """
+        checks file path for ".atk" extension and adds it if necessary
+        :param file_path: "file_path_string"
+        :return: "some "file_path_string.tak"
+        """
+        file_name, extension = os.path.splitext(file_path)
+        # print(f"check!!!::: {file_name} : {extension}")
+        if not extension:
+            file_path += target_extension
+        return file_path
+
+
+
+
+# def _completeFilePathWithExtension(file_path, target_extension:str=".tak"):
+#     """
+#     checks file path for ".atk" extension and adds it if necessary
+#     :param file_path: "file_path_string"
+#     :return: "some "file_path_string.tak"
+#     """
+#     file_name, extension = os.path.splitext(file_path)
+#     # print(f"check!!!::: {file_name} : {extension}")
+#     if not extension:
+#         file_path += target_extension
+#     return file_path
 
 
 class ResultFileCreator:
@@ -94,11 +138,11 @@ class ResultFileCreator:
                     window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-3])
             elif event == "Ok":  # could be else but for fast later additions withoutt trouble i will be very precise
                 file_name = values['-FILE-NAME-']
-                file_name = _completeFilePathWithExtension(file_name, file_ext)
+                file_name = MyGuiToolbox._completeFilePathWithExtension(file_name, file_ext)
                 short_description = values['-SHORT_DESCRIPTIOM-']
                 # print(f"file_name: {file_name}; short description: {short_description}")
                 window.close()
-                return os.path.abspath(file_name), short_description
+                return file_name, short_description
 
     def startExternAplicationThread(self, file_path):
         thread = threading.Thread(target=os.system, args=(f"xdg-open '{file_path}'", ))
@@ -115,7 +159,7 @@ class ResultFileCreator:
             except TypeError:
                 break
             if os.path.exists(file_path):
-                if not YesNoPopup(title=inter.save_at, text=inter.allready_exists_override):
+                if not MyGuiToolbox.YesNoPopup(title=inter.save_at, text=inter.allready_exists_override):
                     continue
             self._createAndEditResultFile(kind_of_porogramm, file_path)
             task.addResultsFileAndDescription(file_path, short_description)
@@ -123,10 +167,9 @@ class ResultFileCreator:
 
     def _createAndEditResultFile(self, kind_of_porogramm, file_path):
         template_file_path = self._file_templates[kind_of_porogramm][0]
-        cwd = os.getcwd()
-        complete_file_path = cwd + template_file_path
-        shutil.copy(complete_file_path, file_path)
-        self.startExternAplicationThread(file_path)
+        # todo make an documents folder-project-save-structure
+        shutil.copy(tools.venvAbsPath(template_file_path), file_path)
+        tools.startExternAplicationThread(file_path=file_path, threads=self._external_threads)
 
     def createTaskFileName(self, task):
         nameing_list = task.hierarchyTreePositionList()

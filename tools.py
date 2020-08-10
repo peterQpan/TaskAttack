@@ -3,6 +3,8 @@ __copyright__ = "Just Me"
 __email__ = "sebmueller.bt@gmail.com"
 
 import datetime
+import os
+import threading
 import time
 
 from pip._vendor.colorama import Fore
@@ -20,7 +22,6 @@ class ColorTransistor:
         self.mapping = color_scheme if color_scheme else base_scheme
         self.transition_scheme = transition_scheme
 
-
     @staticmethod
     def hexStr(number:float):
         hex_str = hex(int(number))
@@ -28,7 +29,6 @@ class ColorTransistor:
         if len(hex_str) < 2:
             return "0" + hex_str
         return hex_str
-
 
     def transition(self, task,):
         """
@@ -50,39 +50,34 @@ class ColorTransistor:
         self.mapping[percentage] = hex_color_string
         return hex_color_string
 
+    def _preDefineColors(self, task):
+        if task.sCompleted() == 100:
+            return self.mapping["completed"]
+        elif not task.sEnde():
+            return self.mapping["no_end"]
+        elif task.sStart() == task.sEnde():
+            return self.mapping["same_day"]
+        elif task.sRemainingMinutes() <= 0:
+            return self.mapping["expired"]
+        elif task.sRemainingMinutes() < 720:
+            return self.mapping["running_out"]
+
 
     def __call__(self, task, *args, **kwargs):
 
-        if task.sCompleted() == 100:
-            return self.mapping["completed"]
-
-        if not task.sEnde():
-            return self.mapping["no_end"]
-
-        if task.sStart() == task.sEnde():
-            return self.mapping["same_day"]
-
-        if task.sRemainingMinutes() <= 0:
-            return self.mapping["expired"]
-
-        if task.sRemainingMinutes() < 720:
-            # print(f"#10921 {task.sRemainingMinutes()}")
-            return self.mapping["running_out"]
-
+        predefined_colors = self._preDefineColors(task=task)
+        if predefined_colors:
+            return predefined_colors
         try:
             return self.mapping[task.sTimePercentage()]
         except KeyError:
             return self.transition(task=task)
-
-
-
 
 def nowDateTime():
     """
     :return:datetime.datetime of "right now" tuple(yyyy, mm, dd, hh, mm, ss)
     """
     return datetime.datetime(*time.localtime()[:6])
-
 
 def printMatrix(casenumber, matrix):
     """debug help print"""
@@ -92,3 +87,11 @@ def printMatrix(casenumber, matrix):
         print(f"{list_h}")
         print(f"{Fore.RESET}")
 
+def startExternAplicationThread(file_path:str, threads:list):
+    thread = threading.Thread(target=os.system, args=(f"xdg-open '{file_path}'",))
+    thread.start()
+    threads.append(thread)
+
+def venvAbsPath(file_path:str):
+    cwd = os.getcwd()
+    return cwd + file_path

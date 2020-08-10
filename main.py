@@ -13,7 +13,7 @@ import PySimpleGUI as sg
 
 import gui_elements
 import tools
-from gui_elements import TaskInputWindowCreator, TaskFrameCreator
+from gui_elements import TaskInputWindowCreator, TaskFrameCreator, MyGuiToolbox
 from internationalisation import inter
 from task import Taskmanager, Task
 
@@ -22,13 +22,14 @@ class TaskAttack:
     def __init__(self):
 
 
-        self.thread = []
+        self._extern_threads = []
         self.last_file_path = ""
         self.unsaved_project = False
         self.last_deleted_task = None
         self.auto_save_thread = None
 
         self.taskmanager = Taskmanager()
+        self.mygtb = MyGuiToolbox()
         self.task_window_crator = TaskInputWindowCreator()
         self.task_frames_creator = TaskFrameCreator()
         self.result_file_creator = gui_elements.ResultFileCreator()
@@ -99,8 +100,7 @@ class TaskAttack:
         #todo beauty this is redundant make a tool method or something
         if os.path.isfile(file_path):
             print(f"----------------> starte {file_path}")
-            self.result_file_creator.startExternAplicationThread(file_path=file_path)
-
+            tools.startExternAplicationThread(file_path=file_path, threads=self._extern_threads)
 
     def _executeBasichButtonMenuComands(self, values, event, task):
         command = values[event]
@@ -114,8 +114,6 @@ class TaskAttack:
         except KeyError:
             self._executeSelfCreatedFileDemand(event=event, values=values)
 
-
-
     def onLoad(self, *args, **kwargs):
         self.dataLossPrevention()
         file_path = sg.PopupGetFile(message=inter.open, initial_folder=self.sLastUsedFolder(),
@@ -126,8 +124,6 @@ class TaskAttack:
 
     def onSaveAt(self, *args, **kwargs):
         self.unsaved_project = False
-        #todo this time fill in self_made_save_at_popup
-        
         file_path = sg.PopupGetFile(message=inter.save_at, save_as=True, file_types=(("TaskAtack", "*.tak"),),
                                     initial_folder=self.sLastUsedFolder(), keep_on_top=True, default_extension=".tak")
         file_path = self._completeFilePathWithExtension(file_path)
@@ -191,7 +187,7 @@ class TaskAttack:
         self.taskmanager.deisolateTaskView(task)
 
     def onDeleteTask(self, task, *args, **kwargs):
-        if gui_elements.YesNoPopup(title=inter.delete, text=inter.realy_delete):
+        if self.mygtb.YesNoPopup(title=inter.delete, text=inter.realy_delete):
             self.last_deleted_task = task
             task.delete()
 
@@ -268,7 +264,7 @@ class TaskAttack:
         """checks if there is an open unsaved file and asks for wish to save
         """
         if self.unsaved_project:
-            if gui_elements.YesNoPopup(title=inter.open_project, text=f"{inter.save}?"):
+            if self.mygtb.YesNoPopup(title=inter.open_project, text=f"{inter.save}?"):
                 self.onSaveAt()
 
     def autoSave(self):
@@ -276,9 +272,9 @@ class TaskAttack:
         """
         while self.auto_save_thread and self.auto_save_thread.is_alive():
             time.sleep(2)
-        self.auto_save_thread = threading.Thread(target=self.taskmanager.save,
-                                                 args=(
-                                                     os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"),))
+        self.auto_save_thread = threading.Thread(
+                target=self.taskmanager.save,
+                args=(os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"),))
         self.auto_save_thread.start()
 
     def reset(self):
