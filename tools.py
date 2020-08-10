@@ -51,22 +51,23 @@ class ColorTransistor:
         return hex_color_string
 
     def _preDefineColors(self, task):
-        if task.sCompleted() == 100:
-            return self.mapping["completed"]
-        elif not task.sEnde():
+        if not task.sEnde():
             return self.mapping["no_end"]
+        elif task.sCompleted() == 100:
+            return self.mapping["completed"]
         elif task.sStart() == task.sEnde():
             return self.mapping["same_day"]
         elif task.sRemainingMinutes() <= 0:
             return self.mapping["expired"]
         elif task.sRemainingMinutes() < 720:
             return self.mapping["running_out"]
+        return False
 
 
     def __call__(self, task, *args, **kwargs):
 
         predefined_colors = self._preDefineColors(task=task)
-        if predefined_colors:
+        if predefined_colors is not False:
             return predefined_colors
         try:
             return self.mapping[task.sTimePercentage()]
