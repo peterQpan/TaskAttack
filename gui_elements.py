@@ -5,18 +5,16 @@ __email__ = "sebmueller.bt@gmail.com"
 import datetime
 import os
 import shutil
-import sys
 import textwrap
 import threading
 import time
 from time import strftime
 
 import PySimpleGUI as sg
-from pip._vendor.colorama import Fore
 
+import task
+import tools
 from internationalisation import inter
-
-import task, tools
 from tools import nowDateTime
 
 
@@ -48,7 +46,7 @@ def _completeFilePathWithExtension(file_path, target_extension:str=".tak"):
     :return: "some "file_path_string.tak"
     """
     file_name, extension = os.path.splitext(file_path)
-    print(f"check!!!::: {file_name} : {extension}")
+    # print(f"check!!!::: {file_name} : {extension}")
     if not extension:
         file_path += target_extension
     return file_path
@@ -72,7 +70,7 @@ class ResultFileCreator:
                   sg.Input(default_text=f"{file_name}{file_ext}", size=(30, 1), key='-FILE-NAME-'),
                   sg.FileSaveAs(inter.save_at, file_types=((kind_of_program, file_ext),))]
         description_line = [sg.Text(inter.short_description, size=(15, 1)),
-                  sg.Input(size=(30, 1), enable_events=True, key='-SHORT_DESCRIPTIOM-'),
+                  sg.Input(size=(30, 1), enable_events=True, key='-SHORT_DESCRIPTIOM-', focus=True),
                   sg.Ok()]
         return [file_name_line, description_line]
 
@@ -84,17 +82,20 @@ class ResultFileCreator:
             event, values = window.read()
             if event is None:
                 return None
-            elif event == '-SHORT_DESCRIPTIOM-' and len(values['-SHORT_DESCRIPTIOM-']) > 30:
-                window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-1])
+            elif event == '-SHORT_DESCRIPTIOM-':
+                if len(values['-SHORT_DESCRIPTIOM-']) > 30:
+                    window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-1])
+                elif values['-SHORT_DESCRIPTIOM-'][-3:] == "<->":
+                    window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-3])
             elif event == "Ok":  # could be else but for fast later additions withoutt trouble i will be very precise
                 file_name = values['-FILE-NAME-']
                 file_name = _completeFilePathWithExtension(file_name, file_ext)
                 short_description = values['-SHORT_DESCRIPTIOM-']
-                print(f"file_name: {file_name}; short description: {short_description}")
+                # print(f"file_name: {file_name}; short description: {short_description}")
                 window.close()
                 return os.path.abspath(file_name), short_description
 
-    def _startExternAplicationThread(self, file_path):
+    def startExternAplicationThread(self, file_path):
         thread = threading.Thread(target=os.system, args=(f"xdg-open '{file_path}'", ))
         thread.start()
         self._external_threads.append(thread)
@@ -120,7 +121,7 @@ class ResultFileCreator:
         cwd = os.getcwd()
         complete_file_path = cwd + template_file_path
         shutil.copy(complete_file_path, file_path)
-        self._startExternAplicationThread(file_path)
+        self.startExternAplicationThread(file_path)
 
     def createTaskFileName(self, task):
         nameing_list = task.hierarchyTreePositionList()
@@ -205,6 +206,7 @@ class TaskFrameCreator:
         """
         :return: list of list, sg.ButtonMenu.layout for option button menu
         """
+
         return self._button_menu_list
 
     def setBasichButtonMenuList(self):
@@ -224,7 +226,20 @@ class TaskFrameCreator:
         """
         :return: option menu button for every task frame
         """
-        return sg.ButtonMenu(inter.options, self._optionButtonMenuList(), key=f'-BMENU-#7#{task.sPosition()}', border_width=2)
+        original_button_list = self._optionButtonMenuList().copy()
+        original_button_list[1][5] = []
+        results = task.sResults()
+        if results:
+            for file_path, short_description in results:
+                if short_description:
+                    line = f"{short_description} <-> {file_path}"
+                else:
+                    line= f"{file_path}"
+                original_button_list[1][5].append(line)
+
+
+        return sg.ButtonMenu(inter.options, original_button_list, key=f'-BMENU-#7#{task.sPosition()}',
+                             border_width=2, )
 
 
     def taskFrame(self, task:task.Task):

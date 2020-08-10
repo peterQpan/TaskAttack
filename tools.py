@@ -66,7 +66,7 @@ class ColorTransistor:
             return self.mapping["expired"]
 
         if task.sRemainingMinutes() < 720:
-            print(f"#10921 {task.sRemainingMinutes()}")
+            # print(f"#10921 {task.sRemainingMinutes()}")
             return self.mapping["running_out"]
 
         try:

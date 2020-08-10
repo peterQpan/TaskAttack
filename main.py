@@ -22,6 +22,7 @@ class TaskAttack:
     def __init__(self):
 
 
+        self.thread = []
         self.last_file_path = ""
         self.unsaved_project = False
         self.last_deleted_task = None
@@ -90,11 +91,29 @@ class TaskAttack:
         self.result_file_creator.createResult(task=task, kind_of_porogramm=command)
         pass
 
-    def onOptionButtonMenu(self, task, event, values, *args, **kwargs):
-        """Method for Button menu command mapping"""
+    def _executeSelfCreatedFileDemand(self, event, values):
+        command = values[event]
+        _, _, file_path = command.rpartition(" <-> ")
+        print(f"datei die geöffnet werden soll: {file_path}")
+        #todo beauty this is redundant make a tool method or something
+        if os.path.isfile(file_path):
+            print(f"----------------> starte {file_path}")
+            self.result_file_creator.startExternAplicationThread(file_path=file_path)
+
+
+    def _executeBasichButtonMenuComands(self, values, event, task):
         command = values[event]
         action = self.sFunctionMapping()[command]
         action(task=task, values=values, command=command, event=event)
+
+    def onOptionButtonMenu(self, task, event, values, *args, **kwargs):
+        """Method for Button menu command mapping"""
+        try:
+            self._executeBasichButtonMenuComands(values=values, event=event, task=task)
+        except KeyError:
+            self._executeSelfCreatedFileDemand(event=event, values=values)
+
+
 
     def onLoad(self, *args, **kwargs):
         self.dataLossPrevention()
@@ -337,7 +356,7 @@ class TaskAttack:
         :return: main window
         """
         project_matrix = self.propperProjectMatrix()
-        tools.printMatrix("#333", project_matrix)
+        #tools.printMatrix("#333", project_matrix)
         layout = self.propperWindowLayout(self.sMenuBar(), project_matrix)
         main_window = sg.Window(title=inter.app_name, layout=layout,
                                 finalize=True, resizable=True, size=self.window_size, location=self.window_location)
@@ -349,7 +368,7 @@ class TaskAttack:
         while True:
             main_window = self.mainWindow()
             event, values = main_window.read()
-            print(f"mainloop: event: {event}, values: {values}")
+            # print(f"mainloop: event: {event}, values: {values}")
             self.executeEvent(event=event, window=main_window, values=values)
             self.window_size = main_window.size  # remember breaks down sometimes, why?!?
             self.window_location = main_window.current_location()
@@ -378,5 +397,7 @@ if __name__ == '__main__':
 # or shouldnt i change it in case for later improvements whit exact time?!?
 # as is write this down here i think i shouldnt
 
+
+#todo dev make a Qt version
 
 

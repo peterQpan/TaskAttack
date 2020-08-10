@@ -168,6 +168,9 @@ class Task:
 
         return self._remaining_timedelta
 
+    def sResults(self):
+        return self._results
+
     def _conditionalTimedeltaReset(self):
         """sets _remaining_timedelta to None if not False, false indicates no end date, so there is no need
         to change this"""
@@ -487,9 +490,9 @@ class Taskmanager:
         display_matrix_to_work_on = copy.deepcopy(display_matrix)
         for y_index, y in enumerate(display_matrix):
             actual_task = None
-            print(f"y_index: {y_index}, y: {y}")
+            # print(f"y_index: {y_index}, y: {y}")
             for x_index, x in enumerate(y):
-                print(f"x_index: {x_index}, x: {x}")
+                # print(f"x_index: {x_index}, x: {x}")
                 if isinstance(x, Task):
                     all_masters_strings_list = x.hierarchyTreePositionString()
                     actual_tasfile_typek = ">".join(all_masters_strings_list)
@@ -516,7 +519,7 @@ class Taskmanager:
         def renewal(subtasks):
             while True:
                 time.sleep(7200)
-                print(f"#09u09u recursive reset triggered in thread")
+                # print(f"#09u09u recursive reset triggered in thread")
                 [subtask.recursiveConditionalTimedeltaReset() for subtask in subtasks]
 
         self.renewal_thread = threading.Thread(target=renewal, args=(self.sub_tasks,), daemon=True)

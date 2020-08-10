@@ -149,7 +149,6 @@ class Internationalisation:
         self.app_name = "TaskAttack Project and Taskmanager"
         self.file_name = "Filename"
         self.short_description ="Short Description"
-        self.create_result_file = f"Create {kind_of_program}"
 
     def createResultFileTitle(self, kind_of_program):
         if self.not_later_than_master == "Not later than master task":
@@ -179,7 +178,7 @@ class Internationalisation:
         """
         return ['Unused', [self.sub_task, self.edit,
                            self.compose_results, self.chreate_result_menu,
-                           self.results, ["file1", "file2"],
+                           self.results, [],
                            self.isolate, self.delete, self.cut, self.paste, self.copy]]
 
     @property
