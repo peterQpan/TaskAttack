@@ -119,7 +119,8 @@ class ResultFileCreator:
             elif event == '-SHORT_DESCRIPTIOM-':
                 self._correctInputEnforcement(window=window, values=values)
             elif event == "Ok":  # could be else but for fast later additions withoutt trouble i will be very precise
-                file_name, short_description = self._fetchResultFileParameters(values=values, file_ext=file_ext)
+                file_name, short_description = self._fetchResultFileParameters(
+                        values=values, file_ext=file_ext, window=window)
                 return file_name, short_description
 
     def _copyFileTemplateAndOpenExternalApplicationToEditIt(self, kind_of_porogramm, file_path):
@@ -137,7 +138,7 @@ class ResultFileCreator:
         nowtime_str = str(nowDateTime()).replace(" ", "_")
         return f"{nowtime_str}_{nameing_list[0]}_{nameing_list[-1]}"
 
-    def _fetchResultFileParameters(self, values, file_ext):
+    def _fetchResultFileParameters(self, values, file_ext, window):
         """gets filename and short description from popup window and returns it"""
         file_name = values['-FILE-NAME-']
         file_path = tools.completeFilePathWithExtension(file_name, file_ext)
@@ -186,7 +187,7 @@ class TaskFrameCreator:
         """
         self.size = size
 
-    def _basicTaskFrame(self, frame_name:str, name, priority, completed, place_holder, option_button,
+    def _basicTaskFrame(self, frame_name:str, name_line:list, priority, completed, option_button_line:list,
                         relief=sg.RELIEF_RAISED, tooltip_text:str="", frame_color:str=None):
         """task frame creation
         :param name: simplegu element name line
@@ -196,10 +197,9 @@ class TaskFrameCreator:
         :param add: add subtask button 
         :return: short task representation in a frame
         """
-        frame = sg.Frame(layout=[[name],
+        frame = sg.Frame(layout=[name_line,
                                  [priority, completed],
-                                 [place_holder, option_button]
-                                 ],
+                                 option_button_line],
                          title=frame_name[-(self.sSize() -3):], relief=relief, size=(self.sSize() ,5),
                          tooltip=tooltip_text, background_color=frame_color)
         return frame
@@ -238,7 +238,7 @@ class TaskFrameCreator:
                                enable_events=True, tooltip=tooltip_text, background_color=background_color)
         return sg.Text(f"{inter.completed}: {task.sCompleted():6.2f}", tooltip=tooltip_text, background_color=background_color)
 
-    def _optionButtonMenuList(self):
+    def sOptionButtonMenuList(self):
         """
         :return: list of list, sg.ButtonMenu.layout for option button menu
         """
@@ -255,27 +255,50 @@ class TaskFrameCreator:
         """
         fetches altered >tree view< option button menu list of list from internationalisation module
         """
-
         self._button_menu_list = inter.c_b_m_l
 
-    def _buttonMenu(self, task):
-        """
-        :return: option menu button for every task frame
-        """
-        original_button_list = deepcopy(self._optionButtonMenuList())
-        original_button_list[1][5] = []
+    def _buttonLinePlaceHolder(self, background_color, padding_size):
+        #origiinal x_size: self.sSize() - 15
+        return sg.Text(text="", size=(padding_size,1), background_color=background_color)
+
+
+    def _createButtonMenuWithResultFileEntrys(self, task):
+        button_list = deepcopy(self.sOptionButtonMenuList())
+        button_list[1][5] = []
         results = task.sResults()
+
         if results:
             for file_path, short_description in results:
                 if short_description:
                     line = f"{short_description} <-> {file_path}"
                 else:
-                    line= f"{file_path}"
-                original_button_list[1][5].append(line)
+                    line = f"{file_path}"
+                button_list[1][5].append(line)
+            return button_list
 
 
-        return sg.ButtonMenu(inter.options, original_button_list, key=f'-BMENU-#7#{task.sPosition()}',
-                             border_width=2, )
+    def _buttonMenuLine(self, task, background_color):
+        """
+        :return: option menu button for every task frame
+        """
+        result_file_button_menu = self._createButtonMenuWithResultFileEntrys(task)
+
+        # return sg.ButtonMenu(inter.options, original_button_list, key=f'-BMENU-#7#{task.sPosition()}',
+        #                      border_width=2, )
+
+        if result_file_button_menu:
+            placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize()-20)
+            image = sg.Image(filename="templates/file.png")
+            option_button = sg.ButtonMenu(button_text=inter.options, menu_def=result_file_button_menu, key=f'-BMENU-#7#{task.sPosition()}')
+
+            return  [placeholer, image, option_button]
+
+        else:
+            placeholder = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize()-15)
+            option_button = sg.ButtonMenu(button_text=inter.options, menu_def=self.sOptionButtonMenuList(), key=f'-BMENU-#7#{task.sPosition()}')
+            return [placeholder, option_button]
+
+
 
 
     def taskFrame(self, task:task.Task):
@@ -285,27 +308,33 @@ class TaskFrameCreator:
         tooltip_text = self._toolTipText(task)
         background_color = task.taskDeadlineColor()
 
-        name_sg_object = sg.Text(text=task.sName(), size=(self.sSize() - 5, 1), tooltip=tooltip_text, background_color=background_color)
+        name_line = self._nameLine(task=task, tooltip_text=tooltip_text, background_color=background_color)
         priority_sg_object = sg.Text(text=f"{inter.short_pr}:.{task.sPriority():3d}", tooltip=tooltip_text, background_color=background_color)
         completed_sg_object = self._isCompletedElement(task, tooltip_text=tooltip_text, background_color=background_color)
 
         frame_name = task.hierarchyTreePositionString()
 
-        aling_sg_object = sg.Text(text="", size=(self.sSize() - 15,1), background_color=background_color)
-        option_button_sg_object = self._buttonMenu(task)
+        button_menu_line = self._buttonMenuLine(task, background_color=background_color)
 
-        frame = self._basicTaskFrame(frame_name=frame_name, name=name_sg_object, priority=priority_sg_object,
+        frame = self._basicTaskFrame(frame_name=frame_name, name_line=name_line, priority=priority_sg_object,
                                      completed=completed_sg_object,
-                                     place_holder=aling_sg_object, option_button=option_button_sg_object,
+                                     option_button_line=button_menu_line,
                                      tooltip_text=tooltip_text, frame_color=background_color)
         return frame
 
+    def _nameLine(self, task, tooltip_text, background_color):
+        name_line = [sg.Text(text=task.sName(), size=(self.sSize() - 5, 1), tooltip=tooltip_text,
+                             background_color=background_color)]
+        return name_line
+
 
     def emptyTaskFrame(self):
-        """
-        :return: empty sg.Frame in same size than a task frame
-        """
-        return sg.Frame(layout=[[sg.Text(text="", size=(self.sSize() -5, 5))]], title=" ",relief=sg.RELIEF_FLAT, size=(300, 50))
+            """
+            :return: empty sg.Frame in same size than a task frame
+            """
+            return sg.Frame(layout=[[sg.Text(text="", size=(self.sSize() -5, 5))]], title=" ",relief=sg.RELIEF_FLAT, size=(300, 50))
+
+
 
 
 class TaskInputWindowCreator:
@@ -354,8 +383,6 @@ class TaskInputWindowCreator:
         :param priority:
         :return:
         """
-        #todo beauty this two lines: AND sholud i let this like master is 6 initialvalue is 6
-        # or better every initialvalue is 4 undless master is better?!?
         inital_value = priority if priority else masters_priority
         inital_value = inital_value if inital_value else 5
 
@@ -365,14 +392,14 @@ class TaskInputWindowCreator:
                 sg.Text(key='priority-KORREKTUR-', text_color="#FF0000", size=(35, 1))]
                 # sg.InputText(default_text=priority, key='priority', enable_events=True)]
 
-    def calenderLine(self, calendar_date:datetime.datetime, s_or_e=inter.start, key='-START_BUTTON-', target='-START_BUTTON-'):
+    def _calenderLine(self, calendar_date:datetime.datetime, s_or_e=inter.start, key='-START_BUTTON-', target='-START_BUTTON-'):
         """
         :param s_or_e: "Start" or "Ende"
         :param key: button key to fetch value
         :param target: button target key to update value
         :return: calendar line for either start or end
         """
-        button_text, date_tuple = self.calendarButtonParameter(calendar_date=calendar_date, s_or_e=s_or_e)
+        button_text, date_tuple = self._calendarButtonParameter(calendar_date=calendar_date, s_or_e=s_or_e)
         line = [sg.Text(s_or_e, size=(15, 1)),
                 sg.CalendarButton(default_date_m_d_y=date_tuple, button_text=button_text,
                                   format="%Y-%m-%d", key=key, target=target),
@@ -407,7 +434,7 @@ class TaskInputWindowCreator:
         calendar_text = strftime(f"%Y-%m-%d", calendar_date.timetuple())
         return calendar_text
 
-    def calendarButtonParameter(self, calendar_date:datetime.datetime=None, s_or_e=inter.start):
+    def _calendarButtonParameter(self, calendar_date:datetime.datetime=None, s_or_e=inter.start):
         """
         :param calendar_date: datetime.datetime
         :param s_or_e: string "Start" or "Ende"
@@ -447,8 +474,8 @@ class TaskInputWindowCreator:
         layout = [
             self._nameLine(name=name, kind=kind),
             self._descriptionLine(description=description),
-            self.calenderLine(calendar_date=start),
-            self.calenderLine(calendar_date=ende, s_or_e=inter.end, key='-END_BUTTON-', target='-END_BUTTON-'),
+            self._calenderLine(calendar_date=start),
+            self._calenderLine(calendar_date=ende, s_or_e=inter.end, key='-END_BUTTON-', target='-END_BUTTON-'),
             self._priorityLine(priority=priority, masters_priority=masters_priority),
             self._buttonLine()
         ]
@@ -468,25 +495,25 @@ if __name__ == '__main__':
                           start=start, end=end, priority=20)
     task_here.position = (2,3)
     window = sg.Window("test", layout=[[sg.Text("etwas text")]])
-    while True:
-        task_button_creator = TaskFrameCreator()
-        button = task_button_creator.taskFrame(task_here)
-        buttonb = task_button_creator.emptyTaskFrame()
-        buttonc = task_button_creator.emptyTaskFrame()
-        buttond = task_button_creator.emptyTaskFrame()
-        buttone = task_button_creator.taskFrame(task_here)
-        buttonf = task_button_creator.emptyTaskFrame()
-        buttong = task_button_creator.emptyTaskFrame()
-        buttonh = task_button_creator.emptyTaskFrame()
-        buttoni = task_button_creator.taskFrame(task_here)
-        event, values = window.read()
-        print(F"#0823823 event: {event}; vlues: {values}")
-        window.close()
-        window = sg.Window("test", layout=[[button, buttonb, buttonc],
-                                           [buttond, buttone, buttonf],
-                                           [buttong, buttonh, buttoni]])
-
-        win_creator = TaskInputWindowCreator()
-        event, values = win_creator.inputWindow(kind="Projekt", start=None)
-        print(event, values)
+    # while True:
+        # task_button_creator = TaskFrameCreator()
+        # button = task_button_creator.taskFrame(task_here)
+        # buttonb = task_button_creator.emptyTaskFrame()
+        # buttonc = task_button_creator.emptyTaskFrame()
+        # buttond = task_button_creator.emptyTaskFrame()
+        # buttone = task_button_creator.taskFrame(task_here)
+        # buttonf = task_button_creator.emptyTaskFrame()
+        # buttong = task_button_creator.emptyTaskFrame()
+        # buttonh = task_button_creator.emptyTaskFrame()
+        # buttoni = task_button_creator.taskFrame(task_here)
+        # event, values = window.read()
+        # print(F"#0823823 event: {event}; vlues: {values}")
+        # window.close()
+        # window = sg.Window("test", layout=[[button, buttonb, buttonc],
+        #                                    [buttond, buttone, buttonf],
+        #                                    [buttong, buttonh, buttoni]])
+        #
+        # win_creator = TaskInputWindowCreator()
+        # event, values = win_creator.inputWindow(kind="Projekt", start=None)
+        # print(event, values)
 

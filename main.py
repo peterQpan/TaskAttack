@@ -245,6 +245,7 @@ class TaskAttack:
         self._userExit(event=event, window=window)
         self._setDataLossPreventionStatus(event)
 
+        print(f"#29824 event: {event}, values: {values}")
         command, _, string_coordinates = event.partition("#7#")
         print(f"command: {command}, string_coordinates:{string_coordinates}")
 
@@ -369,12 +370,9 @@ class TaskAttack:
 if __name__ == '__main__':
     main_gui_task_atack = TaskAttack()
 
-# todo dev implement data creation by outside programs like writer, gimp, etc
-#  additional to that there have to be a save_file library and mapping
 
 # todo complet documentation and code cleanup
 
-# todo beauty --> uniform task and taskmanager
 
 # remember beauty look out for chances to easily improve performance
 
@@ -386,7 +384,6 @@ if __name__ == '__main__':
 # as is write this down here i think i shouldnt
 
 # todo folder creation in documents
-# todo ad a little file sing to task frame to indicate existence of results
 
 # todo dev make a Qt version
 

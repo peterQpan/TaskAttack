@@ -80,7 +80,6 @@ class Task:
             return self.master.sEnde()
 
     def sMastersPriority(self):
-        # todo dev install masters priority like date.end cant self.priority cant be smaller than masters priority
         if self.master:
             return self.master.sPriority()
 
@@ -119,6 +118,8 @@ class Task:
         else:
             return self.master.subTaskPercentage()
 
+    def sResults(self):
+        return self._results
 
     def sCompleteTime(self):
         return self._complete_time
