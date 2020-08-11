@@ -3,9 +3,13 @@ __copyright__ = "Just Me"
 __email__ = "sebmueller.bt@gmail.com"
 
 import datetime
+import os
+import threading
 import time
 
 from pip._vendor.colorama import Fore
+
+from internationalisation import inter
 
 
 class ColorTransistor:
@@ -20,19 +24,17 @@ class ColorTransistor:
         self.mapping = color_scheme if color_scheme else base_scheme
         self.transition_scheme = transition_scheme
 
-
     @staticmethod
     def hexStr(number:float):
+        """turns float in an two figure hex string"""
         hex_str = hex(int(number))
         hex_str = hex_str.replace("0x", "")
         if len(hex_str) < 2:
             return "0" + hex_str
         return hex_str
 
-
     def transition(self, task,):
         """
-        :param task:
         :return: corresponding frame-hex-color to time percentage of task
         """
         percentage:int = task.sTimePercentage()
@@ -50,39 +52,39 @@ class ColorTransistor:
         self.mapping[percentage] = hex_color_string
         return hex_color_string
 
-
-    def __call__(self, task, *args, **kwargs):
-
-        if task.sCompleted() == 100:
-            return self.mapping["completed"]
-
+    def _preDefineColors(self, task):
+        """
+        :return: predefined "corner" colors for edge cases or False
+        """
         if not task.sEnde():
             return self.mapping["no_end"]
-
-        if task.sStart() == task.sEnde():
+        elif task.sCompleted() == 100:
+            return self.mapping["completed"]
+        elif task.sStart() == task.sEnde():
             return self.mapping["same_day"]
-
-        if task.sRemainingMinutes() <= 0:
+        elif task.sRemainingMinutes() <= 0:
             return self.mapping["expired"]
-
-        if task.sRemainingMinutes() < 720:
-            print(f"#10921 {task.sRemainingMinutes()}")
+        elif task.sRemainingMinutes() < 720:
             return self.mapping["running_out"]
+        return False
 
+    def __call__(self, task, *args, **kwargs):
+        """
+        :return: hex color string
+        """
+        predefined_colors = self._preDefineColors(task=task)
+        if predefined_colors is not False:
+            return predefined_colors
         try:
             return self.mapping[task.sTimePercentage()]
         except KeyError:
             return self.transition(task=task)
-
-
-
 
 def nowDateTime():
     """
     :return:datetime.datetime of "right now" tuple(yyyy, mm, dd, hh, mm, ss)
     """
     return datetime.datetime(*time.localtime()[:6])
-
 
 def printMatrix(casenumber, matrix):
     """debug help print"""
@@ -91,4 +93,44 @@ def printMatrix(casenumber, matrix):
     for list_h in matrix:
         print(f"{list_h}")
         print(f"{Fore.RESET}")
+
+def startExternAplicationThread(file_path:str, threads:list):
+    """
+    starts external corresponding programm for task result file
+    :param threads: list to save thread in it to prevent garbage collection and enables later referencing
+    """
+    thread = threading.Thread(target=os.system, args=(f"xdg-open '{file_path}'",))
+    thread.start()
+    threads.append(thread)
+
+def venvAbsPath(file_path:str):
+    """
+    faces os.path.abspath's problems with venv
+    :param file_path:
+    :return:
+    """
+    cwd = os.getcwd()
+    return cwd + file_path
+
+def completeFilePathWithExtension(file_path, target_extension: str = ".tak"):
+    """
+    checks file path for ".ext" and adds it if necessary
+    :param file_path: "file_path_string"
+    :return: "some "file_path_string.tak"
+    """
+    file_name, extension = os.path.splitext(file_path)
+    if not extension:
+        file_path += target_extension
+    return file_path
+
+def eventIsNotNone(event):
+    """checks event for None, Abbrechen
+    :param event: sg.window.read()[0]
+    :return: true if not close or Abrechen>>>inter.cancel it is dynamic
+    """
+    if event and event != inter.cancel:
+        return True
+    return False
+
+
 

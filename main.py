@@ -13,27 +13,31 @@ import PySimpleGUI as sg
 
 import gui_elements
 import tools
-from gui_elements import TaskInputWindowCreator, TaskFrameCreator
+from gui_elements import TaskInputWindowCreator, TaskFrameCreator, MyGuiToolbox
 from internationalisation import inter
 from task import Taskmanager, Task
+from threading import Thread
 
 
 class TaskAttack:
     def __init__(self):
 
 
-        self.last_file_path = ""
         self.unsaved_project = False
-        self.last_deleted_task = None
-        self.auto_save_thread = None
+        self.last_deleted_task:Task = None
+        self.auto_save_thread:Thread = None
+        self._clipboard:Task = None
+        self._extern_threads = []
+        self.last_file_path = ""
 
         self.taskmanager = Taskmanager()
+        self.mygtb = MyGuiToolbox()
         self.task_window_crator = TaskInputWindowCreator()
         self.task_frames_creator = TaskFrameCreator()
+        self.result_file_creator = gui_elements.ResultFileCreator()
 
         self.window_size = sg.Window.get_screen_size()
         self.window_location = (None, None)
-
 
         self.mainLoop()
 
@@ -51,6 +55,15 @@ class TaskAttack:
         """
         return [sg.Text(text=inter.projects, size=(20, 20))]
 
+    @staticmethod
+    def onSetTaskAsCompleted(task, *args, **kwargs):
+        task.changeCompleted()
+
+    @staticmethod
+    def onReload(*args, **kwargs):
+        """does nothing so loop starts anew and matrix and window gets build anew"""
+        pass
+
     def sLastUsedFolder(self):
         if self.last_file_path:
             return os.path.split(self.last_file_path)[0]
@@ -63,6 +76,7 @@ class TaskAttack:
         # inter.menu_bar
         # inter.b_b_m_l
         # inter.c_b_m_l
+        #inter.chreate_result_menu
 
         return {#Globals:
                 inter.new_project: self.onAddProject, inter.reload: self.onReload,
@@ -76,14 +90,23 @@ class TaskAttack:
                 #ButtonCommands:
                 inter.sub_task: self.onNewSubTask, inter.isolate: self.onIsolateTask, inter.edit: self.onEditTask,
                 inter.delete: self.onDeleteTask, inter.paste: self.onInsertTask, inter.cut: self.onCutTask,
-                inter.copy: self.onCopyTask, inter.tree_view: self.onTreeView
+                inter.copy: self.onCopyTask, inter.tree_view: self.onTreeView,
+
+                #Extern Programms
+                inter.writer: self.onCreateResult, inter.spreadsheet: self.onCreateResult,
+                inter.presentation:self.onCreateResult, inter.database: self.onCreateResult, inter.drawing:
+                self.onCreateResult, inter.gimp: self.onCreateResult, inter.svg: self.onCreateResult,
                 }
+
+    def onCreateResult(self, task, event, values, command, *args, **kwargs):
+        self.result_file_creator.newResultFile(task=task, kind_of_porogramm=command)
 
     def onOptionButtonMenu(self, task, event, values, *args, **kwargs):
         """Method for Button menu command mapping"""
-        command = values[event]
-        action = self.sFunctionMapping()[command]
-        action(task)
+        try:
+            self._executeBasicOptionButtonMenuCommands(values=values, event=event, task=task)
+        except KeyError:
+            self._executeCreatedFile(event=event, values=values)
 
     def onLoad(self, *args, **kwargs):
         self.dataLossPrevention()
@@ -97,7 +120,7 @@ class TaskAttack:
         self.unsaved_project = False
         file_path = sg.PopupGetFile(message=inter.save_at, save_as=True, file_types=(("TaskAtack", "*.tak"),),
                                     initial_folder=self.sLastUsedFolder(), keep_on_top=True, default_extension=".tak")
-        file_path = self._completeFilePathWithExtension(file_path)
+        file_path = tools.completeFilePathWithExtension(file_path)
         if file_path:
             self.last_file_path = file_path
             self.taskmanager.save(file_path)
@@ -109,10 +132,6 @@ class TaskAttack:
         else:
             self.onSaveAt()
 
-    def onReload(self, *args, **kwargs):
-        """does nothing so loop starts anew and matrix and window gets build anew"""
-        pass
-
     def onNewFile(self, *args, **kwargs):
         self.dataLossPrevention()
         self.taskmanager = Taskmanager()
@@ -120,6 +139,8 @@ class TaskAttack:
 
     def onAddProject(self, *args, **kwargs):
         event, values = self.task_window_crator.inputWindow(kind=inter.project, )
+        print(F"#23442 event: {event}; vlues: {values}")
+
         if event in {inter.cancel, None}:
             return
         self.taskmanager.addSubTask(name=values['name'], description=values['description'], start=values['start'],
@@ -132,16 +153,15 @@ class TaskAttack:
 
     def onEditTask(self, task, *args, **kwargs):
         event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation())
-        if self._eventIsNotNone(event):
+        print(F"#125456 event: {event}; vlues: {values}")
+        if tools.eventIsNotNone(event):
             task.update(**values)
 
     def onNewSubTask(self, task, *args, **kwargs):
-        event, values = self.task_window_crator.inputWindow(kind=inter.task, masters_ende=task.sEnde())
-        if self._eventIsNotNone(event):
+        event, values = self.task_window_crator.inputWindow(kind=inter.task, masters_ende=task.sEnde(), masters_priority=task.sPriority())
+        print(F"#987453 event: {event}; vlues: {values}")
+        if tools.eventIsNotNone(event):
             task.addSubTask(**values)
-
-    def onSetTaskAsCompleted(self, task, *args, **kwargs):
-        task.changeCompleted()
 
     def onIsolateTask(self, task, *args, **kwargs):
         self.task_frames_creator.changeMenuListToIsolated()
@@ -152,7 +172,7 @@ class TaskAttack:
         self.taskmanager.deisolateTaskView(task)
 
     def onDeleteTask(self, task, *args, **kwargs):
-        if gui_elements.YesNoPopup(title=inter.delete, text=inter.realy_delete):
+        if self.mygtb.YesNoPopup(title=inter.delete, text=inter.realy_delete):
             self.last_deleted_task = task
             task.delete()
 
@@ -168,6 +188,31 @@ class TaskAttack:
         hard_copy.setMaster(task)
         task.insertClipbordTask(clipbord_task=hard_copy)
 
+    @staticmethod
+    def _getCoordinatesAsInts(coordinates):
+        """strips button event down to button coordinates
+        :return: button matrix coordinates
+        """
+        coordinates = coordinates.replace("(", "")
+        coordinates = coordinates.replace(")", "")
+        coordinates = coordinates.replace(",", "")
+        y, x = [int(x) for x in coordinates.split()]
+        return x, y
+
+    def _executeCreatedFile(self, event, values):
+        """Opens already existing task-result-file in system corresponding program like libre office or else """
+        command = values[event]
+        _, _, file_path = command.rpartition(" <-> ")
+        if os.path.isfile(file_path):
+            tools.startExternAplicationThread(file_path=file_path, threads=self._extern_threads)
+
+    def _executeBasicOptionButtonMenuCommands(self, values, event, task):
+        """executes the basic commands of the option Button menue"""
+        command = values[event]
+        action = self.sFunctionMapping()[command]
+        action(task=task, values=values, command=command, event=event)
+
+
     def _userExit(self, event, window):
         """checks for and executes Exit if asked for"""
         if event in (inter.exit, None):
@@ -181,16 +226,15 @@ class TaskAttack:
                          inter.exit, inter.reload, inter.help, inter.about, None):
             self.unsaved_project = True
 
-    @staticmethod
-    def _getCoordinatesAsInts(coordinates):
-        """strips button event down to button coordinates
-        :return: button matrix coordinates
+    def _executeCoordinateCommand(self, string_coordinates:str, command:str, values:dict, event:str):
         """
-        coordinates = coordinates.replace("(", "")
-        coordinates = coordinates.replace(")", "")
-        coordinates = coordinates.replace(",", "")
-        y, x = [int(x) for x in coordinates.split()]
-        return x, y
+        executes Task specific commands, which alters with every task
+        :param string_coordinates: task matrix coordinates
+        """
+        int_coordinates = self._getCoordinatesAsInts(string_coordinates)
+        task = self.getTaskFromMatrix(coordinates=int_coordinates)
+        action = self.sFunctionMapping()[command]
+        action(task=task, values=values, event=event, command=command)
 
     def executeEvent(self, event, window, values, *args, **kwargs):
         """takes event, values and window and executes corresponding action from command-mapping
@@ -201,34 +245,22 @@ class TaskAttack:
         self._userExit(event=event, window=window)
         self._setDataLossPreventionStatus(event)
 
+        print(f"#29824 event: {event}, values: {values}")
         command, _, string_coordinates = event.partition("#7#")
         print(f"command: {command}, string_coordinates:{string_coordinates}")
 
         if string_coordinates:
-            int_coordinates = self._getCoordinatesAsInts(string_coordinates)
-            task = self.getTaskFromMatrix(coordinates=int_coordinates)
-            action = self.sFunctionMapping()[command]
-            action(task=task, values=values, event=event)
+            self._executeCoordinateCommand(string_coordinates=string_coordinates, command=command,
+                                           values= values, event=event)
         else:
             action = self.sFunctionMapping()[command]
             action()
-
-    def _completeFilePathWithExtension(self, file_path):
-        """
-        checks file path for ".atk" extension and adds it if necessary
-        :param file_path: "file_path_string"
-        :return: "some "file_path_string.tak"
-        """
-        file_name, extension = os.path.splitext(file_path)
-        if not extension:
-            file_path += ".tak"
-        return file_path
 
     def dataLossPrevention(self):
         """checks if there is an open unsaved file and asks for wish to save
         """
         if self.unsaved_project:
-            if gui_elements.YesNoPopup(title=inter.open_project, text=f"{inter.save}?"):
+            if self.mygtb.YesNoPopup(title=inter.open_project, text=f"{inter.save}?"):
                 self.onSaveAt()
 
     def autoSave(self):
@@ -236,9 +268,9 @@ class TaskAttack:
         """
         while self.auto_save_thread and self.auto_save_thread.is_alive():
             time.sleep(2)
-        self.auto_save_thread = threading.Thread(target=self.taskmanager.save,
-                                                 args=(
-                                                     os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"),))
+        self.auto_save_thread = threading.Thread(
+                target=self.taskmanager.save,
+                args=(os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"),))
         self.auto_save_thread.start()
 
     def reset(self):
@@ -271,16 +303,6 @@ class TaskAttack:
         """
         task_matrix = self.taskmanager.sTaskMatrix()
         return task_matrix[coordinates[0]][coordinates[1]]
-
-    @staticmethod
-    def _eventIsNotNone(event):
-        """checks event for None, Abbrechen
-        :param event: sg.window.read()[0]
-        :return: true if not close or Abrechen
-        """
-        if event and event != inter.cancel:
-            return True
-        return False
 
     def propperWindowLayout(self, menu_bar, project_matrix):
         """creates tree layout either with project_matrix if available, or with a table dummy
@@ -323,7 +345,7 @@ class TaskAttack:
         :return: main window
         """
         project_matrix = self.propperProjectMatrix()
-        tools.printMatrix("#333", project_matrix)
+        #tools.printMatrix("#333", project_matrix)
         layout = self.propperWindowLayout(self.sMenuBar(), project_matrix)
         main_window = sg.Window(title=inter.app_name, layout=layout,
                                 finalize=True, resizable=True, size=self.window_size, location=self.window_location)
@@ -335,14 +357,14 @@ class TaskAttack:
         while True:
             main_window = self.mainWindow()
             event, values = main_window.read()
-            print(f"mainloop: event: {event}, values: {values}")
+            print(F"#98765 event: {event}; vlues: {values}")
+
+            # print(f"mainloop: event: {event}, values: {values}")
             self.executeEvent(event=event, window=main_window, values=values)
             self.window_size = main_window.size  # remember breaks down sometimes, why?!?
             self.window_location = main_window.current_location()
             main_window.close()
             self.autoSave()
-
-
 
 
 if __name__ == '__main__':
@@ -351,23 +373,20 @@ if __name__ == '__main__':
 
 # todo complet documentation and code cleanup
 
-# todo beauty --> uniform task and taskmanager
-
-# todo beauty make priority a must with up and down buttons and prechosen 5 --> middle 0-9
-
-
 
 # remember beauty look out for chances to easily improve performance
 
-
-
 # remember or later scroll position beibehalten (not possible as i know)
-
 
 #remember or later gui_element.TaskFrameCreater._toolTipText
 # date is shown yyyy-mm-dd 00:00:00 should i exclude the hours if its always zerro,
 # or shouldnt i change it in case for later improvements whit exact time?!?
 # as is write this down here i think i shouldnt
+
+# todo folder creation in documents
+
+# todo dev make a Qt version
+
 
 
 

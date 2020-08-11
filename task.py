@@ -17,6 +17,7 @@ class Task:
     def __init__(self, name:str, description:str=None, start=None, end=None, priority=21, master=None,
                  taskmanager:"Taskmanager"=None):
 
+        self._results = []
         self._hierarchy_tree_positions_string = None
         self._hierarchy_tree_positions = None
         self.name = name
@@ -79,7 +80,6 @@ class Task:
             return self.master.sEnde()
 
     def sMastersPriority(self):
-        # todo dev install masters priority like date.end cant self.priority cant be smaller than masters priority
         if self.master:
             return self.master.sPriority()
 
@@ -118,6 +118,8 @@ class Task:
         else:
             return self.master.subTaskPercentage()
 
+    def sResults(self):
+        return self._results
 
     def sCompleteTime(self):
         return self._complete_time
@@ -167,6 +169,9 @@ class Task:
 
         return self._remaining_timedelta
 
+    def sResults(self):
+        return self._results
+
     def _conditionalTimedeltaReset(self):
         """sets _remaining_timedelta to None if not False, false indicates no end date, so there is no need
         to change this"""
@@ -198,20 +203,20 @@ class Task:
         :return: string of tree herachie like: projectname/mastertask/mastertask/
         """
         if self._hierarchy_tree_positions_string is None:
-            if self._hierarchyTreePositionList()[:-1]:
-                self._hierarchy_tree_positions_string = "/" + "/".join(self._hierarchyTreePositionList()[:-1])
+            if self.hierarchyTreePositionList()[:-1]:
+                self._hierarchy_tree_positions_string = "/" + "/".join(self.hierarchyTreePositionList()[:-1])
             else:
                 return " "
         return self._hierarchy_tree_positions_string[-lenght:]
 
 
-    def _hierarchyTreePositionList(self):
+    def hierarchyTreePositionList(self):
         """
         :return:list of str with own task hierarchy tree
         """
         if self.master:
             if self._hierarchy_tree_positions is None:
-                self._hierarchy_tree_positions = self.master._hierarchyTreePositionList() + [f"{self.name}"]
+                self._hierarchy_tree_positions = self.master.hierarchyTreePositionList() + [f"{self.name}"]
             return self._hierarchy_tree_positions
         else:
             return [f"{self.name}"]
@@ -256,7 +261,7 @@ class Task:
         """
         dr = {"name":self.name, "description":self.description, "start": self.start, "ende": self.ende,
               "priority": self.priority, "percentage":self.sPercentage(), "completed":self.sCompleted,
-              "masters_ende":self.sMastersEnde()}
+              "masters_ende":self.sMastersEnde(), "masters_priority":self.sMastersPriority()}
         if self.master is None:
             dr.update({"kind": inter.project})
         else:
@@ -342,6 +347,9 @@ class Task:
 
     def setMaster(self, task):
         self.master = task
+
+    def addResultsFileAndDescription(self, file_path, short_description):
+        self._results.append((file_path, short_description))
 
 
 class Taskmanager:
@@ -483,12 +491,12 @@ class Taskmanager:
         display_matrix_to_work_on = copy.deepcopy(display_matrix)
         for y_index, y in enumerate(display_matrix):
             actual_task = None
-            print(f"y_index: {y_index}, y: {y}")
+            # print(f"y_index: {y_index}, y: {y}")
             for x_index, x in enumerate(y):
-                print(f"x_index: {x_index}, x: {x}")
+                # print(f"x_index: {x_index}, x: {x}")
                 if isinstance(x, Task):
                     all_masters_strings_list = x.hierarchyTreePositionString()
-                    actual_task = ">".join(all_masters_strings_list)
+                    actual_tasfile_typek = ">".join(all_masters_strings_list)
                 else:
                     if actual_task:
                         display_matrix_to_work_on[y_index][x_index] = actual_task
@@ -512,7 +520,7 @@ class Taskmanager:
         def renewal(subtasks):
             while True:
                 time.sleep(7200)
-                print(f"#09u09u recursive reset triggered in thread")
+                # print(f"#09u09u recursive reset triggered in thread")
                 [subtask.recursiveConditionalTimedeltaReset() for subtask in subtasks]
 
         self.renewal_thread = threading.Thread(target=renewal, args=(self.sub_tasks,), daemon=True)

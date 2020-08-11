@@ -40,6 +40,9 @@ class Internationalisation:
         self.about = "Über..."
 
         self.sub_task = 'Unteraufgabe'
+        self.compose_results = "Verfasse Resultate"
+        self.results = "Results"
+
         self.isolate = "Isolieren"
         self.delete = "Löschen"
         self.paste = "Einfügen"
@@ -47,11 +50,23 @@ class Internationalisation:
         self.copy = "Kopieren"
         self.tree_view = "Gesammtansicht"
 
+        self.writer = "Text"
+        self.spreadsheet = "Tabellenkalkulation"
+        self.presentation = "Präsentation"
+        self.database = "Datenbank"
+        self.drawing = "Office-Zeichnung"
+        self.gimp = "Pixel-Grafik"
+        self.svg = "Vektor-Grafik"
+
+
         # texts
         self.projects = "Projekte"
         self.realy_delete = "Wirklich löschen"
         self.open_project = "Offenes Projekt"
         self.priority = "Priorität"
+        self.low = "low"
+        self.high = "high"
+
         self.short_pr = "PR"
         self.rem_days = "Verbleibende Tage"
         self.project_part_percentage = "Prozentualer Anteil am gesamt Projekt"
@@ -59,9 +74,18 @@ class Internationalisation:
         self.percent_compled = "Vollendet in Prozent"
         self.completed = "Vollendet"
         self.not_later_than_master = "Nicht später als Master-Task"
+        self.really_less_important_than_master = "Wirklich unwichtiger als Master-Task?!?"
+
         self.description = "Beschreibung"
         self.task = "Aufgabe"
         self.app_name = "TaskAttack Projekt und Taskmanager"
+        self.file_name = "Dateiname"
+        self.short_description = "Kurzbeschreibung"
+
+
+
+        
+
 
     def setEnglish(self):
         # Buttons
@@ -93,6 +117,8 @@ class Internationalisation:
         self.about = "About..."
 
         self.sub_task = 'Subtask'
+        self.compose_results = "Compose result"
+        self.results = "Results"
         self.isolate = "Isolate"
         self.delete = "Delete"
         self.paste = "Paste"
@@ -100,11 +126,23 @@ class Internationalisation:
         self.copy = "Copy"
         self.tree_view = "Tree view"
 
+        self.writer = "Writer"
+        self.spreadsheet = "Spreadsheet"
+        self.presentation = "Presentation"
+        self.database = "Database"
+        self.drawing = "Drawing"
+        self.gimp = "Pixel-Manipulation"
+        self.svg = "Vektor-Manipulation"
+
         # texts
         self.projects = "Projects"
         self.realy_delete = "Realy delete"
         self.open_project = "Open project"
         self.priority = "Priority"
+
+        self.low = "low"
+        self.high = "high"
+
         self.short_pr = "PR"
         self.rem_days = "Remaining Days"
         self.project_part_percentage = "Percentage to the hole project"
@@ -112,9 +150,24 @@ class Internationalisation:
         self.percent_compled = "Completed in percent"
         self.completed = "Completed"
         self.not_later_than_master = "Not later than master task"
+        self.really_less_important_than_master = "Really less important tham master task?!?"
         self.description = "Description"
         self.task = "Task"
         self.app_name = "TaskAttack Project and Taskmanager"
+        self.file_name = "Filename"
+        self.short_description ="Short Description"
+
+    def createResultFileTitle(self, kind_of_program):
+        if self.not_later_than_master == "Not later than master task":
+            return f"Create {kind_of_program}"
+        elif self.really_less_important_than_master == "Nicht geringer als Master-Task":
+            return f"{kind_of_program} erstellen"
+        else:
+            raise NotImplementedError("Language not completely implemented")
+
+    @property
+    def chreate_result_menu(self):
+        return [self.writer, self.spreadsheet, self.presentation, self.database, self.drawing, self.gimp, self.svg]
 
     @property
     def menu_bar(self):
@@ -130,7 +183,10 @@ class Internationalisation:
         fetches menu entries from chosen language for basic-button-menu-list
         :return: list of list sg.ButtonMenu.layout
         """
-        return ['Unused', [self.sub_task, self.isolate, self.edit, self.delete, self.paste, self.cut, self.copy]]
+        return ['Unused', [self.sub_task, self.edit,
+                           self.compose_results, self.chreate_result_menu,
+                           self.results, [],
+                           self.isolate, self.delete, self.cut, self.paste, self.copy]]
 
     @property
     def c_b_m_l(self):
@@ -138,7 +194,11 @@ class Internationalisation:
         fetches menu entries from chosen language for canged-button-menu-list
         :return: list of list sg.ButtonMenu.layout
         """
-        return ['Unused', [self.sub_task, self.tree_view, self.edit, self.delete, self.paste, self.cut, self.copy]]
+        return ['Unused', [self.sub_task, self.edit,
+                           self.compose_results, self.chreate_result_menu,
+                           self.results, ["file1", "file2"],
+                           self.tree_view, self.delete, self.cut, self.paste, self.copy]]
+
 
 
 inter = Internationalisation("en")
