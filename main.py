@@ -18,6 +18,8 @@ from internationalisation import inter
 from task import Taskmanager, Task
 from threading import Thread
 
+from tools import setCWDbashFix, DebugPrinter
+
 
 class TaskAttack:
     def __init__(self):
@@ -152,6 +154,7 @@ class TaskAttack:
             self.last_deleted_task.recover()
 
     def onEditTask(self, task, *args, **kwargs):
+        raise TypeError
         event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation())
         print(F"#125456 event: {event}; vlues: {values}")
         if tools.eventIsNotNone(event):
@@ -368,10 +371,30 @@ class TaskAttack:
 
 
 if __name__ == '__main__':
+    debug_printer = DebugPrinter()
+    setCWDbashFix()
     main_gui_task_atack = TaskAttack()
 
+# todo take care of amount of autosave files
+
+# todo check for deleted or moved files,
+#  file symbol once activated it never updates becouse
+#  there is no check that updates task.results.list
 
 # todo complet documentation and code cleanup
+
+# todo this time save folder structure automatic system document based
+# todo for bash started program cwd = folder in which main.py resides
+
+# todo insert links, implement it like results
+
+# todo option menu, maybe to easing folder automation,
+#  in asking the user to choose a work folder
+#  i dont have to implement an automation
+
+# todo debug file and debug output
+
+
 
 
 # remember beauty look out for chances to easily improve performance

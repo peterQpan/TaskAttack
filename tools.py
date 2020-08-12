@@ -4,13 +4,21 @@ __email__ = "sebmueller.bt@gmail.com"
 
 import datetime
 import os
+import sys
 import threading
 import time
+from os import getcwd
 
 from pip._vendor.colorama import Fore
 
 from internationalisation import inter
 
+
+class DebugPrinter:
+    def __init__(self, file_name="tak_debug"):
+        self._fh = open(file_name, "w")
+        sys.stderr = self._fh
+        sys.stderr = self._fh
 
 class ColorTransistor:
     def __init__(self, color_scheme:dict=None, transition_scheme=((0, 185), (220, 0), (0, 0))):
@@ -123,6 +131,11 @@ def completeFilePathWithExtension(file_path, target_extension: str = ".tak"):
         file_path += target_extension
     return file_path
 
+def setCWDbashFix():
+    main_file_path = __file__
+    main_path = os.path.split(main_file_path)
+    os.chdir(main_path[0])
+
 def eventIsNotNone(event):
     """checks event for None, Abbrechen
     :param event: sg.window.read()[0]
@@ -131,6 +144,4 @@ def eventIsNotNone(event):
     if event and event != inter.cancel:
         return True
     return False
-
-
 
