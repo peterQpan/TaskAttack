@@ -207,7 +207,7 @@ class TaskAttack:
         command = values[event]
         _, _, file_path = command.rpartition(" <-> ")
         if os.path.isfile(file_path):
-            tools.startExternAplicationThread(file_path=file_path, threads=self._extern_threads)
+            tools.openExternalFile(file_path=file_path, threads=self._extern_threads)
 
     def _executeBasicOptionButtonMenuCommands(self, values, event, task):
         """executes the basic commands of the option Button menue"""
@@ -393,6 +393,8 @@ if __name__ == '__main__':
 #  i dont have to implement an automation
 
 # todo debug file and debug output
+
+# todo make a reload progressbar
 
 
 
