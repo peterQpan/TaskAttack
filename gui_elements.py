@@ -161,7 +161,7 @@ class MyGuiToolbox:
         ok_button = sg.Button(button_text=ok_button, key=key_ok)
         cancel_button = sg.Button(button_text=cancel_button, key=key_candel)
         if left_padding:
-            padding = sg.Text(text=f"{' ' * left_padding}")
+            padding = sg.Text(text=f"{' ' * left_padding}", key="-LEFT-PADDING-")
             return [padding, cancel_button, ok_button]
         return [cancel_button, ok_button]
 
@@ -426,13 +426,15 @@ class MyGuiToolbox:
                 self._FolderStuchturLayoutLine(directorys=directorys, wich_disabled=disabled_directory_mode),
                 self._autoSaveFileHandlingRulesFrame(
                         duration_type=duration_type, duration=duration, autosave_handeling=autosave_handling),
-                self._okCancelLine(ok_button=inter.ok, cancel_button=inter.cancel, left_padding=163)]
+                self._okCancelLine(ok_button=inter.ok, cancel_button=inter.cancel,
+                                   left_padding=inter.left_pading_amounts[inter.actual_inter_language])]
 
-    def optionWindow(self):
+    def optionWindow(self, language):
 
         directorys = ("/home/ich/Dokumente", None, None)
         wich_disabled = "ind"
-        actual_language = "deutsch"
+        actual_language = language
+        inter.setLanguage(language=language)
         duration_type = inter.days
         duration = 10
         autosave_handling = True
@@ -474,6 +476,10 @@ class MyGuiToolbox:
                 window["-AUTO-S-1-"].Update(text=inter.no_autosave_deletion)
                 window["-AUTO-S-2-"].Update(text=inter.autosave_deletion)
                 window["-CANCEL-"].Update(text=inter.cancel)
+                window["-OK-"].Update(text=inter.ok)
+                print(f"left padding amount: {inter.left_pading_amounts[choosen_language]}")
+                print(f"left_padding_element_dict: {window['-LEFT-PADDING-'].__dict__}")
+                window["-LEFT-PADDING-"].Update(value=f"{' ' * inter.left_pading_amounts[choosen_language]}")
                 # sg.Button.Update()
             print(f"#io3409283lkjnk event: {event}, values: {values}")
 
@@ -485,7 +491,7 @@ class MyGuiToolbox:
 
 if __name__ == '__main__':
     gou_tools = MyGuiToolbox()
-    gou_tools.optionWindow()
+    gou_tools.optionWindow(language="deutsch")
     # the option window asks folder for autosaves,
     # folder for result saves, it asks for us of an main project file and for the save folder for it,
     # but myby just for an standard project folder nested in documetation folder.
