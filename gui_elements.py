@@ -21,16 +21,16 @@ from tools import nowDateTime
 
 
 class RadioNew(sg.Frame):
-    #todo ready to use but try to optimize by using
+    # todo ready to use but try to optimize by using
     """
     New because its Text isuneatable
     Radio Button Element - Used in a group of other Radio Elements to provide user with ability to select only
     1 choice in a list of choices.
     """
 
-    def __init__(self, text, group_id, default=False, disabled=False, text_size=(None,None), rad_size= (None, None),
-                 auto_size_text=None, background_color=None, text_color=None, font=None, key=None, rad_pad=(0,0),
-                 text_pad=(0,0), pad=None,
+    def __init__(self, text, group_id, default=False, disabled=False, text_size=(None, None), rad_size=(None, None),
+                 auto_size_text=None, background_color=None, text_color=None, font=None, key=None, rad_pad=(0, 0),
+                 text_pad=(0, 0), pad=None,
                  tooltip=None, change_submits=False, enable_events=False, visible=True, metadata=None,
                  click_submits=False, relief=None, border_width=None, justification=None, right_click_menu=None,
                  element_justification="left"):
@@ -93,7 +93,8 @@ class RadioNew(sg.Frame):
         self.radio_key = f"{key}RADIO-"
         self.radio = sg.Radio(text="", group_id=group_id, default=default, disabled=disabled, size=rad_size,
                               auto_size_text=auto_size_text, background_color=background_color, text_color=text_color,
-                              font=font, key=self.radio_key, pad=rad_pad, tooltip=tooltip, change_submits=change_submits,
+                              font=font, key=self.radio_key, pad=rad_pad, tooltip=tooltip,
+                              change_submits=change_submits,
                               enable_events=enable_events, visible=visible, metadata=metadata)
         self.text_key = f"{key}TEXT-"
         self.text = sg.Text(text=text, size=text_size, auto_size_text=auto_size_text, click_submits=click_submits,
@@ -106,7 +107,8 @@ class RadioNew(sg.Frame):
                          border_width=border_width, key=key, tooltip=tooltip, right_click_menu=right_click_menu,
                          visible=visible, element_justification=element_justification, metadata=metadata)
 
-    def Update(self, text=None, background_color=None, text_color=None, font=None, radio_value=None, disabled=None, visible=None):
+    def Update(self, text=None, background_color=None, text_color=None, font=None, radio_value=None, disabled=None,
+               visible=None):
         """
         Changes some of the settings for the Radio Button Element. Must call `Window.Read` or `Window.Finalize` prior
         :param text: new text to show
@@ -126,31 +128,32 @@ class RadioNew(sg.Frame):
         :param visible: control visibility of element
         :type visible: (bool)
         """
-        self.text.Update(value=text, background_color=background_color, text_color=text_color, font=font, visible=visible)
+        self.text.Update(value=text, background_color=background_color, text_color=text_color, font=font,
+                         visible=visible)
         self.radio.Update(value=radio_value, disabled=disabled, visible=visible)
         super().Update(visible=visible)
 
 
 # if __name__ == '__main__':
-    # radio_one = RadioNew(text="rot", group_id="colors", default=True, background_color="#007700", enable_events=True)
-    # text_one = sg.Text(text="test text", background_color="#770000", #pad=(0,0)
-    #                    )
-    # radio_two = RadioNew(text="grün", group_id="colors", background_color="#007700", enable_events=True)
-    # text_two = sg.Text(text="test text", background_color="#770000", #pad=(75,55)
-    #                    )
-    # layout = [[radio_one, text_one], [radio_two, text_two]]
-    # window = sg.Window(title="My own Color Radios", layout=layout)
-    # event, values = window.read()
-    #
-    # # radio_one = RadioNew(text="rot", group_id="colors", default=True, background_color="#007700")
-    # text_one = sg.Text(text="test text", background_color="#770000", key=1 #pad=(0,0)
-    #                    )
-    # # radio_two = RadioNew(text="grün", group_id="colors", background_color="#007700")
-    # text_two = sg.Text(text="test text", background_color="#770000", key=2#pad=(75,55)
-    #                    )
-    # layout2 = [[text_one], [text_two]]
-    # window2 = sg.Window(title="My own Color Radios", layout=layout2)
-    # event2, values2 = window2.read()
+# radio_one = RadioNew(text="rot", group_id="colors", default=True, background_color="#007700", enable_events=True)
+# text_one = sg.Text(text="test text", background_color="#770000", #pad=(0,0)
+#                    )
+# radio_two = RadioNew(text="grün", group_id="colors", background_color="#007700", enable_events=True)
+# text_two = sg.Text(text="test text", background_color="#770000", #pad=(75,55)
+#                    )
+# layout = [[radio_one, text_one], [radio_two, text_two]]
+# window = sg.Window(title="My own Color Radios", layout=layout)
+# event, values = window.read()
+#
+# # radio_one = RadioNew(text="rot", group_id="colors", default=True, background_color="#007700")
+# text_one = sg.Text(text="test text", background_color="#770000", key=1 #pad=(0,0)
+#                    )
+# # radio_two = RadioNew(text="grün", group_id="colors", background_color="#007700")
+# text_two = sg.Text(text="test text", background_color="#770000", key=2#pad=(75,55)
+#                    )
+# layout2 = [[text_one], [text_two]]
+# window2 = sg.Window(title="My own Color Radios", layout=layout2)
+# event2, values2 = window2.read()
 
 class MyGuiToolbox:
 
@@ -166,7 +169,7 @@ class MyGuiToolbox:
         return [cancel_button, ok_button]
 
     @staticmethod
-    def YesNoPopup(title:str, text:str, ok_button=inter.yes, cancel_button=inter.no, size=(250, 70), keep_on_top=True,
+    def YesNoPopup(title: str, text: str, ok_button=inter.yes, cancel_button=inter.no, size=(250, 70), keep_on_top=True,
                    key_ok="-OK-", key_candel="-CANCEL-", *args, **kwargs):
         """
         popup window to do ok-chancel/yes-now and similar questions
@@ -190,20 +193,15 @@ class MyGuiToolbox:
             return True
         return False
 
-    #user_defined_keys
-    #next above: ("-PFL", "-RFL", "-AsFL")
-    #under-keys: ("-DE", "-IE", "-FB")
+    # user_defined_keys
+    # next above: ("-PFL", "-RFL", "-AsFL")
+    # under-keys: ("-DE", "-IE", "-FB")
 
+    # user_defined_keys
+    # next above: ("-SFL")
+    # under-keys: ("-DE", "-IE", "-FB")
 
-
-    #user_defined_keys
-    #next above: ("-SFL")
-    #under-keys: ("-DE", "-IE", "-FB")
-
-
-
-
-    def _setDisabledStatusToUserDirectoryFrame(self, window:sg.Window, disabled:bool):
+    def _setDisabledStatusToUserDirectoryFrame(self, window: sg.Window, disabled: bool):
         """option-window
         sets user directory choice frame text in red or green and buttons enabled and disabled
         :param window: option_window
@@ -219,7 +217,7 @@ class MyGuiToolbox:
             window[f"{first_part}-IE"].Update(disabled=disabled)
             window[f"{first_part}-FB"].Update(disabled=disabled)
 
-    def _setDisabledStatusToStandardDirectoryFrame(self, window:sg.Window, disabled:bool):
+    def _setDisabledStatusToStandardDirectoryFrame(self, window: sg.Window, disabled: bool):
         """option-window
         sets standard directory choice frame text in red or green and buttons enabled and disabled
         :param window: option_window
@@ -232,7 +230,7 @@ class MyGuiToolbox:
         window["-SFL-IE"].Update(disabled=disabled)
         window["-SFL-FB"].Update(disabled=disabled)
 
-    def _horizontalRadioChoiceFrame(self, all_types:tuple, active_type, disabled, key:str, group_id="dura_radio"):
+    def _horizontalRadioChoiceFrame(self, all_types: tuple, active_type, disabled, key: str, group_id="dura_radio"):
         """option-window
         makes a horizontal radio button group
         :param all_types: tuple of all values
@@ -243,15 +241,17 @@ class MyGuiToolbox:
         layout = []
         for index, d_type in enumerate(all_types):
             if d_type == active_type:
-                radio_button = RadioNew(text=d_type, group_id=group_id, default=True, disabled=disabled, key=f"{key}{index}")
+                radio_button = RadioNew(text=d_type, group_id=group_id, default=True, disabled=disabled,
+                                        key=f"{key}{index}")
             else:
-                radio_button = RadioNew(text=d_type, group_id=group_id, default=False, disabled=disabled, key=f"{key}{index}")
+                radio_button = RadioNew(text=d_type, group_id=group_id, default=False, disabled=disabled,
+                                        key=f"{key}{index}")
             layout.append([radio_button])
         print(f"layout0283u: {layout}")
-        frame = sg.Frame(title="", relief=sg.RELIEF_FLAT, layout=layout, pad=(0,0))
+        frame = sg.Frame(title="", relief=sg.RELIEF_FLAT, layout=layout, pad=(0, 0))
         return frame
 
-    def _setDurationRadiosWithNewLanguage(self, all_types:tuple, key:str, window):
+    def _setDurationRadiosWithNewLanguage(self, all_types: tuple, key: str, window):
         """option-window
         makes a horizontal radio button group
         :param all_types: tuple of all values
@@ -262,8 +262,8 @@ class MyGuiToolbox:
         for index, d_type in enumerate(all_types):
             window[f"{key}{index}"].Update(text=d_type)
 
-
-    def autoSaveSettingInputFrame(self, duration_type:str, duration:int, disabled:bool, enable_radio_button:sg.Radio):
+    def autoSaveSettingInputFrame(self, duration_type: str, duration: int, disabled: bool,
+                                  enable_radio_button: sg.Radio):
         """option-window
         frame for auto save file handeling setting"
         :param duration_type: inter.days or inter.pieces indicates actual settings
@@ -272,11 +272,14 @@ class MyGuiToolbox:
         :param enable_radio_button: sg.Radio()
         :return: sg.Frame
         """
-        duration_type_radio_frame = self._horizontalRadioChoiceFrame(all_types=inter.duration_types, active_type=duration_type, disabled=disabled, key="-AUS-1-")
-        duration_entry = sg.Input(default_text=duration, disabled=disabled, enable_events=True, size=(4, 1), key="-AUS-2-") #todo change in double radio frame
+        duration_type_radio_frame = self._horizontalRadioChoiceFrame(all_types=inter.duration_types,
+                                                                     active_type=duration_type, disabled=disabled,
+                                                                     key="-AUS-1-")
+        duration_entry = sg.Input(default_text=duration, disabled=disabled, enable_events=True, size=(4, 1),
+                                  key="-AUS-2-")  # todo change in double radio frame
         layout = [[enable_radio_button, duration_entry, duration_type_radio_frame]]
         print(f"layout1113u: {layout}")
-        frame = sg.Frame(title="", layout=layout, relief=sg.RELIEF_FLAT, pad=(0,0))
+        frame = sg.Frame(title="", layout=layout, relief=sg.RELIEF_FLAT, pad=(0, 0))
         return frame
 
     @staticmethod
@@ -285,10 +288,7 @@ class MyGuiToolbox:
         window["-AUS-1-1"].Update(disabled=disabled)
         window["-AUS-2-"].Update(disabled=disabled)
 
-
-
-
-    def _autoSaveFileHandlingRulesFrame(self, duration_type:str, duration:int, autosave_handeling:bool):
+    def _autoSaveFileHandlingRulesFrame(self, duration_type: str, duration: int, autosave_handeling: bool):
         """option-window
         complete frame for auto save file handling
         :param duration_type: inter.days or inter.pieces indicates actual settings
@@ -297,21 +297,21 @@ class MyGuiToolbox:
         :return: layout line: [sg.frame]
         """
         no_auto_save_handling_radio_b = RadioNew(
-                text=inter.no_autosave_deletion, group_id="autosave_deletion", default=(not autosave_handeling),
-                enable_events=True, text_size=(30,1), key="-AUTO-S-1-")
+            text=inter.no_autosave_deletion, group_id="autosave_deletion", default=(not autosave_handeling),
+            enable_events=True, text_size=(30, 1), key="-AUTO-S-1-")
         auto_save_handeling_radio_b = RadioNew(
-                text=inter.autosave_deletion, group_id="autosave_deletion", default=autosave_handeling,
-                enable_events=True, text_size=(30,1 ), key="-AUTO-S-2-")
+            text=inter.autosave_deletion, group_id="autosave_deletion", default=autosave_handeling,
+            enable_events=True, text_size=(30, 1), key="-AUTO-S-2-")
         auto_save_setting_frame = self.autoSaveSettingInputFrame(
-                duration_type=duration_type, duration=duration, disabled=(not autosave_handeling),
-                enable_radio_button=auto_save_handeling_radio_b)
+            duration_type=duration_type, duration=duration, disabled=(not autosave_handeling),
+            enable_radio_button=auto_save_handeling_radio_b)
         layout = [[no_auto_save_handling_radio_b], [auto_save_setting_frame]]
         print(f"layout 84652: {layout}")
 
         frame = sg.Frame(title="", layout=layout)
         return [frame]
 
-    def _folderLine(self, name:str, directory:file_like, disabled:bool, key):
+    def _folderLine(self, name: str, directory: file_like, disabled: bool, key):
         """option-window
         creates a folder input line [sg.Text, sg.Input, sg.FolderBrowse]
         :param name: line description
@@ -328,7 +328,7 @@ class MyGuiToolbox:
 
         return [description_elemetn, input_element, folder_button]
 
-    def _userDefinedFolderStructureFrame(self, directorys:tuple, disabled):
+    def _userDefinedFolderStructureFrame(self, directorys: tuple, disabled):
         """option-window
         Frame for user commanded save directory structure
         :param directorys: directorys for (*.tak, results, autosave.tak
@@ -336,12 +336,15 @@ class MyGuiToolbox:
         :return: sg.Frame
         """
         user_decission_element_ind = RadioNew(
-                text=inter.own_folder_setup, group_id="folder_setup", enable_events=True, default=(not disabled),
-                key="-RADIO_2-")
+            text=inter.own_folder_setup, group_id="folder_setup", enable_events=True, default=(not disabled),
+            key="-RADIO_2-")
 
-        project_folder_line = self._folderLine(name = inter.project_folder, disabled=disabled, directory=directorys[0], key="-PFL")
-        result_folder_line = self._folderLine(name=inter.results_folder, disabled=disabled, directory=directorys[1], key="-RFL")
-        autosave_folder_line = self._folderLine(name=inter.auto_save_folder, disabled=disabled, directory=directorys[2], key="-AsFL")
+        project_folder_line = self._folderLine(name=inter.project_folder, disabled=disabled, directory=directorys[0],
+                                               key="-PFL")
+        result_folder_line = self._folderLine(name=inter.results_folder, disabled=disabled, directory=directorys[1],
+                                              key="-RFL")
+        autosave_folder_line = self._folderLine(name=inter.auto_save_folder, disabled=disabled, directory=directorys[2],
+                                                key="-AsFL")
 
         layout = [[user_decission_element_ind], project_folder_line, result_folder_line, autosave_folder_line]
         print(f"layout 54wergs: {layout}")
@@ -357,20 +360,20 @@ class MyGuiToolbox:
         """
 
         user_decission_element_std = RadioNew(
-                text=inter.standard_folder_setup, group_id="folder_setup", enable_events=True, default=(not disabled),
-                key="-RADIO_1-")
+            text=inter.standard_folder_setup, group_id="folder_setup", enable_events=True, default=(not disabled),
+            key="-RADIO_1-")
 
-        project_folder_line = self._folderLine(name = inter.project_folder, disabled=disabled, directory=directorys[0], key="-SFL")
-        placeholder_line_one = [sg.Text(text="", pad=(5,7))]
-        placeholder_line_two = [sg.Text(text="", pad=(5,7))]
-
+        project_folder_line = self._folderLine(name=inter.project_folder, disabled=disabled, directory=directorys[0],
+                                               key="-SFL")
+        placeholder_line_one = [sg.Text(text="", pad=(5, 7))]
+        placeholder_line_two = [sg.Text(text="", pad=(5, 7))]
 
         layout = [[user_decission_element_std], project_folder_line, placeholder_line_one, placeholder_line_two]
         print(f"layout qwsdfsd: {layout}")
 
         return sg.Frame(title="", layout=layout, relief=sg.RELIEF_FLAT)
 
-    def _FolderStuchturLayoutLine(self, directorys:tuple, wich_disabled:str):
+    def _FolderStuchturLayoutLine(self, directorys: tuple, wich_disabled: str):
         """optioln-window
         complete save folder line, standard AND user decided
         :param directorys: actual folders
@@ -380,10 +383,10 @@ class MyGuiToolbox:
 
         if wich_disabled == "ind":
             layout = [[self._standardFolderStructureFrame(directorys=directorys, disabled=True),
-                    self._userDefinedFolderStructureFrame(directorys=directorys, disabled=False)]]
+                       self._userDefinedFolderStructureFrame(directorys=directorys, disabled=False)]]
         else:
             layout = [[self._standardFolderStructureFrame(directorys=directorys, disabled=False),
-                    self._userDefinedFolderStructureFrame(directorys=directorys, disabled=True)]]
+                       self._userDefinedFolderStructureFrame(directorys=directorys, disabled=True)]]
         folder_structur_line = sg.Frame(title="", layout=layout)
         return [folder_structur_line]
 
@@ -392,7 +395,7 @@ class MyGuiToolbox:
         creates an frame three elements high to match listbox in height and align accordingly
         :return: sg.Frame
         """
-        layout = [[sg.Text(text=f"{inter.language}     ", key="language-t-f", size=(10,1))], [sg.Text()], [sg.Text()]]
+        layout = [[sg.Text(text=f"{inter.language}     ", key="language-t-f", size=(10, 1))], [sg.Text()], [sg.Text()]]
         print(f"layout litzr: {layout}")
 
         frame = sg.Frame(title="", layout=layout, relief=sg.RELIEF_FLAT)
@@ -410,8 +413,8 @@ class MyGuiToolbox:
                                                  enable_events=True, key="-LANGUAGE-")
         return [language_text_frame, language_selection_List_box]
 
-    def _completeOptionWindowLayout(self, directorys:tuple, disabled_directory_mode:str, actual_language:str,
-                                    autosave_handling:bool, duration_type:str, duration:int):
+    def _completeOptionWindowLayout(self, directorys: tuple, disabled_directory_mode: str, actual_language: str,
+                                    autosave_handling: bool, duration_type: str, duration: int):
         """option-window
         gathers all lines together ond creates final layout line
         :param directorys: achtual_directorys
@@ -425,9 +428,30 @@ class MyGuiToolbox:
         return [self._languageSettingsLine(actual_language),
                 self._FolderStuchturLayoutLine(directorys=directorys, wich_disabled=disabled_directory_mode),
                 self._autoSaveFileHandlingRulesFrame(
-                        duration_type=duration_type, duration=duration, autosave_handeling=autosave_handling),
+                    duration_type=duration_type, duration=duration, autosave_handeling=autosave_handling),
                 self._okCancelLine(ok_button=inter.ok, cancel_button=inter.cancel,
-                                   left_padding=inter.left_pading_amounts[inter.actual_inter_language])]
+                                   left_padding=inter.left_pading_amounts["deutsch"])]
+
+    def setLanguageAnew(self, values, event, window):
+
+        choosen_language = values[event][0]
+        inter.setLanguage(choosen_language)
+
+        self._setDurationRadiosWithNewLanguage(all_types=inter.duration_types, key="-AUS-1-", window=window)
+        self._setDirectoryFramesWithNewLanguage(window=window)
+
+        window_keys = [f"-SFL-DE", "language-t-f", "-RADIO_1-", "-RADIO_2-", "-AUTO-S-1-", "-AUTO-S-2-", "-CANCEL-",
+                       "-OK-", "-LEFT-PADDING-"]
+        propertys = [inter.project_folder, inter.language, inter.standard_folder_setup, inter.own_folder_setup,
+                     inter.no_autosave_deletion, inter.autosave_deletion, inter.cancel, inter.ok,
+                     ' ' * inter.left_pading_amounts[choosen_language]]
+
+        for key, property in zip(window_keys, propertys):
+            try:
+                window[key].Update(text=property)
+            except TypeError as e:
+                window[key].Update(value=property)
+
 
     def optionWindow(self, language):
 
@@ -440,8 +464,8 @@ class MyGuiToolbox:
         autosave_handling = True
 
         layout = self._completeOptionWindowLayout(
-                directorys=directorys, disabled_directory_mode=wich_disabled, actual_language=actual_language,
-                duration_type=duration_type, duration=duration, autosave_handling=autosave_handling)#
+            directorys=directorys, disabled_directory_mode=wich_disabled, actual_language=actual_language,
+            duration_type=duration_type, duration=duration, autosave_handling=autosave_handling)  #
         print(f"layout sfd45: {layout}")
 
         window = sg.Window(title=inter.options, layout=layout)
@@ -460,33 +484,40 @@ class MyGuiToolbox:
             elif event == "-AUTO-S-2-":
                 self._setImputAutoSaveFrame(window=window, disabled=False)
             elif event == "-LANGUAGE-":
-                choosen_language = values[event][0]
-                print(f"choosen language: {choosen_language}")
-                language = inter.language
-                inter.setLanguage(choosen_language)
-                for key, text in {"-PFL": inter.project_folder, "-RFL":inter.results, "-AsFL":inter.auto_save_folder}. items():
-                    print(f"key 0932u5: {key}-DE")
-                    window[f"{key}-DE"].Update(value=text)
-                    # sg.Text.Update(value=text)
-                window[f"-SFL-DE"].Update(value=inter.project_folder)
-                window["language-t-f"].Update(value=inter.language)
-                window["-RADIO_1-"].Update(text=inter.standard_folder_setup)
-                window["-RADIO_2-"].Update(text=inter.own_folder_setup)
-                self._setDurationRadiosWithNewLanguage(all_types=inter.duration_types, key="-AUS-1-", window=window)
-                window["-AUTO-S-1-"].Update(text=inter.no_autosave_deletion)
-                window["-AUTO-S-2-"].Update(text=inter.autosave_deletion)
-                window["-CANCEL-"].Update(text=inter.cancel)
-                window["-OK-"].Update(text=inter.ok)
-                print(f"left padding amount: {inter.left_pading_amounts[choosen_language]}")
-                print(f"left_padding_element_dict: {window['-LEFT-PADDING-'].__dict__}")
-                window["-LEFT-PADDING-"].Update(value=f"{' ' * inter.left_pading_amounts[choosen_language]}")
-                # sg.Button.Update()
-            print(f"#io3409283lkjnk event: {event}, values: {values}")
+                self.setLanguageAnew(values=values, event=event, window=window)
+            #     choosen_language = values[event][0]
+            #     print(f"choosen language: {choosen_language}")
+            #     language = inter.language
+            #     inter.setLanguage(choosen_language)
+            #     for key, text in {"-PFL": inter.project_folder, "-RFL": inter.results,
+            #                       "-AsFL": inter.auto_save_folder}.items():
+            #         print(f"key 0932u5: {key}-DE")
+            #         window[f"{key}-DE"].Update(value=text)
+            #         # sg.Text.Update(value=text)
+            #     window[f"-SFL-DE"].Update(value=inter.project_folder)
+            #     window["language-t-f"].Update(value=inter.language)
+            #     window["-RADIO_1-"].Update(text=inter.standard_folder_setup)
+            #     window["-RADIO_2-"].Update(text=inter.own_folder_setup)
+            #     self._setDurationRadiosWithNewLanguage(all_types=inter.duration_types, key="-AUS-1-", window=window)
+            #     window["-AUTO-S-1-"].Update(text=inter.no_autosave_deletion)
+            #     window["-AUTO-S-2-"].Update(text=inter.autosave_deletion)
+            #     window["-CANCEL-"].Update(text=inter.cancel)
+            #     window["-OK-"].Update(text=inter.ok)
+            #     print(f"left padding amount: {inter.left_pading_amounts[choosen_language]}")
+            #     print(f"left_padding_element_dict: {window['-LEFT-PADDING-'].__dict__}")
+            #     window["-LEFT-PADDING-"].Update(value=f"{' ' * inter.left_pading_amounts[choosen_language]}")
+            #     # sg.Button.Update()
+            # print(f"#io3409283lkjnk event: {event}, values: {values}")
+
+    def _setDirectoryFramesWithNewLanguage(self, window):
+        for key, text in {"-PFL": inter.project_folder, "-RFL": inter.results, "-AsFL": inter.auto_save_folder}.items():
+            print(f"key 0932u5: {key}-DE")
+            window[f"{key}-DE"].Update(value=text)
 
 
-#fixme make my own radio buttons because you cant update text of radiobuttons MAYBE Fork PYSIMPLEGUI OR GO AS SUPPORTER
+# fixme make my own radio buttons because you cant update text of radiobuttons MAYBE Fork PYSIMPLEGUI OR GO AS SUPPORTER
 
-#TODO ASAP fork or support PYSIMPPLEGUI
+# TODO ASAP fork or support PYSIMPPLEGUI
 
 
 if __name__ == '__main__':
@@ -499,27 +530,26 @@ if __name__ == '__main__':
     # return it
 
 
-
 class ResultFileCreator:
 
     def __init__(self):
-        #self._external_threads = []
-        self._file_templates = {inter.writer:("/templates/writer_template.odt", ".odt"),
-                                inter.spreadsheet:("/templates/spreadsheet_template.ods", ".ods"),
-                                inter.presentation:("/templates/presentation_template.odp", ".odp"),
-                                inter.drawing:("/templates/drawing_template.odg", ".odg"),
-                                inter.database:("/templates/database_template.odb", ".odb"),
-                                inter.gimp:("/templates/gimp_template.xcf", ".xcf"),
-                                inter.svg:("/templates/inkscape_template.svg", ".svg")}
+        # self._external_threads = []
+        self._file_templates = {inter.writer: ("/templates/writer_template.odt", ".odt"),
+                                inter.spreadsheet: ("/templates/spreadsheet_template.ods", ".ods"),
+                                inter.presentation: ("/templates/presentation_template.odp", ".odp"),
+                                inter.drawing: ("/templates/drawing_template.odg", ".odg"),
+                                inter.database: ("/templates/database_template.odb", ".odb"),
+                                inter.gimp: ("/templates/gimp_template.xcf", ".xcf"),
+                                inter.svg: ("/templates/inkscape_template.svg", ".svg")}
 
     def _newLayout(self, file_name, file_ext, kind_of_program):
         """creates new layout for file name / save as; short descripton pop up window"""
-        file_name_line =[sg.Text(inter.file_name, size=(15, 1)),
-                  sg.Input(default_text=f"{file_name}{file_ext}", size=(30, 1), key='-FILE-NAME-'),
-                  sg.FileSaveAs(inter.save_at, file_types=((kind_of_program, file_ext),))]
+        file_name_line = [sg.Text(inter.file_name, size=(15, 1)),
+                          sg.Input(default_text=f"{file_name}{file_ext}", size=(30, 1), key='-FILE-NAME-'),
+                          sg.FileSaveAs(inter.save_at, file_types=((kind_of_program, file_ext),))]
         description_line = [sg.Text(inter.short_description, size=(15, 1)),
-                  sg.Input(size=(30, 1), enable_events=True, key='-SHORT_DESCRIPTIOM-', focus=True),
-                  sg.Ok()]
+                            sg.Input(size=(30, 1), enable_events=True, key='-SHORT_DESCRIPTIOM-', focus=True),
+                            sg.Ok()]
         return [file_name_line, description_line]
 
     def _correctInputEnforcement(self, window, values):
@@ -539,7 +569,7 @@ class ResultFileCreator:
         """
         assert len(file_ext) == 4
         layout = self._newLayout(file_name=file_name, file_ext=file_ext, kind_of_program=kind_of_program)
-        window = sg.Window(title=inter.createResultFileTitle(kind_of_program=kind_of_program) , layout=layout)
+        window = sg.Window(title=inter.createResultFileTitle(kind_of_program=kind_of_program), layout=layout)
         while True:
             event, values = window.read()
             print(F"#099823 event: {event}; vlues: {values}")
@@ -549,14 +579,14 @@ class ResultFileCreator:
                 self._correctInputEnforcement(window=window, values=values)
             elif event == "Ok":  # could be else but for fast later additions withoutt trouble i will be very precise
                 file_name, short_description = self._fetchResultFileParameters(
-                        values=values, file_ext=file_ext, window=window)
+                    values=values, file_ext=file_ext, window=window)
                 return file_name, short_description
 
     def _copyFileTemplateAndOpenExternalApplicationToEditIt(self, kind_of_porogramm, file_path):
         template_file_path = self._file_templates[kind_of_porogramm][0]
         # todo make an documents folder-project-save-structure
         shutil.copy(tools.venvAbsPath(template_file_path), file_path)
-        tools.openExternalFile(file_path=file_path  #, threads=self._external_threads
+        tools.openExternalFile(file_path=file_path  # , threads=self._external_threads
                                )
 
     def _createSuggestingTaskFileName(self, task):
@@ -576,7 +606,7 @@ class ResultFileCreator:
         window.close()
         return file_path, short_description
 
-    def newResultFile(self, task:task.Task, kind_of_porogramm):
+    def newResultFile(self, task: task.Task, kind_of_porogramm):
         """
         creates new result file
         :param kind_of_porogramm: inter.presentation, inter.spreadsheet, etc...
@@ -585,7 +615,8 @@ class ResultFileCreator:
         while True:
             try:
                 file_path, short_description = self._newResultFilePopup(
-                        file_name=file_name, kind_of_program=kind_of_porogramm, file_ext=self._file_templates[kind_of_porogramm][1])
+                    file_name=file_name, kind_of_program=kind_of_porogramm,
+                    file_ext=self._file_templates[kind_of_porogramm][1])
             except TypeError:
                 break
             if os.path.exists(file_path):
@@ -611,14 +642,14 @@ class TaskFrameCreator:
         """
         return self.size
 
-    def setSize(self, size:int):
+    def setSize(self, size: int):
         """
         :param size: sets width of a frame / x-axis size
         """
         self.size = size
 
-    def _basicTaskFrame(self, frame_name:str, name_line:list, priority, completed, option_button_line:list,
-                        relief=sg.RELIEF_RAISED, tooltip_text:str="", frame_color:str=None):
+    def _basicTaskFrame(self, frame_name: str, name_line: list, priority, completed, option_button_line: list,
+                        relief=sg.RELIEF_RAISED, tooltip_text: str = "", frame_color: str = None):
         """task frame creation
         :param name: simplegu element name line
         :param priority: simplegui priority line
@@ -630,7 +661,7 @@ class TaskFrameCreator:
         frame = sg.Frame(layout=[name_line,
                                  [priority, completed],
                                  option_button_line],
-                         title=frame_name[-(self.sSize() -3):], relief=relief, size=(self.sSize() ,5),
+                         title=frame_name[-(self.sSize() - 3):], relief=relief, size=(self.sSize(), 5),
                          tooltip=tooltip_text, background_color=frame_color)
         return frame
 
@@ -639,7 +670,7 @@ class TaskFrameCreator:
         return "N.A." if not wantet_value else wantet_value
 
     @staticmethod
-    def _toolTipText(task:task.Task):
+    def _toolTipText(task: task.Task):
         """
         :return: full plain textual representation of an task.Task() suitable as tooltip_text
         """
@@ -656,7 +687,7 @@ class TaskFrameCreator:
         return tt
 
     @staticmethod
-    def _isCompletedElement(task:task.Task, tooltip_text, background_color:str):
+    def _isCompletedElement(task: task.Task, tooltip_text, background_color: str):
         """
         builds up task completed line either an percentage, or an checkbox corresponding to kind of task
         :param background_color: hexstring like "#ff0000"
@@ -666,7 +697,8 @@ class TaskFrameCreator:
         if type(task.sCompleted()) == int:
             return sg.Checkbox(text=inter.completed, key=f"compl-#7#{str(task.sPosition())}", default=default,
                                enable_events=True, tooltip=tooltip_text, background_color=background_color)
-        return sg.Text(f"{inter.completed}: {task.sCompleted():6.2f}", tooltip=tooltip_text, background_color=background_color)
+        return sg.Text(f"{inter.completed}: {task.sCompleted():6.2f}", tooltip=tooltip_text,
+                       background_color=background_color)
 
     def sOptionButtonMenuList(self):
         """
@@ -688,9 +720,8 @@ class TaskFrameCreator:
         self._button_menu_list = inter.c_b_m_l
 
     def _buttonLinePlaceHolder(self, background_color, padding_size):
-        #origiinal x_size: self.sSize() - 15
-        return sg.Text(text="", size=(padding_size,1), background_color=background_color)
-
+        # origiinal x_size: self.sSize() - 15
+        return sg.Text(text="", size=(padding_size, 1), background_color=background_color)
 
     def _createButtonMenuWithResultFileEntrys(self, task):
         button_list = deepcopy(self.sOptionButtonMenuList())
@@ -706,7 +737,6 @@ class TaskFrameCreator:
                 button_list[1][5].append(line)
             return button_list
 
-
     def _buttonMenuLine(self, task, background_color):
         """
         :return: option menu button for every task frame
@@ -717,21 +747,20 @@ class TaskFrameCreator:
         #                      border_width=2, )
 
         if result_file_button_menu:
-            placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize()-20)
+            placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 20)
             image = sg.Image(filename="templates/file.png")
-            option_button = sg.ButtonMenu(button_text=inter.options, menu_def=result_file_button_menu, key=f'-BMENU-#7#{task.sPosition()}')
+            option_button = sg.ButtonMenu(button_text=inter.options, menu_def=result_file_button_menu,
+                                          key=f'-BMENU-#7#{task.sPosition()}')
 
-            return  [placeholer, image, option_button]
+            return [placeholer, image, option_button]
 
         else:
-            placeholder = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize()-15)
-            option_button = sg.ButtonMenu(button_text=inter.options, menu_def=self.sOptionButtonMenuList(), key=f'-BMENU-#7#{task.sPosition()}')
+            placeholder = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 15)
+            option_button = sg.ButtonMenu(button_text=inter.options, menu_def=self.sOptionButtonMenuList(),
+                                          key=f'-BMENU-#7#{task.sPosition()}')
             return [placeholder, option_button]
 
-
-
-
-    def taskFrame(self, task:task.Task):
+    def taskFrame(self, task: task.Task):
         """
         :return: sg.Frame which represents the short Tree notation of an Task inclusive a full tooltip text
         """
@@ -739,8 +768,10 @@ class TaskFrameCreator:
         background_color = task.taskDeadlineColor()
 
         name_line = self._nameLine(task=task, tooltip_text=tooltip_text, background_color=background_color)
-        priority_sg_object = sg.Text(text=f"{inter.short_pr}:.{task.sPriority():3d}", tooltip=tooltip_text, background_color=background_color)
-        completed_sg_object = self._isCompletedElement(task, tooltip_text=tooltip_text, background_color=background_color)
+        priority_sg_object = sg.Text(text=f"{inter.short_pr}:.{task.sPriority():3d}", tooltip=tooltip_text,
+                                     background_color=background_color)
+        completed_sg_object = self._isCompletedElement(task, tooltip_text=tooltip_text,
+                                                       background_color=background_color)
 
         frame_name = task.hierarchyTreePositionString()
 
@@ -757,14 +788,12 @@ class TaskFrameCreator:
                              background_color=background_color)]
         return name_line
 
-
     def emptyTaskFrame(self):
-            """
+        """
             :return: empty sg.Frame in same size than a task frame
             """
-            return sg.Frame(layout=[[sg.Text(text="", size=(self.sSize() -5, 5))]], title=" ",relief=sg.RELIEF_FLAT, size=(300, 50))
-
-
+        return sg.Frame(layout=[[sg.Text(text="", size=(self.sSize() - 5, 5))]], title=" ", relief=sg.RELIEF_FLAT,
+                        size=(300, 50))
 
 
 class TaskInputWindowCreator:
@@ -779,11 +808,12 @@ class TaskInputWindowCreator:
         """updates window-values-dict with values fetched from date buttons"""
         values.update({"start": datetime.datetime(*time.strptime(window['-START_BUTTON-'].get_text(), "%Y-%m-%d")[:6])})
         try:
-            values.update({"ende": datetime.datetime(*time.strptime(window['-END_BUTTON-'].get_text(), "%Y-%m-%d")[:6])})
+            values.update(
+                {"ende": datetime.datetime(*time.strptime(window['-END_BUTTON-'].get_text(), "%Y-%m-%d")[:6])})
         except TypeError or ValueError:
-            values.update({"ende":None})
+            values.update({"ende": None})
         except ValueError:
-            values.update({"ende":None})
+            values.update({"ende": None})
         return values
 
     def inputValidation(self, window, masters_ende, masters_priority):
@@ -817,12 +847,13 @@ class TaskInputWindowCreator:
         inital_value = inital_value if inital_value else 5
 
         return [sg.Text(f'{inter.priority}: {inter.low} (0-9) {inter.high}', size=(15, 1)),
-                sg.Spin(values=[0,1,2,3,4,5,6,7,8,9], initial_value=inital_value,
-                        size=(2,1), key='priority', enable_events=True),
+                sg.Spin(values=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], initial_value=inital_value,
+                        size=(2, 1), key='priority', enable_events=True),
                 sg.Text(key='priority-KORREKTUR-', text_color="#FF0000", size=(35, 1))]
-                # sg.InputText(default_text=priority, key='priority', enable_events=True)]
+        # sg.InputText(default_text=priority, key='priority', enable_events=True)]
 
-    def _calenderLine(self, calendar_date:datetime.datetime, s_or_e=inter.start, key='-START_BUTTON-', target='-START_BUTTON-'):
+    def _calenderLine(self, calendar_date: datetime.datetime, s_or_e=inter.start, key='-START_BUTTON-',
+                      target='-START_BUTTON-'):
         """
         :param s_or_e: "Start" or "Ende"
         :param key: button key to fetch value
@@ -843,10 +874,10 @@ class TaskInputWindowCreator:
         :return: label and description multiple line text input
         """
         return [sg.Text(text=inter.description, size=(15, 1)),
-                sg.Multiline(default_text=description, size=(45,20), key='description')]
+                sg.Multiline(default_text=description, size=(45, 20), key='description')]
 
     @staticmethod
-    def _nameLine(kind:str, name:str):
+    def _nameLine(kind: str, name: str):
         """
         :param kind: Aufgabe or Project
         :param name: task name
@@ -855,7 +886,7 @@ class TaskInputWindowCreator:
         return [sg.Text(text=f'{kind}name:', size=(15, 1)), sg.InputText(default_text=name, key='name')]
 
     @staticmethod
-    def _calendarButtonText(calendar_date:datetime.datetime):
+    def _calendarButtonText(calendar_date: datetime.datetime):
         """
         turns datetime.datetime in string "yyyy-mm-dd"
         :param calendar_date: datetime.datetime
@@ -864,7 +895,7 @@ class TaskInputWindowCreator:
         calendar_text = strftime(f"%Y-%m-%d", calendar_date.timetuple())
         return calendar_text
 
-    def _calendarButtonParameter(self, calendar_date:datetime.datetime=None, s_or_e=inter.start):
+    def _calendarButtonParameter(self, calendar_date: datetime.datetime = None, s_or_e=inter.start):
         """
         :param calendar_date: datetime.datetime
         :param s_or_e: string "Start" or "Ende"
@@ -878,9 +909,9 @@ class TaskInputWindowCreator:
         calendar_date_tuple = (calendar_date.month, calendar_date.day, calendar_date.year)
         return calendar_text, calendar_date_tuple
 
-    def inputWindow(self, kind:str, name:str='', description:str='',
-                    start:datetime.datetime=None, ende:datetime.datetime=None,
-                    priority='', masters_priority=None, masters_ende:datetime.datetime=None, keep_on_top=True,
+    def inputWindow(self, kind: str, name: str = '', description: str = '',
+                    start: datetime.datetime = None, ende: datetime.datetime = None,
+                    priority='', masters_priority=None, masters_ende: datetime.datetime = None, keep_on_top=True,
                     *args, **kwargs
                     ):
         """
@@ -899,7 +930,6 @@ class TaskInputWindowCreator:
         """
         if not ende:
             ende = masters_ende
-
 
         layout = [
             self._nameLine(name=name, kind=kind),
@@ -923,27 +953,26 @@ if __name__ == '__main__':
     task_here = task.Task(name="etwaesswoiihröiojwöoiefjmöoqweivjkmövvoiwjrvöoiwqerqs",
                           description="noch etwa, noch mehr, immer mehr mehr mehr emers",
                           start=start, end=end, priority=20)
-    task_here.position = (2,3)
+    task_here.position = (2, 3)
     window = sg.Window("test", layout=[[sg.Text("etwas text")]])
     # while True:
-        # task_button_creator = TaskFrameCreator()
-        # button = task_button_creator.taskFrame(task_here)
-        # buttonb = task_button_creator.emptyTaskFrame()
-        # buttonc = task_button_creator.emptyTaskFrame()
-        # buttond = task_button_creator.emptyTaskFrame()
-        # buttone = task_button_creator.taskFrame(task_here)
-        # buttonf = task_button_creator.emptyTaskFrame()
-        # buttong = task_button_creator.emptyTaskFrame()
-        # buttonh = task_button_creator.emptyTaskFrame()
-        # buttoni = task_button_creator.taskFrame(task_here)
-        # event, values = window.read()
-        # print(F"#0823823 event: {event}; vlues: {values}")
-        # window.close()
-        # window = sg.Window("test", layout=[[button, buttonb, buttonc],
-        #                                    [buttond, buttone, buttonf],
-        #                                    [buttong, buttonh, buttoni]])
-        #
-        # win_creator = TaskInputWindowCreator()
-        # event, values = win_creator.inputWindow(kind="Projekt", start=None)
-        # print(event, values)
-
+    # task_button_creator = TaskFrameCreator()
+    # button = task_button_creator.taskFrame(task_here)
+    # buttonb = task_button_creator.emptyTaskFrame()
+    # buttonc = task_button_creator.emptyTaskFrame()
+    # buttond = task_button_creator.emptyTaskFrame()
+    # buttone = task_button_creator.taskFrame(task_here)
+    # buttonf = task_button_creator.emptyTaskFrame()
+    # buttong = task_button_creator.emptyTaskFrame()
+    # buttonh = task_button_creator.emptyTaskFrame()
+    # buttoni = task_button_creator.taskFrame(task_here)
+    # event, values = window.read()
+    # print(F"#0823823 event: {event}; vlues: {values}")
+    # window.close()
+    # window = sg.Window("test", layout=[[button, buttonb, buttonc],
+    #                                    [buttond, buttone, buttonf],
+    #                                    [buttong, buttonh, buttoni]])
+    #
+    # win_creator = TaskInputWindowCreator()
+    # event, values = win_creator.inputWindow(kind="Projekt", start=None)
+    # print(event, values)
