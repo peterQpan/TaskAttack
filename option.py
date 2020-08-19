@@ -91,7 +91,9 @@ class Option:
         """Starts option window and fetches user input, integrates them in itself, and saves settings"""
         settings = OptionWindow().optionWindow(settings=self.sSettings())
         if settings:
-            settings.update()
+            print(f"self dict: {self.__dict__}")
+            print(f"updd dict: {settings}")
+            self.__dict__.update(settings)
             self.saveSettings()
 
 
