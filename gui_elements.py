@@ -629,7 +629,6 @@ class TaskInputWindowCreator:
 
 class OptionWindow:
 
-
     def _setDisabledStatusToUserDirectoryFrame(self, window: sg.Window, disabled: bool):
         """option-window
         sets user directory choice frame text in red or green and buttons enabled and disabled
@@ -677,7 +676,6 @@ class OptionWindow:
                 radio_button = RadioNew(text=d_type, group_id=group_id, default=False, disabled=disabled,
                                         key=f"{key}{index}")
             layout.append([radio_button])
-        print(f"layout0283u: {layout}")
         frame = sg.Frame(title="", relief=sg.RELIEF_FLAT, layout=layout, pad=(0, 0))
         return frame
 
@@ -709,7 +707,6 @@ class OptionWindow:
         duration_entry = sg.Input(default_text=duration, disabled=disabled, enable_events=True, size=(4, 1),
                                   key="-AUS-2-")  # todo change in double radio frame
         layout = [[enable_radio_button, duration_entry, duration_type_radio_frame]]
-        print(f"layout1113u: {layout}")
         frame = sg.Frame(title="", layout=layout, relief=sg.RELIEF_FLAT, pad=(0, 0))
         return frame
 
@@ -737,7 +734,6 @@ class OptionWindow:
             duration_type=duration_type, duration=duration, disabled=(not autosave_handeling),
             enable_radio_button=auto_save_handeling_radio_b)
         layout = [[no_auto_save_handling_radio_b], [auto_save_setting_frame]]
-        print(f"layout 84652: {layout}")
 
         frame = sg.Frame(title="", layout=layout)
         return [frame]
@@ -767,18 +763,15 @@ class OptionWindow:
         :return: sg.Frame
         """
         user_decission_element_ind = RadioNew(
-            text=inter.own_folder_setup, group_id="folder_setup", enable_events=True, default=(not disabled),
-            key="-RADIO_2-")
-
-        project_folder_line = self._folderLine(name=inter.project_folder, disabled=disabled, directory=directorys["main_folder"],
-                                               key="-PFL")
-        result_folder_line = self._folderLine(name=inter.results_folder, disabled=disabled, directory=directorys["result_folder"],
-                                              key="-RFL")
-        autosave_folder_line = self._folderLine(name=inter.auto_save_folder, disabled=disabled, directory=directorys["autosave_folder"],
-                                                key="-AsFL")
-
+                text=inter.own_folder_setup, group_id="folder_setup", enable_events=True,
+                default=(not disabled), key="-RADIO_2-")
+        project_folder_line = self._folderLine(
+                name=inter.project_folder, disabled=disabled, directory=directorys["main_folder"], key="-PFL")
+        result_folder_line = self._folderLine(
+                name=inter.results_folder, disabled=disabled, directory=directorys["result_folder"], key="-RFL")
+        autosave_folder_line = self._folderLine(
+                name=inter.auto_save_folder, disabled=disabled, directory=directorys["autosave_folder"], key="-AsFL")
         layout = [[user_decission_element_ind], project_folder_line, result_folder_line, autosave_folder_line]
-        print(f"layout 54wergs: {layout}")
 
         return sg.Frame(title="", layout=layout, relief=sg.RELIEF_FLAT)
 
@@ -789,18 +782,14 @@ class OptionWindow:
         :param disabled: disabled if standard folder structure is used
         :return: sg.Frame
         """
-
         user_decission_element_std = RadioNew(
-            text=inter.standard_folder_setup, group_id="folder_setup", enable_events=True, default=(not disabled),
-            key="-RADIO_1-")
+                text=inter.standard_folder_setup, group_id="folder_setup", enable_events=True,
+                default=(not disabled), key="-RADIO_1-")
+        project_folder_line = self._folderLine(
+                name=inter.results, disabled=disabled, directory=directorys["standart_main_folder"], key="-SFL")
+        placeholder_s = [[sg.Text(text="", pad=(5, 7))] for _ in range(2)]
 
-        project_folder_line = self._folderLine(name=inter.results, disabled=disabled, directory=directorys["standart_main_folder"],
-                                               key="-SFL")
-        placeholder_line_one = [sg.Text(text="", pad=(5, 7))]
-        placeholder_line_two = [sg.Text(text="", pad=(5, 7))]
-
-        layout = [[user_decission_element_std], project_folder_line, placeholder_line_one, placeholder_line_two]
-        print(f"layout qwsdfsd: {layout}")
+        layout = [[user_decission_element_std], project_folder_line, *placeholder_s]
 
         return sg.Frame(title="", layout=layout, relief=sg.RELIEF_FLAT)
 

@@ -48,7 +48,7 @@ class TaskAttack:
 
     @property
     def last_file_path(self):
-        warnings.warn("last_file_path is deprecated with optipon_file_settings", DeprecationWarning)
+        warnings.warn("last_file_path is deprecated with optipons_file_settings", DeprecationWarning)
         return self.last_file_path_depre
 
     @last_file_path.setter
@@ -80,9 +80,6 @@ class TaskAttack:
         """does nothing so loop starts anew and matrix and window gets build anew"""
         pass
 
-    def onGlobalOptions(self, *args, **kwargs):
-        self.opt.getSettingsFromUser()
-
     def sLastUsedFolder(self):
         if self.last_file_path:
             return os.path.split(self.last_file_path)[0]
@@ -95,7 +92,7 @@ class TaskAttack:
         # inter.menu_bar
         # inter.b_b_m_l
         # inter.c_b_m_l
-        #inter.chreate_result_menu
+        # inter.chreate_result_menu
 
         return {#Globals:
                 inter.new_project: self.onAddProject, inter.reload: self.onReload,
@@ -212,6 +209,9 @@ class TaskAttack:
         hard_copy.setMaster(task)
         task.insertClipbordTask(clipbord_task=hard_copy)
 
+    def onGlobalOptions(self, *args, **kwargs):
+        self.opt.getSettingsFromUser()
+
     @staticmethod
     def _getCoordinatesAsInts(coordinates):
         """strips button event down to button coordinates
@@ -236,7 +236,6 @@ class TaskAttack:
         command = values[event]
         action = self.sFunctionMapping()[command]
         action(task=task, values=values, command=command, event=event)
-
 
     def _userExit(self, event, window):
         """checks for and executes Exit if asked for"""
@@ -401,7 +400,7 @@ if __name__ == '__main__':
 
     # debug_printer = DebugPrinter() #achtung removes all console output,
                                      #achtung despite its name its really bad for debuging while dev xD
-    # todo maybe ther is a way for print()/Error > stdout > DebugPrinter
+    # todo maybe there is a way for print()/Error > stdout > DebugPrinter
     setCWDbashFix()
     main_gui_task_atack = TaskAttack()
 
