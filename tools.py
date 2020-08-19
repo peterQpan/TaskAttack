@@ -4,6 +4,7 @@ __email__ = "sebmueller.bt@gmail.com"
 
 import datetime
 import os
+import subprocess
 import sys
 import threading
 import time
@@ -102,14 +103,25 @@ def printMatrix(casenumber, matrix):
         print(f"{list_h}")
         print(f"{Fore.RESET}")
 
-def startExternAplicationThread(file_path:str, threads:list):
+def openExternalFile(file_path:str  #, threads:list
+                     ):
     """
     starts external corresponding programm for task result file
     :param threads: list to save thread in it to prevent garbage collection and enables later referencing
     """
-    thread = threading.Thread(target=os.system, args=(f"xdg-open '{file_path}'",))
-    thread.start()
-    threads.append(thread)
+    # thread = threading.Thread(target=os.system, args=(f"xdg-open '{file_path}'",))
+    # thread.start()
+    # threads.append(thread)
+    subprocess.Popen([f"xdg-open", f"{file_path}"])
+
+def getUserHomeStandardFolders(folder="DOCUMENTS"):
+    try:
+        documents_dir = subprocess.check_output(["xdg-user-dir", "DOCUMENTS"], universal_newlines=True).strip()
+    except Exception as e:
+        print(f"{Fore.RED}ERROR #02893787ihnl -->  {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
+
+        documents_dir = subprocess.check_output(["xdg-user-dir"], universal_newlines=True).strip()
+    return documents_dir
 
 def venvAbsPath(file_path:str):
     """

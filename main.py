@@ -6,24 +6,34 @@ import copy
 import itertools
 import os
 import sys
-import threading
 import time
+from threading import Thread
 
 import PySimpleGUI as sg
+from colorama import Fore
 
 import gui_elements
 import tools
 from gui_elements import TaskInputWindowCreator, TaskFrameCreator, MyGuiToolbox
 from internationalisation import inter
+from option import Option
 from task import Taskmanager, Task
-from threading import Thread
-
 from tools import setCWDbashFix, DebugPrinter
+#
+# a = []
+#
+# b = a[3]
 
 
 class TaskAttack:
     def __init__(self):
+        #
+        # a = []
+        #
+        # b = a[3]
 
+
+        self.opt = Option("user_setup.ats")
 
         self.unsaved_project = False
         self.last_deleted_task:Task = None
@@ -66,6 +76,9 @@ class TaskAttack:
         """does nothing so loop starts anew and matrix and window gets build anew"""
         pass
 
+    def onGlobalOptions(self, *args, **kwargs):
+        self.opt.getSettingsFromUser()
+
     def sLastUsedFolder(self):
         if self.last_file_path:
             return os.path.split(self.last_file_path)[0]
@@ -84,6 +97,7 @@ class TaskAttack:
                 inter.new_project: self.onAddProject, inter.reload: self.onReload,
                 inter.new_project_sheet: self.onNewFile, inter.open: self.onLoad, inter.save: self.onSave,
                 inter.save_at: self.onSaveAt, inter.restore_task: self.onRestoreTask,
+                inter.settings: self.onGlobalOptions,
 
                 #Locals:
                 "bearb-": self.onEditTask, "subta-": self.onNewSubTask, "compl-": self.onSetTaskAsCompleted,
@@ -105,9 +119,11 @@ class TaskAttack:
 
     def onOptionButtonMenu(self, task, event, values, *args, **kwargs):
         """Method for Button menu command mapping"""
+        print()
         try:
             self._executeBasicOptionButtonMenuCommands(values=values, event=event, task=task)
-        except KeyError:
+        except KeyError as e:
+            print(f"{Fore.RED}ERROR #34ehtrfh -->  {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
             self._executeCreatedFile(event=event, values=values)
 
     def onLoad(self, *args, **kwargs):
@@ -140,6 +156,7 @@ class TaskAttack:
         self.reset()
 
     def onAddProject(self, *args, **kwargs):
+        print(f"#89721kjn")
         event, values = self.task_window_crator.inputWindow(kind=inter.project, )
         print(F"#23442 event: {event}; vlues: {values}")
 
@@ -154,7 +171,7 @@ class TaskAttack:
             self.last_deleted_task.recover()
 
     def onEditTask(self, task, *args, **kwargs):
-        raise TypeError
+        # raise TypeError
         event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation())
         print(F"#125456 event: {event}; vlues: {values}")
         if tools.eventIsNotNone(event):
@@ -207,7 +224,8 @@ class TaskAttack:
         command = values[event]
         _, _, file_path = command.rpartition(" <-> ")
         if os.path.isfile(file_path):
-            tools.startExternAplicationThread(file_path=file_path, threads=self._extern_threads)
+            tools.openExternalFile(file_path=file_path#, threads=self._extern_threads
+                                   )
 
     def _executeBasicOptionButtonMenuCommands(self, values, event, task):
         """executes the basic commands of the option Button menue"""
@@ -250,13 +268,16 @@ class TaskAttack:
 
         print(f"#29824 event: {event}, values: {values}")
         command, _, string_coordinates = event.partition("#7#")
-        print(f"command: {command}, string_coordinates:{string_coordinates}")
+        print(f"command: {command}, string_coordinates:{string_coordinates}, some string_co: {'True' if string_coordinates else 'False'}")
 
         if string_coordinates:
             self._executeCoordinateCommand(string_coordinates=string_coordinates, command=command,
                                            values= values, event=event)
         else:
+            print(f"#iuihbjlksndfoij command: {command}")
+            print(f"self.function mapping: {self.sFunctionMapping()}")
             action = self.sFunctionMapping()[command]
+            print(f"#90920983 {action}")
             action()
 
     def dataLossPrevention(self):
@@ -271,7 +292,7 @@ class TaskAttack:
         """
         while self.auto_save_thread and self.auto_save_thread.is_alive():
             time.sleep(2)
-        self.auto_save_thread = threading.Thread(
+        self.auto_save_thread = Thread(
                 target=self.taskmanager.save,
                 args=(os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"),))
         self.auto_save_thread.start()
@@ -326,7 +347,9 @@ class TaskAttack:
         try:
             project_table[0].append(self.task_frames_creator.emptyTaskFrame())
             project_table.append([self.task_frames_creator.emptyTaskFrame()])
-        except AttributeError:
+        except AttributeError as e:
+            print(f"{Fore.RED}ERROR #08029i233 --> {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
+
             pass
         return project_table
 
@@ -371,9 +394,23 @@ class TaskAttack:
 
 
 if __name__ == '__main__':
-    debug_printer = DebugPrinter()
+
+    # debug_printer = DebugPrinter() #achtung removes all console output,
+                                     #achtung despite its name its really bad for debuging while dev xD
+    # todo maybe ther is a way for print()/Error > stdout > DebugPrinter
     setCWDbashFix()
     main_gui_task_atack = TaskAttack()
+
+# todo dev implementation of autosave handling
+
+# todo dev implementation of project folder
+
+# todo dev implementation of result folder
+
+# todo dev implemetation of autosave folder
+
+
+# todo if path not exist create folder routine needed
 
 # todo take care of amount of autosave files
 
@@ -394,6 +431,13 @@ if __name__ == '__main__':
 
 # todo debug file and debug output
 
+# todo make a reload progressbar
+
+# todo folder creation in documents
+
+# todo dev make a Qt version
+
+
 
 
 
@@ -405,10 +449,6 @@ if __name__ == '__main__':
 # date is shown yyyy-mm-dd 00:00:00 should i exclude the hours if its always zerro,
 # or shouldnt i change it in case for later improvements whit exact time?!?
 # as is write this down here i think i shouldnt
-
-# todo folder creation in documents
-
-# todo dev make a Qt version
 
 
 

@@ -4,13 +4,30 @@ __email__ = "sebmueller.bt@gmail.com"
 
 
 class Internationalisation:
-    def __init__(self, language):
-        if language == "de":
-            self.setGerman()
-        elif language == "en":
-            self.setEnglish()
+    def __init__(self, language:str=None):
+        self.languages = {"de": "deutsch", "en": "english"}
+        self.actual_inter_language = language
+        self.setLanguage(language=language)
+        self.left_pading_amounts = {"deutsch": 149, "english":168}
 
-    def setGerman(self):
+
+    def sLanguages(self):
+        return sorted(self.languages.values())
+
+    def sLanguageAbbreviations(self):
+        return self.languages.keys()
+
+    def sLanguageAbreviationMapping(self):
+        return self.languages
+
+    def setLanguage(self, language):
+        self.actual_inter_language =language
+        {"deutsch":self._setGerman, "english": self._setEnglish}[language]()
+
+    def sActualLanguage(self):
+        return self.actual_inter_language
+
+    def _setGerman(self):
         # Buttons
         self.yes = "Ja"
         self.no = "Nein"
@@ -19,6 +36,13 @@ class Internationalisation:
         self.options = "Optionen"
         self.ok = "Übernehmen"
         self.cancel = "Abbrechen"
+        self.browse = "Browse"
+
+        self.own_folder_setup = "Eigene Ordner Strucktur"
+        self.standard_folder_setup = "Standard Ordner"
+
+
+
 
         # Menu entries
         self.file = "Datei"
@@ -34,14 +58,17 @@ class Internationalisation:
         self.edit = "Bearbeiten"
         self.restore_task = "Aufgabe widerherstellen"
 
+        self.settings = "Einstellungen"
+
+
         self.window = "Fenster"
         self.reload = "Neu laden"
         self.help = "Hilfe"
         self.about = "Über..."
 
         self.sub_task = 'Unteraufgabe'
-        self.compose_results = "Verfasse Resultate"
-        self.results = "Results"
+        self.compose_results = "Verfasse Ergebnisse"
+        self.results = "Ergebnisse"
 
         self.isolate = "Isolieren"
         self.delete = "Löschen"
@@ -82,12 +109,19 @@ class Internationalisation:
         self.file_name = "Dateiname"
         self.short_description = "Kurzbeschreibung"
 
+        self.project_folder = "Projekt Ordner"
+        self.results_folder = "Ergebnisse"
+        self.auto_save_folder =  "Autospeichern"
+
+        self.language = "Sprache"
+        self.days = "Tage"
+        self.pieces = "Stück"
+
+        self.no_autosave_deletion = "Kein Löschen der Autospeicherdateien"
+        self.autosave_deletion = "Autospeicherdateien löschen bis auf"
 
 
-        
-
-
-    def setEnglish(self):
+    def _setEnglish(self):
         # Buttons
         self.yes = "Yes"
         self.no = "No"
@@ -96,6 +130,10 @@ class Internationalisation:
         self.options = "Options"
         self.ok = "OK"
         self.cancel = "Cancel"
+        self.browse = "Browse"
+
+        self.own_folder_setup = "Own folder setup"
+        self.standard_folder_setup = "Standard folders"
 
         # Menu entries
         self.file = "File"
@@ -110,6 +148,8 @@ class Internationalisation:
 
         self.edit = "Edit"
         self.restore_task = "Restore Task"
+
+        self.settings = "Settings"
 
         self.window = "Window"
         self.reload = "Reload"
@@ -157,6 +197,19 @@ class Internationalisation:
         self.file_name = "Filename"
         self.short_description ="Short Description"
 
+        self.project_folder = "Project Files"
+        self.results_folder = "Results"
+        self.auto_save_folder = "Auto save"
+
+        self.language = "Language"
+        self.days = "Days"
+        self.pieces = "Pieces"
+
+        self.no_autosave_deletion = "No auto save file deletion"
+        self.autosave_deletion = "Delete auto save files to"
+
+
+
     def createResultFileTitle(self, kind_of_program):
         if self.not_later_than_master == "Not later than master task":
             return f"Create {kind_of_program}"
@@ -173,7 +226,7 @@ class Internationalisation:
     def menu_bar(self):
         return ([self.file, [self.new_project_sheet, self.open, self.save, self.save_at, self.exit]],
                 [self.project, [self.new_project]],
-                [self.edit, [self.restore_task]],
+                [self.edit, [self.restore_task, self.settings]],
                 [self.window, [self.reload]],
                 [self.help, self.about])
 
@@ -199,6 +252,8 @@ class Internationalisation:
                            self.results, ["file1", "file2"],
                            self.tree_view, self.delete, self.cut, self.paste, self.copy]]
 
+    @property
+    def duration_types(self):
+        return (self.days, self.pieces)
 
-
-inter = Internationalisation("en")
+inter = Internationalisation("english")
