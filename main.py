@@ -7,6 +7,7 @@ import itertools
 import os
 import sys
 import time
+import warnings
 from threading import Thread
 
 import PySimpleGUI as sg
@@ -19,18 +20,9 @@ from internationalisation import inter
 from option import Option
 from task import Taskmanager, Task
 from tools import setCWDbashFix, DebugPrinter
-#
-# a = []
-#
-# b = a[3]
-
 
 class TaskAttack:
     def __init__(self):
-        #
-        # a = []
-        #
-        # b = a[3]
 
 
         self.opt = Option("user_setup.ats")
@@ -40,7 +32,8 @@ class TaskAttack:
         self.auto_save_thread:Thread = None
         self._clipboard:Task = None
         self._extern_threads = []
-        self.last_file_path = ""
+        self.last_file_path_depre = ""
+
 
         self.taskmanager = Taskmanager()
         self.mygtb = MyGuiToolbox()
@@ -52,6 +45,17 @@ class TaskAttack:
         self.window_location = (None, None)
 
         self.mainLoop()
+
+    @property
+    def last_file_path(self):
+        warnings.warn("last_file_path is deprecated with optipon_file_settings", DeprecationWarning)
+        return self.last_file_path_depre
+
+    @last_file_path.setter
+    def last_file_path(self, value):
+        warnings.warn("last_file_path is deprecated with options_file_settings", DeprecationWarning)
+        self.last_file_path_depre = value
+
 
     @staticmethod
     def sMenuBar():
@@ -400,6 +404,8 @@ if __name__ == '__main__':
     # todo maybe ther is a way for print()/Error > stdout > DebugPrinter
     setCWDbashFix()
     main_gui_task_atack = TaskAttack()
+
+# todo beauty taskatack.last_file_path is deprecated with option.file_path_settings
 
 # todo dev implementation of autosave handling
 
