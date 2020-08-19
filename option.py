@@ -7,15 +7,13 @@ import pickle
 import subprocess
 from locale import getdefaultlocale
 
-
-
-import internationalisation
-from gui_elements import MyGuiToolbox, OptionWindow
+from gui_elements import OptionWindow
 from internationalisation import inter
 
 
 class Option:
     def __init__(self, file_path):
+
         self.file_path = file_path
 
         if not os.path.exists(file_path):
