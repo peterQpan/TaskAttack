@@ -58,6 +58,9 @@ class Internationalisation:
         self.edit = "Bearbeiten"
         self.restore_task = "Aufgabe widerherstellen"
 
+        self.settings = "Einstellungen"
+
+
         self.window = "Fenster"
         self.reload = "Neu laden"
         self.help = "Hilfe"
@@ -146,6 +149,8 @@ class Internationalisation:
         self.edit = "Edit"
         self.restore_task = "Restore Task"
 
+        self.settings = "Settings"
+
         self.window = "Window"
         self.reload = "Reload"
         self.help = "Help"
@@ -221,7 +226,7 @@ class Internationalisation:
     def menu_bar(self):
         return ([self.file, [self.new_project_sheet, self.open, self.save, self.save_at, self.exit]],
                 [self.project, [self.new_project]],
-                [self.edit, [self.restore_task]],
+                [self.edit, [self.restore_task, self.settings]],
                 [self.window, [self.reload]],
                 [self.help, self.about])
 

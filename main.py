@@ -10,11 +10,13 @@ import threading
 import time
 
 import PySimpleGUI as sg
+from colorama import Fore
 
 import gui_elements
 import tools
 from gui_elements import TaskInputWindowCreator, TaskFrameCreator, MyGuiToolbox
 from internationalisation import inter
+from option import Option
 from task import Taskmanager, Task
 from threading import Thread
 
@@ -24,6 +26,7 @@ from tools import setCWDbashFix, DebugPrinter
 class TaskAttack:
     def __init__(self):
 
+        # self.opt = Option("user_setup.ats")
 
         self.unsaved_project = False
         self.last_deleted_task:Task = None
@@ -66,6 +69,9 @@ class TaskAttack:
         """does nothing so loop starts anew and matrix and window gets build anew"""
         pass
 
+    def onGlobalOptions(self, *args, **kwargs):
+        self.opt.getSettingsFromUser()
+
     def sLastUsedFolder(self):
         if self.last_file_path:
             return os.path.split(self.last_file_path)[0]
@@ -84,6 +90,7 @@ class TaskAttack:
                 inter.new_project: self.onAddProject, inter.reload: self.onReload,
                 inter.new_project_sheet: self.onNewFile, inter.open: self.onLoad, inter.save: self.onSave,
                 inter.save_at: self.onSaveAt, inter.restore_task: self.onRestoreTask,
+                inter.option: self.onGlobalOptions,
 
                 #Locals:
                 "bearb-": self.onEditTask, "subta-": self.onNewSubTask, "compl-": self.onSetTaskAsCompleted,
@@ -105,9 +112,11 @@ class TaskAttack:
 
     def onOptionButtonMenu(self, task, event, values, *args, **kwargs):
         """Method for Button menu command mapping"""
+        print()
         try:
             self._executeBasicOptionButtonMenuCommands(values=values, event=event, task=task)
-        except KeyError:
+        except KeyError as e:
+            print(f"{Fore.RED}ERROR #34ehtrfh -->  {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
             self._executeCreatedFile(event=event, values=values)
 
     def onLoad(self, *args, **kwargs):
@@ -154,7 +163,7 @@ class TaskAttack:
             self.last_deleted_task.recover()
 
     def onEditTask(self, task, *args, **kwargs):
-        raise TypeError
+        # raise TypeError
         event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation())
         print(F"#125456 event: {event}; vlues: {values}")
         if tools.eventIsNotNone(event):
@@ -207,7 +216,8 @@ class TaskAttack:
         command = values[event]
         _, _, file_path = command.rpartition(" <-> ")
         if os.path.isfile(file_path):
-            tools.openExternalFile(file_path=file_path, threads=self._extern_threads)
+            tools.openExternalFile(file_path=file_path#, threads=self._extern_threads
+                                   )
 
     def _executeBasicOptionButtonMenuCommands(self, values, event, task):
         """executes the basic commands of the option Button menue"""
@@ -326,7 +336,9 @@ class TaskAttack:
         try:
             project_table[0].append(self.task_frames_creator.emptyTaskFrame())
             project_table.append([self.task_frames_creator.emptyTaskFrame()])
-        except AttributeError:
+        except AttributeError as e:
+            print(f"{Fore.RED}ERROR #08029i233 --> {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
+
             pass
         return project_table
 
@@ -374,6 +386,8 @@ if __name__ == '__main__':
     debug_printer = DebugPrinter()
     setCWDbashFix()
     main_gui_task_atack = TaskAttack()
+
+# todo if path not exist create folder routine needed
 
 # todo take care of amount of autosave files
 
