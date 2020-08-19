@@ -98,13 +98,14 @@ class RadioNew(sg.Frame):
                               enable_events=enable_events, visible=visible, metadata=metadata)
         self.text_key = f"{key}TEXT-"
         self.text = sg.Text(text=text, size=text_size, auto_size_text=auto_size_text, click_submits=click_submits,
-                            enable_events=enable_events, relief=relief, font=font, text_color=text_color,
+                            #enable_events=enable_events,
+                            relief=relief, font=font, text_color=text_color,
                             background_color=background_color, border_width=border_width, justification=justification,
                             pad=text_pad, key=self.text_key, right_click_menu=right_click_menu, tooltip=tooltip,
                             visible=visible, metadata=metadata)
         self.layout = [[self.radio, self.text]]
         super().__init__(title="", layout=self.layout, relief=sg.RELIEF_FLAT, font=font, pad=pad,
-                         border_width=border_width, key=key, tooltip=tooltip, right_click_menu=right_click_menu,
+                         border_width=border_width, key=f"{key}", tooltip=tooltip, right_click_menu=right_click_menu,
                          visible=visible, element_justification=element_justification, metadata=metadata)
 
     def Update(self, text=None, background_color=None, text_color=None, font=None, radio_value=None, disabled=None,
@@ -134,26 +135,32 @@ class RadioNew(sg.Frame):
         super().Update(visible=visible)
 
 
-# if __name__ == '__main__':
-# radio_one = RadioNew(text="rot", group_id="colors", default=True, background_color="#007700", enable_events=True)
-# text_one = sg.Text(text="test text", background_color="#770000", #pad=(0,0)
-#                    )
-# radio_two = RadioNew(text="grün", group_id="colors", background_color="#007700", enable_events=True)
-# text_two = sg.Text(text="test text", background_color="#770000", #pad=(75,55)
-#                    )
-# layout = [[radio_one, text_one], [radio_two, text_two]]
-# window = sg.Window(title="My own Color Radios", layout=layout)
-# event, values = window.read()
-#
-# # radio_one = RadioNew(text="rot", group_id="colors", default=True, background_color="#007700")
-# text_one = sg.Text(text="test text", background_color="#770000", key=1 #pad=(0,0)
-#                    )
-# # radio_two = RadioNew(text="grün", group_id="colors", background_color="#007700")
-# text_two = sg.Text(text="test text", background_color="#770000", key=2#pad=(75,55)
-#                    )
-# layout2 = [[text_one], [text_two]]
-# window2 = sg.Window(title="My own Color Radios", layout=layout2)
-# event2, values2 = window2.read()
+
+            #     choosen_language = values[event][0]
+            #     print(f"choosen language: {choosen_language}")
+            #     language = inter.language
+            #     inter.setLanguage(choosen_language)
+            #     for key, text in {"-PFL": inter.project_folder, "-RFL": inter.results,
+            #                       "-AsFL": inter.auto_save_folder}.items():
+            #         print(f"key 0932u5: {key}-DE")
+            #         window[f"{key}-DE"].Update(value=text)
+            #         # sg.Text.Update(value=text)
+            #     window[f"-SFL-DE"].Update(value=inter.project_folder)
+            #     window["language-t-f"].Update(value=inter.language)
+            #     window["-RADIO_1-"].Update(text=inter.standard_folder_setup)
+            #     window["-RADIO_2-"].Update(text=inter.own_folder_setup)
+            #     self._setDurationRadiosWithNewLanguage(all_types=inter.duration_types, key="-AUS-1-", window=window)
+            #     window["-AUTO-S-1-"].Update(text=inter.no_autosave_deletion)
+            #     window["-AUTO-S-2-"].Update(text=inter.autosave_deletion)
+            #     window["-CANCEL-"].Update(text=inter.cancel)
+            #     window["-OK-"].Update(text=inter.ok)
+            #     print(f"left padding amount: {inter.left_pading_amounts[choosen_language]}")
+            #     print(f"left_padding_element_dict: {window['-LEFT-PADDING-'].__dict__}")
+            #     window["-LEFT-PADDING-"].Update(value=f"{' ' * inter.left_pading_amounts[choosen_language]}")
+            #     # sg.Button.Update()
+            # print(f"#io3409283lkjnk event: {event}, values: {values}")
+
+
 
 class MyGuiToolbox:
 
@@ -201,333 +208,6 @@ class MyGuiToolbox:
     # next above: ("-SFL")
     # under-keys: ("-DE", "-IE", "-FB")
 
-    def _setDisabledStatusToUserDirectoryFrame(self, window: sg.Window, disabled: bool):
-        """option-window
-        sets user directory choice frame text in red or green and buttons enabled and disabled
-        :param window: option_window
-        :param disabled: bool is true if user chooses to make distinct saving directory
-        frame key:
-        next above: ("-PFL", "-RFL", "-AsFL")
-        under-keys: ("-DE":color, "-IE":disabled, "-FB":disabled)
-
-        """
-        text_color = "#ff0000" if disabled else "#00ff00"
-        for first_part in ("-PFL", "-RFL", "-AsFL"):
-            window[f"{first_part}-DE"].Update(text_color=text_color)
-            window[f"{first_part}-IE"].Update(disabled=disabled)
-            window[f"{first_part}-FB"].Update(disabled=disabled)
-
-    def _setDisabledStatusToStandardDirectoryFrame(self, window: sg.Window, disabled: bool):
-        """option-window
-        sets standard directory choice frame text in red or green and buttons enabled and disabled
-        :param window: option_window
-        :param disabled: bool is true if user chooses to make standard saving directory
-        next above: ("-SFL")
-        under-keys: ("-DE":color, "-IE":disabled, "-FB":disabled)
-        """
-        text_color = "#ff0000" if disabled else "#00ff00"
-        window["-SFL-DE"].Update(text_color=text_color)
-        window["-SFL-IE"].Update(disabled=disabled)
-        window["-SFL-FB"].Update(disabled=disabled)
-
-    def _horizontalRadioChoiceFrame(self, all_types: tuple, active_type, disabled, key: str, group_id="dura_radio"):
-        """option-window
-        makes a horizontal radio button group
-        :param all_types: tuple of all values
-        :param active_type: value which is supposed to be active
-        :param disabled: needed if elements are supposed to be enablede
-        :return: sg.Frame()
-        """
-        layout = []
-        for index, d_type in enumerate(all_types):
-            if d_type == active_type:
-                radio_button = RadioNew(text=d_type, group_id=group_id, default=True, disabled=disabled,
-                                        key=f"{key}{index}")
-            else:
-                radio_button = RadioNew(text=d_type, group_id=group_id, default=False, disabled=disabled,
-                                        key=f"{key}{index}")
-            layout.append([radio_button])
-        print(f"layout0283u: {layout}")
-        frame = sg.Frame(title="", relief=sg.RELIEF_FLAT, layout=layout, pad=(0, 0))
-        return frame
-
-    def _setDurationRadiosWithNewLanguage(self, all_types: tuple, key: str, window):
-        """option-window
-        makes a horizontal radio button group
-        :param all_types: tuple of all values
-        :param active_type: value which is supposed to be active
-        :param disabled: needed if elements are supposed to be enablede
-        :return: sg.Frame()
-        """
-        for index, d_type in enumerate(all_types):
-            window[f"{key}{index}"].Update(text=d_type)
-
-    def autoSaveSettingInputFrame(self, duration_type: str, duration: int, disabled: bool,
-                                  enable_radio_button: sg.Radio):
-        """option-window
-        frame for auto save file handeling setting"
-        :param duration_type: inter.days or inter.pieces indicates actual settings
-        :param duration: actual duration setting
-        :param disabled: True if no auto save handeln
-        :param enable_radio_button: sg.Radio()
-        :return: sg.Frame
-        """
-        duration_type_radio_frame = self._horizontalRadioChoiceFrame(all_types=inter.duration_types,
-                                                                     active_type=duration_type, disabled=disabled,
-                                                                     key="-AUS-1-")
-        duration_entry = sg.Input(default_text=duration, disabled=disabled, enable_events=True, size=(4, 1),
-                                  key="-AUS-2-")  # todo change in double radio frame
-        layout = [[enable_radio_button, duration_entry, duration_type_radio_frame]]
-        print(f"layout1113u: {layout}")
-        frame = sg.Frame(title="", layout=layout, relief=sg.RELIEF_FLAT, pad=(0, 0))
-        return frame
-
-    @staticmethod
-    def _setImputAutoSaveFrame(window, disabled):
-        window["-AUS-1-0"].Update(disabled=disabled)
-        window["-AUS-1-1"].Update(disabled=disabled)
-        window["-AUS-2-"].Update(disabled=disabled)
-
-    def _autoSaveFileHandlingRulesFrame(self, duration_type: str, duration: int, autosave_handeling: bool):
-        """option-window
-        complete frame for auto save file handling
-        :param duration_type: inter.days or inter.pieces indicates actual settings
-        :param duration: actual duration setting
-        :param autosave_handeling: actual setting, True if auto save files are handeled
-        :return: layout line: [sg.frame]
-        """
-        no_auto_save_handling_radio_b = RadioNew(
-            text=inter.no_autosave_deletion, group_id="autosave_deletion", default=(not autosave_handeling),
-            enable_events=True, text_size=(30, 1), key="-AUTO-S-1-")
-        auto_save_handeling_radio_b = RadioNew(
-            text=inter.autosave_deletion, group_id="autosave_deletion", default=autosave_handeling,
-            enable_events=True, text_size=(30, 1), key="-AUTO-S-2-")
-        auto_save_setting_frame = self.autoSaveSettingInputFrame(
-            duration_type=duration_type, duration=duration, disabled=(not autosave_handeling),
-            enable_radio_button=auto_save_handeling_radio_b)
-        layout = [[no_auto_save_handling_radio_b], [auto_save_setting_frame]]
-        print(f"layout 84652: {layout}")
-
-        frame = sg.Frame(title="", layout=layout)
-        return [frame]
-
-    def _folderLine(self, name: str, directory: file_like, disabled: bool, key):
-        """option-window
-        creates a folder input line [sg.Text, sg.Input, sg.FolderBrowse]
-        :param name: line description
-        :param directory: actual directory
-        :param disabled: disables complete line
-        :param key: master_key for this line, becomes sub keys: -DE, -IE, -FB
-        :return: layout line: [sg.Text, sg.Input, sg.FolderBrowse]
-        """
-        text_color = "#ff0000" if disabled else "#00ff00"
-        directory = directory if directory else ""
-        description_elemetn = sg.Text(text=name, size=(15, 1), text_color=text_color, key=f"{key}-DE")
-        input_element = sg.Input(default_text=directory, size=[25, 1], disabled=disabled, key=f"{key}-IE", )
-        folder_button = sg.FolderBrowse(button_text=inter.browse, disabled=disabled, key=f"{key}-FB")
-
-        return [description_elemetn, input_element, folder_button]
-
-    def _userDefinedFolderStructureFrame(self, directorys: tuple, disabled):
-        """option-window
-        Frame for user commanded save directory structure
-        :param directorys: directorys for (*.tak, results, autosave.tak
-        :param disabled: disabled if standard folder structure is used
-        :return: sg.Frame
-        """
-        user_decission_element_ind = RadioNew(
-            text=inter.own_folder_setup, group_id="folder_setup", enable_events=True, default=(not disabled),
-            key="-RADIO_2-")
-
-        project_folder_line = self._folderLine(name=inter.project_folder, disabled=disabled, directory=directorys[0],
-                                               key="-PFL")
-        result_folder_line = self._folderLine(name=inter.results_folder, disabled=disabled, directory=directorys[1],
-                                              key="-RFL")
-        autosave_folder_line = self._folderLine(name=inter.auto_save_folder, disabled=disabled, directory=directorys[2],
-                                                key="-AsFL")
-
-        layout = [[user_decission_element_ind], project_folder_line, result_folder_line, autosave_folder_line]
-        print(f"layout 54wergs: {layout}")
-
-        return sg.Frame(title="", layout=layout, relief=sg.RELIEF_FLAT)
-
-    def _standardFolderStructureFrame(self, directorys, disabled):
-        """option-window
-        Frame for user commanded save directory structure
-        :param directorys: directorys for (*.tak, results, autosave.tak
-        :param disabled: disabled if standard folder structure is used
-        :return: sg.Frame
-        """
-
-        user_decission_element_std = RadioNew(
-            text=inter.standard_folder_setup, group_id="folder_setup", enable_events=True, default=(not disabled),
-            key="-RADIO_1-")
-
-        project_folder_line = self._folderLine(name=inter.project_folder, disabled=disabled, directory=directorys[0],
-                                               key="-SFL")
-        placeholder_line_one = [sg.Text(text="", pad=(5, 7))]
-        placeholder_line_two = [sg.Text(text="", pad=(5, 7))]
-
-        layout = [[user_decission_element_std], project_folder_line, placeholder_line_one, placeholder_line_two]
-        print(f"layout qwsdfsd: {layout}")
-
-        return sg.Frame(title="", layout=layout, relief=sg.RELIEF_FLAT)
-
-    def _FolderStuchturLayoutLine(self, directorys: tuple, wich_disabled: str):
-        """optioln-window
-        complete save folder line, standard AND user decided
-        :param directorys: actual folders
-        :param wich_enabled: "ind" or "std"
-        :return: complete save folder line: [sg.Frame]
-        """
-
-        if wich_disabled == "ind":
-            layout = [[self._standardFolderStructureFrame(directorys=directorys, disabled=True),
-                       self._userDefinedFolderStructureFrame(directorys=directorys, disabled=False)]]
-        else:
-            layout = [[self._standardFolderStructureFrame(directorys=directorys, disabled=False),
-                       self._userDefinedFolderStructureFrame(directorys=directorys, disabled=True)]]
-        folder_structur_line = sg.Frame(title="", layout=layout)
-        return [folder_structur_line]
-
-    def _languageTextFrame(self):
-        """option-window
-        creates an frame three elements high to match listbox in height and align accordingly
-        :return: sg.Frame
-        """
-        layout = [[sg.Text(text=f"{inter.language}     ", key="language-t-f", size=(10, 1))], [sg.Text()], [sg.Text()]]
-        print(f"layout litzr: {layout}")
-
-        frame = sg.Frame(title="", layout=layout, relief=sg.RELIEF_FLAT)
-        return frame
-
-    def _languageSettingsLine(self, actual_language: str):
-        """option-window
-        complete language frame with text and listbox in a line
-        :param actual_language:
-        :return: complete language line: [sg.Frame, sg.Listbox]
-        """
-        language_text_frame = self._languageTextFrame()
-        language_selection_List_box = sg.Listbox(values=inter.sLanguages(), default_values=actual_language,
-                                                 size=(10, 4),
-                                                 enable_events=True, key="-LANGUAGE-")
-        return [language_text_frame, language_selection_List_box]
-
-    def _completeOptionWindowLayout(self, directorys: tuple, disabled_directory_mode: str, actual_language: str,
-                                    autosave_handling: bool, duration_type: str, duration: int):
-        """option-window
-        gathers all lines together ond creates final layout line
-        :param directorys: achtual_directorys
-        :param disabled_directory_mode: "ind" or "std" --> individual - standard
-        :param actual_language: 
-        :param autosave_handling: if auto save handling
-        :param duration_type: actualy set duration type inter.days or inter.pieces
-        :param duration: actualy set duration amount
-        :return: final layout line [self.line, self.line, self.line]
-        """
-        return [self._languageSettingsLine(actual_language),
-                self._FolderStuchturLayoutLine(directorys=directorys, wich_disabled=disabled_directory_mode),
-                self._autoSaveFileHandlingRulesFrame(
-                    duration_type=duration_type, duration=duration, autosave_handeling=autosave_handling),
-                self._okCancelLine(ok_button=inter.ok, cancel_button=inter.cancel,
-                                   left_padding=inter.left_pading_amounts["deutsch"])]
-
-    def setLanguageAnew(self, values, event, window):
-
-        choosen_language = values[event][0]
-        inter.setLanguage(choosen_language)
-
-        self._setDurationRadiosWithNewLanguage(all_types=inter.duration_types, key="-AUS-1-", window=window)
-        self._setDirectoryFramesWithNewLanguage(window=window)
-
-        window_keys = [f"-SFL-DE", "language-t-f", "-RADIO_1-", "-RADIO_2-", "-AUTO-S-1-", "-AUTO-S-2-", "-CANCEL-",
-                       "-OK-", "-LEFT-PADDING-"]
-        propertys = [inter.project_folder, inter.language, inter.standard_folder_setup, inter.own_folder_setup,
-                     inter.no_autosave_deletion, inter.autosave_deletion, inter.cancel, inter.ok,
-                     ' ' * inter.left_pading_amounts[choosen_language]]
-
-        for key, property in zip(window_keys, propertys):
-            try:
-                window[key].Update(text=property)
-            except TypeError as e:
-                window[key].Update(value=property)
-
-
-    def optionWindow(self, language):
-
-        directorys = ("/home/ich/Dokumente", None, None)
-        wich_disabled = "ind"
-        actual_language = language
-        inter.setLanguage(language=language)
-        duration_type = inter.days
-        duration = 10
-        autosave_handling = True
-
-        layout = self._completeOptionWindowLayout(
-            directorys=directorys, disabled_directory_mode=wich_disabled, actual_language=actual_language,
-            duration_type=duration_type, duration=duration, autosave_handling=autosave_handling)  #
-        print(f"layout sfd45: {layout}")
-
-        window = sg.Window(title=inter.options, layout=layout)
-        while True:
-            event, values = window.read()
-            if event == "-RADIO_1-":
-                self._setDisabledStatusToStandardDirectoryFrame(window=window, disabled=False)
-                self._setDisabledStatusToUserDirectoryFrame(window=window, disabled=True)
-
-            elif event == "-RADIO_2-":
-                self._setDisabledStatusToStandardDirectoryFrame(window=window, disabled=True)
-                self._setDisabledStatusToUserDirectoryFrame(window=window, disabled=False)
-
-            elif event == "-AUTO-S-1-":
-                self._setImputAutoSaveFrame(window=window, disabled=True)
-            elif event == "-AUTO-S-2-":
-                self._setImputAutoSaveFrame(window=window, disabled=False)
-            elif event == "-LANGUAGE-":
-                self.setLanguageAnew(values=values, event=event, window=window)
-            #     choosen_language = values[event][0]
-            #     print(f"choosen language: {choosen_language}")
-            #     language = inter.language
-            #     inter.setLanguage(choosen_language)
-            #     for key, text in {"-PFL": inter.project_folder, "-RFL": inter.results,
-            #                       "-AsFL": inter.auto_save_folder}.items():
-            #         print(f"key 0932u5: {key}-DE")
-            #         window[f"{key}-DE"].Update(value=text)
-            #         # sg.Text.Update(value=text)
-            #     window[f"-SFL-DE"].Update(value=inter.project_folder)
-            #     window["language-t-f"].Update(value=inter.language)
-            #     window["-RADIO_1-"].Update(text=inter.standard_folder_setup)
-            #     window["-RADIO_2-"].Update(text=inter.own_folder_setup)
-            #     self._setDurationRadiosWithNewLanguage(all_types=inter.duration_types, key="-AUS-1-", window=window)
-            #     window["-AUTO-S-1-"].Update(text=inter.no_autosave_deletion)
-            #     window["-AUTO-S-2-"].Update(text=inter.autosave_deletion)
-            #     window["-CANCEL-"].Update(text=inter.cancel)
-            #     window["-OK-"].Update(text=inter.ok)
-            #     print(f"left padding amount: {inter.left_pading_amounts[choosen_language]}")
-            #     print(f"left_padding_element_dict: {window['-LEFT-PADDING-'].__dict__}")
-            #     window["-LEFT-PADDING-"].Update(value=f"{' ' * inter.left_pading_amounts[choosen_language]}")
-            #     # sg.Button.Update()
-            # print(f"#io3409283lkjnk event: {event}, values: {values}")
-
-    def _setDirectoryFramesWithNewLanguage(self, window):
-        for key, text in {"-PFL": inter.project_folder, "-RFL": inter.results, "-AsFL": inter.auto_save_folder}.items():
-            print(f"key 0932u5: {key}-DE")
-            window[f"{key}-DE"].Update(value=text)
-
-
-# fixme make my own radio buttons because you cant update text of radiobuttons MAYBE Fork PYSIMPLEGUI OR GO AS SUPPORTER
-
-# TODO ASAP fork or support PYSIMPPLEGUI
-
-
-if __name__ == '__main__':
-    gou_tools = MyGuiToolbox()
-    gou_tools.optionWindow(language="deutsch")
-    # the option window asks folder for autosaves,
-    # folder for result saves, it asks for us of an main project file and for the save folder for it,
-    # but myby just for an standard project folder nested in documetation folder.
-    # it asks for rules time based or amount based or none (no deletion) to care of autosave files.
-    # return it
 
 
 class ResultFileCreator:
@@ -947,14 +627,343 @@ class TaskInputWindowCreator:
         return event, values
 
 
+class OptionWindow:
+
+
+    def _setDisabledStatusToUserDirectoryFrame(self, window: sg.Window, disabled: bool):
+        """option-window
+        sets user directory choice frame text in red or green and buttons enabled and disabled
+        :param window: option_window
+        :param disabled: bool is true if user chooses to make distinct saving directory
+        frame key:
+        next above: ("-PFL", "-RFL", "-AsFL")
+        under-keys: ("-DE":color, "-IE":disabled, "-FB":disabled)
+
+        """
+        text_color = "#ff0000" if disabled else "#00ff00"
+        for first_part in ("-PFL", "-RFL", "-AsFL"):
+            window[f"{first_part}-DE"].Update(text_color=text_color)
+            window[f"{first_part}-IE"].Update(disabled=disabled)
+            window[f"{first_part}-FB"].Update(disabled=disabled)
+
+    def _setDisabledStatusToStandardDirectoryFrame(self, window: sg.Window, disabled: bool):
+        """option-window
+        sets standard directory choice frame text in red or green and buttons enabled and disabled
+        :param window: option_window
+        :param disabled: bool is true if user chooses to make standard saving directory
+        next above: ("-SFL")
+        under-keys: ("-DE":color, "-IE":disabled, "-FB":disabled)
+        """
+        text_color = "#ff0000" if disabled else "#00ff00"
+        window["-SFL-DE"].Update(text_color=text_color)
+        window["-SFL-IE"].Update(disabled=disabled)
+        window["-SFL-FB"].Update(disabled=disabled)
+
+    def _horizontalRadioChoiceFrame(self, all_types: tuple, active_type, disabled, key: str, group_id="dura_radio"):
+        """option-window
+        makes a horizontal radio button group
+        :param all_types: tuple of all values
+        :param active_type: value which is supposed to be active
+        :param disabled: needed if elements are supposed to be enablede
+        :return: sg.Frame()
+        """
+        layout = []
+        for index, d_type in enumerate(all_types):
+            print(f"#18u3209 ---> d_type: {d_type} -- : active_type -- {active_type}")
+            if d_type == active_type:
+                radio_button = RadioNew(text=d_type, group_id=group_id, default=True, disabled=disabled,
+                                        key=f"{key}{index}")
+            else:
+                radio_button = RadioNew(text=d_type, group_id=group_id, default=False, disabled=disabled,
+                                        key=f"{key}{index}")
+            layout.append([radio_button])
+        print(f"layout0283u: {layout}")
+        frame = sg.Frame(title="", relief=sg.RELIEF_FLAT, layout=layout, pad=(0, 0))
+        return frame
+
+    def _setDurationRadiosWithNewLanguage(self, all_types: tuple, key: str, window):
+        """option-window
+        makes a horizontal radio button group
+        :param all_types: tuple of all values
+        :param active_type: value which is supposed to be active
+        :param disabled: needed if elements are supposed to be enablede
+        :return: sg.Frame()
+        """
+        for index, d_type in enumerate(all_types):
+            print(f"#02934u key index: {key}{index}, type: {window[f'{key}{index}']}")
+            window[f"{key}{index}"].Update(text=d_type)
+
+    def autoSaveSettingInputFrame(self, duration_type: str, duration: int, disabled: bool,
+                                  enable_radio_button: sg.Radio):
+        """option-window
+        frame for auto save file handeling setting"
+        :param duration_type: inter.days or inter.pieces indicates actual settings
+        :param duration: actual duration setting
+        :param disabled: True if no auto save handeln
+        :param enable_radio_button: sg.Radio()
+        :return: sg.Frame
+        """
+        duration_type_radio_frame = self._horizontalRadioChoiceFrame(all_types=inter.duration_types,
+                                                                     active_type=duration_type, disabled=disabled,
+                                                                     key="-AUS-1-")
+        duration_entry = sg.Input(default_text=duration, disabled=disabled, enable_events=True, size=(4, 1),
+                                  key="-AUS-2-")  # todo change in double radio frame
+        layout = [[enable_radio_button, duration_entry, duration_type_radio_frame]]
+        print(f"layout1113u: {layout}")
+        frame = sg.Frame(title="", layout=layout, relief=sg.RELIEF_FLAT, pad=(0, 0))
+        return frame
+
+    @staticmethod
+    def _setImputAutoSaveFrame(window, disabled):
+        window["-AUS-1-0"].Update(disabled=disabled)
+        window["-AUS-1-1"].Update(disabled=disabled)
+        window["-AUS-2-"].Update(disabled=disabled)
+
+    def _autoSaveFileHandlingRulesFrame(self, duration_type: str, duration: int, autosave_handeling: bool):
+        """option-window
+        complete frame for auto save file handling
+        :param duration_type: inter.days or inter.pieces indicates actual settings
+        :param duration: actual duration setting
+        :param autosave_handeling: actual setting, True if auto save files are handeled
+        :return: layout line: [sg.frame]
+        """
+        no_auto_save_handling_radio_b = RadioNew(
+            text=inter.no_autosave_deletion, group_id="autosave_deletion", default=(not autosave_handeling),
+            enable_events=True, text_size=(30, 1), key="-AUTO-S-1-")
+        auto_save_handeling_radio_b = RadioNew(
+            text=inter.autosave_deletion, group_id="autosave_deletion", default=autosave_handeling,
+            enable_events=True, text_size=(30, 1), key="-AUTO-S-2-")
+        auto_save_setting_frame = self.autoSaveSettingInputFrame(
+            duration_type=duration_type, duration=duration, disabled=(not autosave_handeling),
+            enable_radio_button=auto_save_handeling_radio_b)
+        layout = [[no_auto_save_handling_radio_b], [auto_save_setting_frame]]
+        print(f"layout 84652: {layout}")
+
+        frame = sg.Frame(title="", layout=layout)
+        return [frame]
+
+    def _folderLine(self, name: str, directory: file_like, disabled: bool, key):
+        """option-window
+        creates a folder input line [sg.Text, sg.Input, sg.FolderBrowse]
+        :param name: line description
+        :param directory: actual directory
+        :param disabled: disables complete line
+        :param key: master_key for this line, becomes sub keys: -DE, -IE, -FB
+        :return: layout line: [sg.Text, sg.Input, sg.FolderBrowse]
+        """
+        text_color = "#ff0000" if disabled else "#00ff00"
+        directory = directory if directory else ""
+        description_elemetn = sg.Text(text=name, size=(15, 1), text_color=text_color, key=f"{key}-DE")
+        input_element = sg.Input(default_text=directory, size=[25, 1], disabled=disabled, key=f"{key}-IE", )
+        folder_button = sg.FolderBrowse(button_text=inter.browse, disabled=disabled, key=f"{key}-FB")
+
+        return [description_elemetn, input_element, folder_button]
+
+    def _userDefinedFolderStructureFrame(self, directorys:dict, disabled):
+        """option-window
+        Frame for user commanded save directory structure
+        :param directorys: directorys for (*.tak, results, autosave.tak
+        :param disabled: disabled if standard folder structure is used
+        :return: sg.Frame
+        """
+        user_decission_element_ind = RadioNew(
+            text=inter.own_folder_setup, group_id="folder_setup", enable_events=True, default=(not disabled),
+            key="-RADIO_2-")
+
+        project_folder_line = self._folderLine(name=inter.project_folder, disabled=disabled, directory=directorys["main_folder"],
+                                               key="-PFL")
+        result_folder_line = self._folderLine(name=inter.results_folder, disabled=disabled, directory=directorys["result_folder"],
+                                              key="-RFL")
+        autosave_folder_line = self._folderLine(name=inter.auto_save_folder, disabled=disabled, directory=directorys["autosave_folder"],
+                                                key="-AsFL")
+
+        layout = [[user_decission_element_ind], project_folder_line, result_folder_line, autosave_folder_line]
+        print(f"layout 54wergs: {layout}")
+
+        return sg.Frame(title="", layout=layout, relief=sg.RELIEF_FLAT)
+
+    def _standardFolderStructureFrame(self, directorys, disabled):
+        """option-window
+        Frame for user commanded save directory structure
+        :param directorys: directorys for (*.tak, results, autosave.tak
+        :param disabled: disabled if standard folder structure is used
+        :return: sg.Frame
+        """
+
+        user_decission_element_std = RadioNew(
+            text=inter.standard_folder_setup, group_id="folder_setup", enable_events=True, default=(not disabled),
+            key="-RADIO_1-")
+
+        project_folder_line = self._folderLine(name=inter.results, disabled=disabled, directory=directorys["standart_main_folder"],
+                                               key="-SFL")
+        placeholder_line_one = [sg.Text(text="", pad=(5, 7))]
+        placeholder_line_two = [sg.Text(text="", pad=(5, 7))]
+
+        layout = [[user_decission_element_std], project_folder_line, placeholder_line_one, placeholder_line_two]
+        print(f"layout qwsdfsd: {layout}")
+
+        return sg.Frame(title="", layout=layout, relief=sg.RELIEF_FLAT)
+
+    def _FolderStuchturLayoutLine(self, directorys: dict, wich_disabled: str):
+        """optioln-window
+        complete save folder line, standard AND user decided
+        :param directorys: actual folders
+        :param wich_enabled: "ind" or "std"
+        :return: complete save folder line: [sg.Frame]
+        """
+
+        if wich_disabled == "ind":
+            layout = [[self._standardFolderStructureFrame(directorys=directorys, disabled=True),
+                       self._userDefinedFolderStructureFrame(directorys=directorys, disabled=False)]]
+        else:
+            layout = [[self._standardFolderStructureFrame(directorys=directorys, disabled=False),
+                       self._userDefinedFolderStructureFrame(directorys=directorys, disabled=True)]]
+        folder_structur_line = sg.Frame(title="", layout=layout)
+        return [folder_structur_line]
+
+    def _languageTextFrame(self):
+        """option-window
+        creates an frame three elements high to match listbox in height and align accordingly
+        :return: sg.Frame
+        """
+        layout = [[sg.Text(text=f"{inter.language}     ", key="language-t-f", size=(10, 1))], [sg.Text()], [sg.Text()]]
+        print(f"layout litzr: {layout}")
+
+        frame = sg.Frame(title="", layout=layout, relief=sg.RELIEF_FLAT)
+        return frame
+
+    def _languageSettingsLine(self, actual_language: str):
+        """option-window
+        complete language frame with text and listbox in a line
+        :param actual_language:
+        :return: complete language line: [sg.Frame, sg.Listbox]
+        """
+        language_text_frame = self._languageTextFrame()
+        language_selection_List_box = sg.Listbox(values=inter.sLanguages(), default_values=[actual_language],
+                                                 size=(10, 4), select_mode=sg.LISTBOX_SELECT_MODE_SINGLE,
+                                                 enable_events=True, key="-LANGUAGE-")
+        return [language_text_frame, language_selection_List_box]
+
+    def _completeOptionWindowLayout(self, directorys: dict, disabled_folder_usage: str, language: str,
+                                    autosave_handling: bool, autosave_duration_type: str, autosave_duration: int,
+                                    *args, **kwargs):
+        """option-window
+        gathers all lines together ond creates final layout line
+        :param directorys: achtual_directorys
+        :param disabled_folder_usage: "ind" or "std" --> individual - standard
+        :param language:
+        :param autosave_handling: if auto save handling
+        :param autosave_duration_type: actualy set duration type inter.days or inter.pieces
+        :param autosave_duration: actualy set duration amount
+        :return: final layout line [self.line, self.line, self.line]
+        """
+        return [self._languageSettingsLine(language),
+                self._FolderStuchturLayoutLine(directorys=directorys, wich_disabled=disabled_folder_usage),
+                self._autoSaveFileHandlingRulesFrame(
+                    duration_type=autosave_duration_type, duration=autosave_duration, autosave_handeling=autosave_handling),
+                MyGuiToolbox()._okCancelLine(ok_button=inter.ok, cancel_button=inter.cancel,
+                                   left_padding=inter.left_pading_amounts["deutsch"])]
+
+    def setLanguageAnew(self, values, event, window):
+
+        choosen_language = values[event][0]
+        inter.setLanguage(choosen_language)
+
+        self._setDurationRadiosWithNewLanguage(all_types=inter.duration_types, key="-AUS-1-", window=window)
+        self._setDirectoryFramesWithNewLanguage(window=window)
+
+        window_keys = [f"-SFL-DE", "language-t-f", "-RADIO_1-", "-RADIO_2-", "-AUTO-S-1-", "-AUTO-S-2-", "-CANCEL-",
+                       "-OK-", "-LEFT-PADDING-"]
+        propertys = [inter.project_folder, inter.language, inter.standard_folder_setup, inter.own_folder_setup,
+                     inter.no_autosave_deletion, inter.autosave_deletion, inter.cancel, inter.ok,
+                     ' ' * inter.left_pading_amounts[choosen_language]]
+
+        for key, property in zip(window_keys, propertys):
+            try:
+                window[key].Update(text=property)
+            except TypeError as e:
+                window[key].Update(value=property)
+
+    def _setDirectoryFramesWithNewLanguage(self, window):
+        for key, text in {"-PFL": inter.project_folder, "-RFL": inter.results, "-AsFL": inter.auto_save_folder}.items():
+            print(f"key 0932u5: {key}-DE")
+            window[f"{key}-DE"].Update(value=text)
+
+
+    def mainLoop(self, window):
+        while True:
+            event, values = window.read()
+            print(f"#092304u event: {event}, values: {values}")
+            if event is None or event in ("Abbrechen", "-CANCEL-"):
+                return None, None
+            if event == "-RADIO_1-RADIO-": #todo RadioNew clutters the code with his destinct own keys, needs a better inheritance for clearer code
+                self._setDisabledStatusToStandardDirectoryFrame(window=window, disabled=False)
+                self._setDisabledStatusToUserDirectoryFrame(window=window, disabled=True)
+
+            elif event == "-RADIO_2-RADIO-":
+                self._setDisabledStatusToStandardDirectoryFrame(window=window, disabled=True)
+                self._setDisabledStatusToUserDirectoryFrame(window=window, disabled=False)
+
+            elif event == "-AUTO-S-1-RADIO-":
+                self._setImputAutoSaveFrame(window=window, disabled=True)
+            elif event == "-AUTO-S-2-RADIO-":
+                self._setImputAutoSaveFrame(window=window, disabled=False)
+            elif event == "-LANGUAGE-":
+                self.setLanguageAnew(values=values, event=event, window=window)
+            elif event == "-OK-":
+
+                return event, values
+
+    def createReturnSettings(self, values):
+        autosave_duration_type = inter.days if values["-AUTO-S-1-RADIO-"] else inter.pieces #todo is this weak
+        disabled_folder_usage = "std" if values["-RADIO_1-RADIO-"] else "ind"
+        settings = {"main_folder": values["-PFL-IE"], "standart_main_folder":values["-SFL-IE"],
+                    "result_folder":values["-RFL-IE"], "autosave_folder":values["-AsFL-IE"],
+                    "autosave_duration":values["-AUS-2-"], "autosave_duration_type":autosave_duration_type,
+                    "language":values["-LANGUAGE-"][0], "disabled_folder_usage":disabled_folder_usage,
+                    "autosave_handling":values["-AUTO-S-2-RADIO-"]}
+        return settings
+
+
+
+    def optionWindow(self, settings:dict):
+        layout = self._completeOptionWindowLayout(**settings)  #
+        window = sg.Window(title=inter.options, layout=layout)
+        event, values = self.mainLoop(window=window)
+        window.close()
+        if values:
+            return self.createReturnSettings(values)
+
+
+
+# fixme make my own radio buttons because you cant update text of radiobuttons MAYBE Fork PYSIMPLEGUI OR GO AS SUPPORTER
+
+# TODO ASAP fork or support PYSIMPPLEGUI
+
+
 if __name__ == '__main__':
-    start = datetime.datetime(*time.localtime()[:6])
-    end = start + datetime.timedelta(days=8)
-    task_here = task.Task(name="etwaesswoiihröiojwöoiefjmöoqweivjkmövvoiwjrvöoiwqerqs",
-                          description="noch etwa, noch mehr, immer mehr mehr mehr emers",
-                          start=start, end=end, priority=20)
-    task_here.position = (2, 3)
-    window = sg.Window("test", layout=[[sg.Text("etwas text")]])
+    pass
+    # option = Option("save_option.bin")
+    # gou_tools = MyGuiToolbox()
+    # gou_tools.optionWindow(option.sSettings())
+    # the option window asks folder for autosaves,
+    # folder for result saves, it asks for us of an main project file and for the save folder for it,
+    # but myby just for an standard project folder nested in documetation folder.
+    # it asks for rules time based or amount based or none (no deletion) to care of autosave files.
+    # return it
+
+
+
+
+# if __name__ == '__main__':
+#     start = datetime.datetime(*time.localtime()[:6])
+#     end = start + datetime.timedelta(days=8)
+#     task_here = task.Task(name="etwaesswoiihröiojwöoiefjmöoqweivjkmövvoiwjrvöoiwqerqs",
+#                           description="noch etwa, noch mehr, immer mehr mehr mehr emers",
+#                           start=start, end=end, priority=20)
+#     task_here.position = (2, 3)
+#     window = sg.Window("test", layout=[[sg.Text("etwas text")]])
+#     window.read()
     # while True:
     # task_button_creator = TaskFrameCreator()
     # button = task_button_creator.taskFrame(task_here)
@@ -976,3 +985,25 @@ if __name__ == '__main__':
     # win_creator = TaskInputWindowCreator()
     # event, values = win_creator.inputWindow(kind="Projekt", start=None)
     # print(event, values)
+
+
+# if __name__ == '__main__':
+    # radio_one = RadioNew(text="rot", group_id="colors", default=True, background_color="#007700", enable_events=True)
+    # text_one = sg.Text(text="test text", background_color="#770000", #pad=(0,0)
+    #                    )
+    # radio_two = RadioNew(text="grün", group_id="colors", background_color="#007700", enable_events=True)
+    # text_two = sg.Text(text="test text", background_color="#770000", #pad=(75,55)
+    #                    )
+    # layout = [[radio_one, text_one], [radio_two, text_two]]
+    # window = sg.Window(title="My own Color Radios", layout=layout)
+    # event, values = window.read()
+    #
+    # # radio_one = RadioNew(text="rot", group_id="colors", default=True, background_color="#007700")
+    # text_one = sg.Text(text="test text", background_color="#770000", key=1 #pad=(0,0)
+    #                    )
+    # # radio_two = RadioNew(text="grün", group_id="colors", background_color="#007700")
+    # text_two = sg.Text(text="test text", background_color="#770000", key=2#pad=(75,55)
+    #                    )
+    # layout2 = [[text_one], [text_two]]
+    # window2 = sg.Window(title="My own Color Radios", layout=layout2)
+    # event2, values2 = window2.read()

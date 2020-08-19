@@ -4,19 +4,28 @@ __email__ = "sebmueller.bt@gmail.com"
 
 
 class Internationalisation:
-    def __init__(self, language):
-        self.languages = ("deutsch", "english")
-        self.actual_inter_language =language
+    def __init__(self, language:str=None):
+        self.languages = {"de": "deutsch", "en": "english"}
+        self.actual_inter_language = language
         self.setLanguage(language=language)
         self.left_pading_amounts = {"deutsch": 149, "english":168}
 
 
     def sLanguages(self):
+        return sorted(self.languages.values())
+
+    def sLanguageAbbreviations(self):
+        return self.languages.keys()
+
+    def sLanguageAbreviationMapping(self):
         return self.languages
 
     def setLanguage(self, language):
         self.actual_inter_language =language
         {"deutsch":self._setGerman, "english": self._setEnglish}[language]()
+
+    def sActualLanguage(self):
+        return self.actual_inter_language
 
     def _setGerman(self):
         # Buttons
