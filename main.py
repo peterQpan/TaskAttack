@@ -8,6 +8,7 @@ import os
 import sys
 import time
 import warnings
+from datetime import datetime, timedelta
 from threading import Thread
 
 import PySimpleGUI as sg
@@ -19,7 +20,8 @@ from gui_elements import TaskInputWindowCreator, TaskFrameCreator, MyGuiToolbox
 from internationalisation import inter
 from option import Option
 from task import Taskmanager, Task
-from tools import setCWDbashFix, DebugPrinter
+from tools import setCWDbashFix, DebugPrinter, nowDateTime
+
 
 class TaskAttack:
     def __init__(self):
@@ -29,7 +31,8 @@ class TaskAttack:
 
         self.unsaved_project = False
         self.last_deleted_task:Task = None
-        self.auto_save_thread:Thread = None
+        #self.auto_save_thread:Thread = None #now ther will be more worker threads in the back so this changes
+        self.backend_threads = []
         self._clipboard:Task = None
         self._extern_threads = []
         self.last_file_path_depre = ""
@@ -291,14 +294,39 @@ class TaskAttack:
                 self.onSaveAt()
 
     def autoSave(self):
-        """perform auto save in a threat, creates 10 different files
+        """perform auto save in a threat
         """
-        while self.auto_save_thread and self.auto_save_thread.is_alive():
-            time.sleep(2)
-        self.auto_save_thread = Thread(
+        thread = Thread(
                 target=self.taskmanager.save,
                 args=(os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"),))
-        self.auto_save_thread.start()
+        thread.start()
+        self.backend_threads.append(thread)
+
+    def _deltionTimeStamp(self, autosave_amount):
+        now_time = nowDateTime()
+        whished_time = now_time - timedelta(days=autosave_amount)
+        timestamp = time.mktime(whished_time.timetuple())
+        return timestamp
+
+    def autoSaveFileHandlingThreadable(self):
+        # todo function is finished, must be but in place, question is,
+        #  shall i make many threads for every function like this or implement an single queue.get(block=True)
+        #  controlled thread (bring autosave thread in here too than)
+        if self.opt.autosave_handling:
+            autosave_path = self.opt.sUsedAutosavePath()
+            all_auto_save_files = os.listdir(autosave_path)
+            all_auto_save_files.sort()
+            all_file_paths = [os.path.join(autosave_path, file) for file in all_auto_save_files]
+
+            if self.opt.sAutosaveAmountType() == inter.pieces:
+                files_for_deletion = all_file_paths[:-self.opt.sAutosaveAmount()]
+                [(print(f"file will be deleted: {file}")) for file in files_for_deletion]
+                # achtung [os.remove(file) for file in file_paths_for_deletion]
+            else:
+                timestamp = self._deltionTimeStamp(self.opt.sAutosaveAmount())
+                file_paths_for_deletion = [file for file in all_file_paths if os.path.getmtime(file) < timestamp]
+                [(print(f"file will be deleted: {file}")) for file in file_paths_for_deletion]
+                # achtung [os.remove(file) for file in file_paths_for_deletion]
 
     def reset(self):
         """tasks to perform if task manager has to reset/start anew
@@ -398,11 +426,16 @@ class TaskAttack:
 
 if __name__ == '__main__':
 
+
     # debug_printer = DebugPrinter() #achtung removes all console output,
                                      #achtung despite its name its really bad for debuging while dev xD
-    # todo maybe there is a way for print()/Error > stdout > DebugPrinter
     setCWDbashFix()
     main_gui_task_atack = TaskAttack()
+
+
+# todo maybe there is a way for print()/Error > stdout > DebugPrinter
+
+# fixme if language gets changed in option menu and one press cancel
 
 # todo beauty taskatack.last_file_path is deprecated with option.file_path_settings
 

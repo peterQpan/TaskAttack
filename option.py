@@ -23,12 +23,49 @@ class Option:
 
     def sSettings(self):
         """returns dict of all values wich makes up program settings"""
-        settings = {"directorys":{"main_folder": self.main_folder, "standart_main_folder":self.standart_main_folder,
+        settings = {"directorys":{"main_folder": self.main_folder, "standard_main_folder":self.standard_main_folder,
                     "result_folder":self.result_folder, "autosave_folder":self.autosave_folder},
-                    "autosave_duration":self.autosave_duration, "autosave_duration_type":self.autosave_duration_type,
+                    "autosave_amount":self.autosave_amount, "autosave_amount_type":self.autosave_amount_type,
                     "language":self.language, "disabled_folder_usage":self.disabled_folder_usage,
-                    "autosave_handling":self.autosave_handling }
+                    "autosave_handling":self.autosave_handling}
         return settings
+
+    def sMainFolder(self):
+        return self.main_folder
+    def sResultFolder(self):
+        return self.result_folder
+    def sAutosaveFolder(self):
+        return self.autosave_folder
+    def sStandardMainFolder(self):
+        return self.standard_main_folder
+    def sStandardResultFolder(self):
+        return self._standardProjectFolder(self.standard_main_folder)
+    def sStandardAutosaveFolder(self):
+        return self._standardAutoSaveFolder(self.standard_main_folder)
+    def sAutosaveAmount(self):
+        return self.autosave_amount
+    def sAutosaveAmountType(self):
+        return self.autosave_amount
+    def sLanguage(self):
+        return self.language
+    def sDisabledFolderUsage(self):
+        return self.disabled_folder_usage
+    def sAutoSaveHandling(self):
+        return self.autosave_handling
+
+    def _oneOfTwo(self, either_true, or_false, condition_one="disabled_folder_usage", condition_two="ind"):
+        """just beats redundancy """
+        if self.__getattribute__(condition_one) == condition_two:
+            return either_true()
+        else:
+            return or_false
+    def sUsedMainFolder(self):
+        return self._oneOfTwo(self.sMainFolder, self.sStandardMainFolder)
+    def sUsedResultFolder(self):
+        return self._oneOfTwo(self.sResultFolder, self.sStandardResultFolder)
+    def sUsedAutosavePath(self):
+        return self._oneOfTwo(self.sAutosaveFolder, self.sStandardAutosaveFolder)
+
 
     def _setInternationalisationLanguage(self, language):
         """
@@ -79,11 +116,11 @@ class Option:
         self.language_abbreviation = self._systemLanguageAbbreviation()
         self.language = self._systemLanguage(language_abbreviation=self.language_abbreviation)
         self._setInternationalisationLanguage(language=self.language)
-        self.main_folder = self.standart_main_folder = self._standardMainFolder()
+        self.main_folder = self.standard_main_folder = self._standardMainFolder()
         self.result_folder = self._standardProjectFolder(self.main_folder)
         self.autosave_folder = self._standardAutoSaveFolder(self.main_folder)
-        self.autosave_duration = 10
-        self.autosave_duration_type = inter.pieces  # todo this may be a weak desing
+        self.autosave_amount = 10
+        self.autosave_amount_type = inter.pieces  # todo this may be a weak desing
         self.disabled_folder_usage = "ind"
         self.autosave_handling = True
 

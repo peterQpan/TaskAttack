@@ -786,7 +786,7 @@ class OptionWindow:
                 text=inter.standard_folder_setup, group_id="folder_setup", enable_events=True,
                 default=(not disabled), key="-RADIO_1-")
         project_folder_line = self._folderLine(
-                name=inter.results, disabled=disabled, directory=directorys["standart_main_folder"], key="-SFL")
+                name=inter.results, disabled=disabled, directory=directorys["standard_main_folder"], key="-SFL")
         placeholder_s = [[sg.Text(text="", pad=(5, 7))] for _ in range(2)]
 
         layout = [[user_decission_element_std], project_folder_line, *placeholder_s]
@@ -834,7 +834,7 @@ class OptionWindow:
         return [language_text_frame, language_selection_List_box]
 
     def _completeOptionWindowLayout(self, directorys: dict, disabled_folder_usage: str, language: str,
-                                    autosave_handling: bool, autosave_duration_type: str, autosave_duration: int,
+                                    autosave_handling: bool, autosave_amount_type: str, autosave_amount: int,
                                     *args, **kwargs):
         """option-window
         gathers all lines together ond creates final layout line
@@ -842,14 +842,14 @@ class OptionWindow:
         :param disabled_folder_usage: "ind" or "std" --> individual - standard
         :param language:
         :param autosave_handling: if auto save handling
-        :param autosave_duration_type: actualy set duration type inter.days or inter.pieces
-        :param autosave_duration: actualy set duration amount
+        :param autosave_amount_type: actualy set duration type inter.days or inter.pieces
+        :param autosave_amount: actualy set duration amount
         :return: final layout line [self.line, self.line, self.line]
         """
         return [self._languageSettingsLine(language),
                 self._FolderStuchturLayoutLine(directorys=directorys, wich_disabled=disabled_folder_usage),
                 self._autoSaveFileHandlingRulesFrame(
-                    duration_type=autosave_duration_type, duration=autosave_duration, autosave_handeling=autosave_handling),
+                    duration_type=autosave_amount_type, duration=autosave_amount, autosave_handeling=autosave_handling),
                 MyGuiToolbox()._okCancelLine(ok_button=inter.ok, cancel_button=inter.cancel,
                                    left_padding=inter.left_pading_amounts["deutsch"])]
 
@@ -904,11 +904,11 @@ class OptionWindow:
                 return event, values
 
     def createReturnSettings(self, values):
-        autosave_duration_type = inter.days if values["-AUTO-S-1-RADIO-"] else inter.pieces #todo is this weak
+        autosave_amount_type = inter.days if values["-AUTO-S-1-RADIO-"] else inter.pieces #todo is this weak
         disabled_folder_usage = "std" if values["-RADIO_1-RADIO-"] else "ind"
-        settings = {"main_folder": values["-PFL-IE"], "standart_main_folder":values["-SFL-IE"],
+        settings = {"main_folder": values["-PFL-IE"], "standard_main_folder":values["-SFL-IE"],
                     "result_folder":values["-RFL-IE"], "autosave_folder":values["-AsFL-IE"],
-                    "autosave_duration":values["-AUS-2-"], "autosave_duration_type":autosave_duration_type,
+                    "autosave_amount":values["-AUS-2-"], "autosave_amount_type":autosave_amount_type,
                     "language":values["-LANGUAGE-"][0], "disabled_folder_usage":disabled_folder_usage,
                     "autosave_handling":values["-AUTO-S-2-RADIO-"]}
         return settings
