@@ -252,6 +252,7 @@ class TaskAttack:
     def _userExit(self, event, window):
         """checks for and executes Exit if asked for"""
         if event in (inter.exit, None):
+            self.backend_queue.put(("###breakbreakbreak###", None))
             self.dataLossPrevention()
             window.close()
             sys.exit(0)
@@ -466,6 +467,8 @@ class TaskAttack:
                 print(f"#0293i action: {action}, args: {args}")
                 action(args)
             else:
+                if action == "###breakbreakbreak###":
+                    break
                 print(f"#013918 action: {action}")
                 action()
 
@@ -477,7 +480,6 @@ class TaskAttack:
             event, values = main_window.read()
             print(F"#98765 event: {event}; vlues: {values}")
 
-            # print(f"mainloop: event: {event}, values: {values}")
             self.executeEvent(event=event, window=main_window, values=values)
             self.window_size = main_window.size  # remember breaks down sometimes, why?!?
             self.window_location = main_window.current_location()
