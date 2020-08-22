@@ -50,6 +50,8 @@ class Option:
         return self.language
     def sDisabledFolderUsage(self):
         return self.disabled_folder_usage
+    def sUserFolderUsage(self):
+        return True if self.disabled_folder_usage == "std" else False
     def sAutoSaveHandling(self):
         return self.autosave_handling
 
@@ -65,6 +67,8 @@ class Option:
         return self._oneOfTwo(self.sResultFolder, self.sStandardResultFolder)
     def sUsedAutosavePath(self):
         return self._oneOfTwo(self.sAutosaveFolder, self.sStandardAutosaveFolder)
+
+
 
 
     def _setInternationalisationLanguage(self, language):
@@ -128,8 +132,8 @@ class Option:
         """Starts option window and fetches user input, integrates them in itself, and saves settings"""
         settings = OptionWindow().optionWindow(settings=self.sSettings())
         if settings:
-            print(f"self dict: {self.__dict__}")
-            print(f"updd dict: {settings}")
+            #print(f"self dict: {self.__dict__}")
+            #print(f"updd dict: {settings}")
             self.__dict__.update(settings)
             self.saveSettings()
 

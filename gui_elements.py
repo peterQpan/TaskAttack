@@ -9,9 +9,11 @@ import textwrap
 import threading
 import time
 from copy import deepcopy
+from sys import path
 from time import strftime
 
 import PySimpleGUI as sg
+from colorama import Fore
 from nose.util import file_like
 
 import task
@@ -222,11 +224,15 @@ class ResultFileCreator:
                                 inter.gimp: ("/templates/gimp_template.xcf", ".xcf"),
                                 inter.svg: ("/templates/inkscape_template.svg", ".svg")}
 
-    def _newLayout(self, file_name, file_ext, kind_of_program):
+    def _newLayout(self, file_name, result_path, file_ext, kind_of_program):
         """creates new layout for file name / save as; short descripton pop up window"""
+        print(f"initial folder: {os.path.join(result_path, os.path.split(file_name)[0])}")
+
         file_name_line = [sg.Text(inter.file_name, size=(15, 1)),
                           sg.Input(default_text=f"{file_name}{file_ext}", size=(30, 1), key='-FILE-NAME-'),
-                          sg.FileSaveAs(inter.save_at, file_types=((kind_of_program, file_ext),))]
+                          sg.FileSaveAs(inter.save_at, file_types=((kind_of_program, file_ext),),
+                                        initial_folder=result_path, )]
+
         description_line = [sg.Text(inter.short_description, size=(15, 1)),
                             sg.Input(size=(30, 1), enable_events=True, key='-SHORT_DESCRIPTIOM-', focus=True),
                             sg.Ok()]
@@ -242,13 +248,15 @@ class ResultFileCreator:
         elif values['-SHORT_DESCRIPTIOM-'][-3:] == "<->":
             window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-3])
 
-    def _newResultFilePopup(self, file_name: str, kind_of_program: str, file_ext: str = ".ods"):
+    def _newResultFilePopup(self, suggested_file_name: str, result_path: str,
+                            kind_of_program: str, file_ext: str = ".ods"):
         """
         gets file_name and short file description for new task result file
         :return: filename, short_description
         """
         assert len(file_ext) == 4
-        layout = self._newLayout(file_name=file_name, file_ext=file_ext, kind_of_program=kind_of_program)
+        layout = self._newLayout(file_name=suggested_file_name, file_ext=file_ext, kind_of_program=kind_of_program,
+                                 result_path=result_path)
         window = sg.Window(title=inter.createResultFileTitle(kind_of_program=kind_of_program), layout=layout)
         while True:
             event, values = window.read()
@@ -262,21 +270,16 @@ class ResultFileCreator:
                     values=values, file_ext=file_ext, window=window)
                 return file_name, short_description
 
+    # def _checkForAndCreatePath(self, file_path):
+    #     target_path, _ = os.path.split(file_path)
+    #     if not os.path.exists(target_path):
+    #         os.mkdir(target_path)
+
     def _copyFileTemplateAndOpenExternalApplicationToEditIt(self, kind_of_porogramm, file_path):
         template_file_path = self._file_templates[kind_of_porogramm][0]
-        # todo make an documents folder-project-save-structure
         shutil.copy(tools.venvAbsPath(template_file_path), file_path)
         tools.openExternalFile(file_path=file_path  # , threads=self._external_threads
                                )
-
-    def _createSuggestingTaskFileName(self, task):
-        """
-        creats a suggested task filename depending on task name, project name, date and time
-        :return :str file_name
-        """
-        nameing_list = task.hierarchyTreePositionList()
-        nowtime_str = str(nowDateTime()).replace(" ", "_")
-        return f"{nowtime_str}_{nameing_list[0]}_{nameing_list[-1]}"
 
     def _fetchResultFileParameters(self, values, file_ext, window):
         """gets filename and short description from popup window and returns it"""
@@ -286,24 +289,59 @@ class ResultFileCreator:
         window.close()
         return file_path, short_description
 
-    def newResultFile(self, task: task.Task, kind_of_porogramm):
+    def newResultFile(self, task: task.Task, kind_of_porogramm, result_path):
         """
         creates new result file
-        :param kind_of_porogramm: inter.presentation, inter.spreadsheet, etc...
+        :param result_path: result path fetched from option.Option, no direct access here, so no import needed
+        :param kind_of_porogram: inter.presentation, inter.spreadsheet, etc...
         """
-        file_name = self._createSuggestingTaskFileName(task)
+        # todo beauty, this method have to be more modularised
+        suggested_path, suggested_file_name = task.suggestetFileName(result_path)
+
+
         while True:
             try:
-                file_path, short_description = self._newResultFilePopup(
-                    file_name=file_name, kind_of_program=kind_of_porogramm,
-                    file_ext=self._file_templates[kind_of_porogramm][1])
-            except TypeError:
+                user_file_name, short_description = self._newResultFilePopup(
+                    suggested_file_name=suggested_file_name,
+                    result_path=result_path, kind_of_program=kind_of_porogramm,
+                    file_ext=self._file_templates[kind_of_porogramm][1],)
+                print(f"#09232223 user file path: {user_file_name}, short description: {short_description}")
+            except TypeError as e:
+                print(f"{Fore.RED}ERROR #92083u32oi -->  {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
                 break
-            if os.path.exists(file_path):
+            if user_file_name.startswith(os.sep):
+                user_file_name = user_file_name[1:]
+            possible_user_path, user_file_name = os.path.split(user_file_name)
+            if not possible_user_path:
+                print(f"#09uio1 suggested path: {suggested_path}")
+                tools._checkForAndCreatePath(suggested_path)
+                save_file_path = os.path.join(suggested_path, user_file_name)
+            elif os.path.exists(possible_user_path):
+                save_file_path = os.path.join(possible_user_path, user_file_name)
+            elif possible_user_path:
+                existing_path, new_folders = tools.userPathRecursive(possible_user_path)
+                if existing_path:
+                    new_folder_path = existing_path
+                    for folder in new_folders:
+                        new_folder_path = os.path.join(new_folder_path, folder)
+                        os.mkdir(new_folder_path)
+                else:
+                    new_folder_path = result_path
+                    for folder in new_folders:
+                        new_folder_path = os.path.join(new_folder_path, folder)
+                        os.mkdir(new_folder_path)
+                save_file_path = os.path.join(new_folder_path, user_file_name)
+            else:
+                raise AssertionError("#9817298 irgendetwas nicht bedacht")
+
+
+
+
+            if os.path.exists(save_file_path):
                 if not MyGuiToolbox.YesNoPopup(title=inter.save_at, text=inter.allready_exists_override):
                     continue
-            self._copyFileTemplateAndOpenExternalApplicationToEditIt(kind_of_porogramm, file_path)
-            task.addResultsFileAndDescription(file_path, short_description)
+            self._copyFileTemplateAndOpenExternalApplicationToEditIt(kind_of_porogramm, save_file_path)
+            task.addResultsFileAndDescription(save_file_path, short_description)
             break
 
 

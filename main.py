@@ -24,7 +24,7 @@ from tools import setCWDbashFix, DebugPrinter, nowDateTime
 
 
 class TaskAttack:
-    def __init__(self):
+    def __init__(self, base_file:str=None):
 
 
         self.opt = Option("user_setup.ats")
@@ -47,6 +47,12 @@ class TaskAttack:
         self.window_size = sg.Window.get_screen_size()
         self.window_location = (None, None)
 
+        if base_file:
+            try:
+                self.taskmanager.load(base_file)
+            except:
+                pass
+        self._instantiateFolderStructur()
         self.mainLoop()
 
     @property
@@ -119,7 +125,7 @@ class TaskAttack:
                 }
 
     def onCreateResult(self, task, event, values, command, *args, **kwargs):
-        self.result_file_creator.newResultFile(task=task, kind_of_porogramm=command)
+        self.result_file_creator.newResultFile(task=task, kind_of_porogramm=command, result_path=self.opt.sUsedResultFolder(),)
 
     def onOptionButtonMenu(self, task, event, values, *args, **kwargs):
         """Method for Button menu command mapping"""
@@ -127,7 +133,7 @@ class TaskAttack:
         try:
             self._executeBasicOptionButtonMenuCommands(values=values, event=event, task=task)
         except KeyError as e:
-            print(f"{Fore.RED}ERROR #34ehtrfh -->  {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
+            print(f"No Problem ERROR #34ehtrfh --> war kein basic option button command {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}")
             self._executeCreatedFile(event=event, values=values)
 
     def onLoad(self, *args, **kwargs):
@@ -225,6 +231,17 @@ class TaskAttack:
         coordinates = coordinates.replace(",", "")
         y, x = [int(x) for x in coordinates.split()]
         return x, y
+
+    def _instantiateFolderStructur(self):
+        def jobHere(folders):
+            for folder in folders:
+                print(f"#-----> folder to be created: {folder}")
+                tools._checkForAndCreatePath(path=folder)
+        thread = Thread(target=jobHere, args=([self.opt.sUsedMainFolder(), self.opt.sUsedResultFolder(),
+                                               self.opt.sUsedAutosavePath()],))
+        thread.start()
+        self.backend_threads.append(thread)
+
 
     def _executeCreatedFile(self, event, values):
         """Opens already existing task-result-file in system corresponding program like libre office or else """
@@ -430,7 +447,7 @@ if __name__ == '__main__':
     # debug_printer = DebugPrinter() #achtung removes all console output,
                                      #achtung despite its name its really bad for debuging while dev xD
     setCWDbashFix()
-    main_gui_task_atack = TaskAttack()
+    main_gui_task_atack = TaskAttack(base_file="base.tak")
 
 
 # todo maybe there is a way for print()/Error > stdout > DebugPrinter
@@ -447,6 +464,7 @@ if __name__ == '__main__':
 
 # todo dev implemetation of autosave folder
 
+# fixme task frame shows file existenc even there is no file
 
 # todo if path not exist create folder routine needed
 
