@@ -5,6 +5,7 @@ __email__ = "sebmueller.bt@gmail.com"
 import copy
 import itertools
 import os
+import queue
 import sys
 import time
 import warnings
@@ -32,10 +33,12 @@ class TaskAttack:
         self.unsaved_project = False
         self.last_deleted_task:Task = None
         #self.auto_save_thread:Thread = None #now ther will be more worker threads in the back so this changes
-        self.backend_threads = []
         self._clipboard:Task = None
         self._extern_threads = []
         self.last_file_path_depre = ""
+
+        self.backend_queue = queue.Queue()
+        self.back_end_thread = self._startBackEndThread()
 
 
         self.taskmanager = Taskmanager()
@@ -52,7 +55,8 @@ class TaskAttack:
                 self.taskmanager.load(base_file)
             except:
                 pass
-        self._instantiateFolderStructur()
+        self._instantiateBasicFolderStructur(
+                folders=(self.opt.sUsedMainFolder(), self.opt.sUsedResultFolder(), self.opt.sUsedAutosavePath()))
         self.mainLoop()
 
     @property
@@ -64,7 +68,6 @@ class TaskAttack:
     def last_file_path(self, value):
         warnings.warn("last_file_path is deprecated with options_file_settings", DeprecationWarning)
         self.last_file_path_depre = value
-
 
     @staticmethod
     def sMenuBar():
@@ -232,17 +235,6 @@ class TaskAttack:
         y, x = [int(x) for x in coordinates.split()]
         return x, y
 
-    def _instantiateFolderStructur(self):
-        def jobHere(folders):
-            for folder in folders:
-                print(f"#-----> folder to be created: {folder}")
-                tools._checkForAndCreatePath(path=folder)
-        thread = Thread(target=jobHere, args=([self.opt.sUsedMainFolder(), self.opt.sUsedResultFolder(),
-                                               self.opt.sUsedAutosavePath()],))
-        thread.start()
-        self.backend_threads.append(thread)
-
-
     def _executeCreatedFile(self, event, values):
         """Opens already existing task-result-file in system corresponding program like libre office or else """
         command = values[event]
@@ -310,40 +302,11 @@ class TaskAttack:
             if self.mygtb.YesNoPopup(title=inter.open_project, text=f"{inter.save}?"):
                 self.onSaveAt()
 
-    def autoSave(self):
-        """perform auto save in a threat
-        """
-        thread = Thread(
-                target=self.taskmanager.save,
-                args=(os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"),))
-        thread.start()
-        self.backend_threads.append(thread)
-
     def _deltionTimeStamp(self, autosave_amount):
         now_time = nowDateTime()
         whished_time = now_time - timedelta(days=autosave_amount)
         timestamp = time.mktime(whished_time.timetuple())
         return timestamp
-
-    def autoSaveFileHandlingThreadable(self):
-        # todo function is finished, must be but in place, question is,
-        #  shall i make many threads for every function like this or implement an single queue.get(block=True)
-        #  controlled thread (bring autosave thread in here too than)
-        if self.opt.autosave_handling:
-            autosave_path = self.opt.sUsedAutosavePath()
-            all_auto_save_files = os.listdir(autosave_path)
-            all_auto_save_files.sort()
-            all_file_paths = [os.path.join(autosave_path, file) for file in all_auto_save_files]
-
-            if self.opt.sAutosaveAmountType() == inter.pieces:
-                files_for_deletion = all_file_paths[:-self.opt.sAutosaveAmount()]
-                [(print(f"file will be deleted: {file}")) for file in files_for_deletion]
-                # achtung [os.remove(file) for file in file_paths_for_deletion]
-            else:
-                timestamp = self._deltionTimeStamp(self.opt.sAutosaveAmount())
-                file_paths_for_deletion = [file for file in all_file_paths if os.path.getmtime(file) < timestamp]
-                [(print(f"file will be deleted: {file}")) for file in file_paths_for_deletion]
-                # achtung [os.remove(file) for file in file_paths_for_deletion]
 
     def reset(self):
         """tasks to perform if task manager has to reset/start anew
@@ -425,6 +388,87 @@ class TaskAttack:
                                 finalize=True, resizable=True, size=self.window_size, location=self.window_location)
         return main_window
 
+    def _autoSaveTC(self):
+        print(f"#238923 in autosaveTQ")
+        self.taskmanager.save(os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"))
+
+    def _autoSaveFileHandlingTC(self):
+        print(f"#09u10 in _autosaveFileHandlinTQ")
+        # todo function is finished, must be but in place, question is,
+        #  shall i make many threads for every function like this or implement an single queue.get(block=True)
+        #  controlled thread (bring autosave thread in here too than)
+        if self.opt.autosave_handling:
+            autosave_path = self.opt.sUsedAutosavePath()
+            all_auto_save_files = os.listdir(autosave_path)
+            all_auto_save_files.sort()
+            all_file_paths = [os.path.join(autosave_path, file) for file in all_auto_save_files]
+
+            if self.opt.sAutosaveAmountType() == inter.pieces:
+                file_paths_for_deletion = all_file_paths[:-self.opt.sAutosaveAmount()]
+                [(print(f"file will be deleted: {file}", end=""     )) for file in file_paths_for_deletion]
+                print(f"all files: {len(all_auto_save_files)}, files for deletion {len(file_paths_for_deletion)}")
+                # achtung [os.remove(file) for file in file_paths_for_deletion]
+            else:
+                timestamp = self._deltionTimeStamp(self.opt.sAutosaveAmount())
+                file_paths_for_deletion = [file for file in all_file_paths if os.path.getmtime(file) < timestamp]
+                [(print(f"file will be deleted: {file}")) for file in file_paths_for_deletion]
+                print(f"all files: {len(all_auto_save_files)}, files for deletion {len(file_paths_for_deletion)}")
+
+                # achtung [os.remove(file) for file in file_paths_for_deletion]
+
+    # def autoSave(self):
+    #     """perform auto save in a threat
+    #     """
+    #     thread = Thread(
+    #             target=self.taskmanager.save,
+    #             args=(os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"),))
+    #     thread.start()
+    #     self.backend_threads.append(thread)
+
+    def autoSave(self):
+        """perform auto save in a threat
+        """
+        self.backend_queue.put((self._autoSaveTC, ()))
+        self.backend_queue.put((self._autoSaveFileHandlingTC, ()))
+
+    def _instantiateBasicFolderStructurTC(self, folders):
+        print(f"#9028u30 in _instantiateFolderStructurTQ")
+        for folder in folders:
+            tools._checkForAndCreatePath(path=folder)
+
+    def _instantiateBasicFolderStructur(self, folders):
+        self.backend_queue.put((self._instantiateBasicFolderStructurTC, folders))
+
+    # todo did not work out to command sg.window from outside Thread but it is needed to work out this:
+    #  invalid command name "140326498775872showtip"
+    #      while executing
+    #  "140326498775872showtip"
+    #      ("after" script)
+    #  error message its indicates that window gets closed before all ending-related-work is done
+
+# def _bakendDelayedWindowCloseTC(self, sleep_time_and_window):
+    #     sleep_time, window = sleep_time_and_window
+    #     time.sleep(sleep_time)
+    #     window.close()
+    #
+    # def _bakendDelayedWindowClose(self, sleep_time, window):
+    #     self.backend_queue.put((self._bakendDelayedWindowCloseTC, (sleep_time, window)))
+
+    def _startBackEndThread(self):
+        thread = Thread(target=self._backEndThread, args=())
+        thread.start()
+        return thread
+
+    def _backEndThread(self):
+        while True:
+            action, args = self.backend_queue.get(block=True)
+            if args:
+                print(f"#0293i action: {action}, args: {args}")
+                action(args)
+            else:
+                print(f"#013918 action: {action}")
+                action()
+
     def mainLoop(self):
         """loop which is needed for event handling
         """
@@ -438,8 +482,8 @@ class TaskAttack:
             self.window_size = main_window.size  # remember breaks down sometimes, why?!?
             self.window_location = main_window.current_location()
             main_window.close()
+            # self._bakendDelayedWindowClose(sleep_time=0.2, window=main_window)
             self.autoSave()
-
 
 if __name__ == '__main__':
 
