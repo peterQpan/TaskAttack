@@ -6,10 +6,8 @@ import datetime
 import os
 import shutil
 import textwrap
-import threading
 import time
 from copy import deepcopy
-from sys import path
 from time import strftime
 
 import PySimpleGUI as sg
@@ -19,7 +17,6 @@ from nose.util import file_like
 import task
 import tools
 from internationalisation import inter
-from tools import nowDateTime
 
 
 class RadioNew(sg.Frame):
@@ -704,6 +701,7 @@ class OptionWindow:
         :param disabled: needed if elements are supposed to be enablede
         :return: sg.Frame()
         """
+        # todo make this as an Frame inheritance
         layout = []
         for index, d_type in enumerate(all_types):
             print(f"#18u3209 ---> d_type: {d_type} -- : active_type -- {active_type}")
@@ -743,7 +741,7 @@ class OptionWindow:
                                                                      active_type=duration_type, disabled=disabled,
                                                                      key="-AUS-1-")
         duration_entry = sg.Input(default_text=duration, disabled=disabled, enable_events=True, size=(4, 1),
-                                  key="-AUS-2-")  # todo change in double radio frame
+                                  key="-AUS-2-")
         layout = [[enable_radio_button, duration_entry, duration_type_radio_frame]]
         frame = sg.Frame(title="", layout=layout, relief=sg.RELIEF_FLAT, pad=(0, 0))
         return frame
@@ -942,7 +940,7 @@ class OptionWindow:
                 return event, values
 
     def createReturnSettings(self, values):
-        autosave_amount_type = inter.days if values["-AUTO-S-1-RADIO-"] else inter.pieces #todo is this weak
+        autosave_amount_type = inter.days if values["-AUTO-S-1-RADIO-"] else inter.pieces #todo is this weak???
         disabled_folder_usage = "std" if values["-RADIO_1-RADIO-"] else "ind"
         settings = {"main_folder": values["-PFL-IE"], "standard_main_folder":values["-SFL-IE"],
                     "result_folder":values["-RFL-IE"], "autosave_folder":values["-AsFL-IE"],
@@ -963,8 +961,7 @@ class OptionWindow:
 
 
 
-# fixme make my own radio buttons because you cant update text of radiobuttons MAYBE Fork PYSIMPLEGUI OR GO AS SUPPORTER
-
+# todo make horizontal radios better implemention maybe trough frame inheritanse and update splitting
 # TODO ASAP fork or support PYSIMPPLEGUI
 
 
