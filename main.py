@@ -252,7 +252,7 @@ class TaskAttack:
     def _userExit(self, event, window):
         """checks for and executes Exit if asked for"""
         if event in (inter.exit, None):
-            self.backend_queue.put(("###breakbreakbreak###", None))
+            self._stopBackEndThread()
             self.dataLossPrevention()
             window.close()
             sys.exit(0)
@@ -389,6 +389,9 @@ class TaskAttack:
                                 finalize=True, resizable=True, size=self.window_size, location=self.window_location)
         return main_window
 
+    def _stopBackEndThread(self):
+        self.backend_queue.put(("###breakbreakbreak###", None))
+
     def _autoSaveTC(self):
         print(f"#238923 in autosaveTQ")
         self.taskmanager.save(os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"))
@@ -502,19 +505,9 @@ if __name__ == '__main__':
 
 # todo beauty taskatack.last_file_path is deprecated with option.file_path_settings
 
-# todo dev implementation of autosave handling
-
-# todo dev implementation of project folder
-
-# todo dev implementation of result folder
-
-# todo dev implemetation of autosave folder
 
 # fixme task frame shows file existenc even there is no file
-
-# todo if path not exist create folder routine needed
-
-# todo take care of amount of autosave files
+# todo dev this fixme is an backend thread dev
 
 # todo check for deleted or moved files,
 #  file symbol once activated it never updates becouse
@@ -522,20 +515,10 @@ if __name__ == '__main__':
 
 # todo complet documentation and code cleanup
 
-# todo this time save folder structure automatic system document based
-# todo for bash started program cwd = folder in which main.py resides
-
 # todo insert links, implement it like results
-
-# todo option menu, maybe to easing folder automation,
-#  in asking the user to choose a work folder
-#  i dont have to implement an automation
-
-# todo debug file and debug output
+# this todo is an todo dev
 
 # todo make a reload progressbar
-
-# todo folder creation in documents
 
 # todo dev make a Qt version
 
