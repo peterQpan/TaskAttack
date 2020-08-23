@@ -492,6 +492,7 @@ class TaskAttack:
             self.main_window.close()
 
             self.autoSave()
+
     def __del__(self):
         self.progbar.kill()
 

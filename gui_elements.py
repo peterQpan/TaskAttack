@@ -983,28 +983,25 @@ class Progressbar:
     def _mainLoop(self):
         #todo needs beautification
         while self.alive:
-            try:
-                action = self.queue.get(block=True, timeout=60)
-                if  action == "start":
-                    window = self._createWindow()
-                    while self.alive:
-                        try:
-                            self.queue.get(block=False)
-                            window.close()
-                            break
-                        except:
-                            pass
-                        event, values = window.read(
-                            timeout=10)  # loop every 10 ms to show that the 100 ms value below is used for animation
-                        if event in (sg.WIN_CLOSED, 'Exit', 'Cancel'):
-                            break
-                        window["-PROGRESS-RING-"].update_animation(self.b64, time_between_frames=50)
-                elif action == "kill":
-                    return
-                else:
-                    print(f"#0293u lost tact")
-            except Exception as e:
-                print(f"{Fore.RED}no problem ERROR #2938u23 --> process queue timeout {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
+            action = self.queue.get(block=True)
+            if  action == "start":
+                window = self._createWindow()
+                while self.alive:
+                    try:
+                        self.queue.get(block=False)
+                        window.close()
+                        break
+                    except:
+                        pass
+                    event, values = window.read(
+                        timeout=10)  # loop every 10 ms to show that the 100 ms value below is used for animation
+                    if event in (sg.WIN_CLOSED, 'Exit', 'Cancel'):
+                        break
+                    window["-PROGRESS-RING-"].update_animation(self.b64, time_between_frames=50)
+            elif action == "kill":
+                return
+            else:
+                print(f"#0293u lost tact")
 
     def _jobProcess(self):
         process = multiprocessing.Process(target=self._mainLoop)
