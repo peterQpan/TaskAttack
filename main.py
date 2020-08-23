@@ -207,6 +207,7 @@ class TaskAttack:
 
     def onDeleteTask(self, task, *args, **kwargs):
         if self.mygtb.YesNoPopup(title=inter.delete, text=inter.realy_delete):
+            print(f"#092u03 in delete on Task")
             self.last_deleted_task = task
             task.delete()
 

@@ -167,10 +167,10 @@ class MyGuiToolbox:
 
     @staticmethod
     def _okCancelLine(ok_button=inter.yes, cancel_button=inter.no,
-                      key_ok="-OK-", key_candel="-CANCEL-", left_padding=0):
+                      key_ok="-OK-", key_cancel="-CANCEL-", left_padding=0):
 
         ok_button = sg.Button(button_text=ok_button, key=key_ok)
-        cancel_button = sg.Button(button_text=cancel_button, key=key_candel)
+        cancel_button = sg.Button(button_text=cancel_button, key=key_cancel)
         if left_padding:
             padding = sg.Text(text=f"{' ' * left_padding}", key="-LEFT-PADDING-")
             return [padding, cancel_button, ok_button]
@@ -178,7 +178,7 @@ class MyGuiToolbox:
 
     @staticmethod
     def YesNoPopup(title: str, text: str, ok_button=inter.yes, cancel_button=inter.no, size=(250, 70), keep_on_top=True,
-                   key_ok="-OK-", key_candel="-CANCEL-", *args, **kwargs):
+                   key_ok="-OK-", key_cancel="-CANCEL-", *args, **kwargs):
         """
         popup window to do ok-chancel/yes-now and similar questions
         :param title: The title that will be displayed in the Titlebar and on the Taskbar
@@ -191,13 +191,13 @@ class MyGuiToolbox:
         """
         layout = [[sg.Text(text=text)],
                   MyGuiToolbox._okCancelLine(ok_button=ok_button, cancel_button=cancel_button,
-                                             key_ok="-OK-", key_candel="-CANCEL-")]
+                                             key_ok=key_ok, key_cancel=key_cancel)]
         window = sg.Window(title=title, layout=layout, auto_size_buttons=True, keep_on_top=keep_on_top, size=size)
         event, values = window.read()
         print(F"#092976o23 event: {event}; vlues: {values}")
 
         window.close()
-        if event == ok_button:
+        if event == key_ok:
             return True
         return False
 
