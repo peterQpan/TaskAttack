@@ -157,3 +157,53 @@ def eventIsNotNone(event):
         return True
     return False
 
+
+
+def _checkForAndCreatePath(path):
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+
+def _checkForAndCreatePathFromFilePath(file_path):
+    path, _ = os.path.split(file_path)
+    print(f"in path creation: {path}")
+    _checkForAndCreatePath(path)
+
+
+def userPathRecursive(file_path, folders=()):
+    if os.path.exists(file_path):
+        if file_path == os.sep:
+            file_path = None
+        if folders:
+            folders = folders[::-1]
+            return file_path, folders
+        else:
+            return file_path, None
+    elif not file_path and folders:
+        folders = folders[::-1]
+        return None, folders
+    else:
+        file_path, folder = os.path.split(file_path)
+        folders = (*folders, folder)
+        return userPathRecursive(file_path, folders)
+
+
+def userPath(file_path):
+    folders = []
+    while True:
+        if os.path.exists(file_path):
+            if file_path == os.sep:
+                file_path = None
+            if folders:
+                folders.reverse()
+                return file_path, folders
+            else:
+                return file_path, None
+        else:
+            file_path, folder = os.path.split(file_path)
+            if folder:
+                folders.append(folder)
+            else:
+                if folders:
+                    folders.reverse()
+                    return None, folders

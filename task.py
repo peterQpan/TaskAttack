@@ -10,6 +10,7 @@ import time
 
 import tools
 from internationalisation import inter
+from tools import nowDateTime
 
 
 class Task:
@@ -41,8 +42,8 @@ class Task:
 
     def __getstate__(self):
         state = {x:y for x,y in self.__dict__.items()}
-        print(self.__dict__)
-        print(state)
+        #print(self.__dict__)
+        #print(state)
         #since taskmanager is an atribute of task, and task gets pickled,
         # but i woulnt taskmanager pickled as well it has to be exclude bevor,
         # i do this at the getstate-step
@@ -66,13 +67,15 @@ class Task:
         if self.sub_tasks:
             zaehler = sum(x.sCompleted() for x in self.sub_tasks)
             teiler = len(self.sub_tasks)
-            print(f"zaehler/teiler: {zaehler /teiler}")
+            #todo fixme enable this print statement and look the massive amount of execution of this!!!!!
+            #print(f"zaehler/teiler: {zaehler /teiler}")
+            #todo fixme enable this print statement and look the massive amount of execution of this!!!!!
             return zaehler / teiler
         else:
             if completed:
                 self._completed = completed
             else:
-                print(self._completed)
+                #print(self._completed)
                 return self._completed
 
     def sMastersEnde(self):
@@ -164,7 +167,7 @@ class Task:
             try:
                 self._setAllTimeMappings()
             except TypeError as e:
-                print(f"#kakld89i error: {e.__traceback__}, {e.__repr__()}, {e.__traceback__.tb_lineno}")
+                print(f"#kakld89i No Problem error: {e.__traceback__}, {e.__repr__()}, {e.__traceback__.tb_lineno}")
                 self._setAllTimeMappingsFalse()
 
         return self._remaining_timedelta
@@ -197,6 +200,27 @@ class Task:
         self._remaining_timedelta = None
         self._hierarchy_tree_positions_string = None
         self._hierarchy_tree_positions = None
+
+    def suggestetFileName(self, result_path):
+        """
+        creats a suggested task filepath depending on task name, project name, date and time
+        it comes like >result_path/project_name_path/date_time_project_second+task_name< no file.ectension
+        :return :tuple (path, + filename - no.ext)
+        """
+        nameing_list = self.hierarchyTreePositionList()
+        nowtime_str = str(nowDateTime()).replace(" ", "_")
+        nowtime_str = nowtime_str.replace(":", "_")
+        first_tree = nameing_list[1:2]
+        complete_file_path = os.path.join(result_path,
+                nameing_list[0].replace(' ', '_'),
+                f"{nowtime_str}{f'_{first_tree[0]}'if first_tree else ''}_{nameing_list[-1]}".replace(' ', '_'))
+        return os.path.split(complete_file_path)
+
+        # #todo think if second result folder == project name, should suggested
+        # nameing_list = self.hierarchyTreePositionList()
+        # nowtime_str = str(nowDateTime()).replace(" ", "_")
+        # return f"{nowtime_str}_{nameing_list[0]}_{nameing_list[-1]}"
+
 
     def hierarchyTreePositionString(self, lenght=30):
         """
