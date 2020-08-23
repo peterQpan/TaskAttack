@@ -17,7 +17,7 @@ from colorama import Fore
 
 import gui_elements
 import tools
-from gui_elements import TaskInputWindowCreator, TaskFrameCreator, MyGuiToolbox
+from gui_elements import TaskInputWindowCreator, TaskFrameCreator, MyGuiToolbox, Progressbar
 from internationalisation import inter
 from option import Option
 from task import Taskmanager, Task
@@ -46,6 +46,7 @@ class TaskAttack:
         self.task_window_crator = TaskInputWindowCreator()
         self.task_frames_creator = TaskFrameCreator()
         self.result_file_creator = gui_elements.ResultFileCreator()
+        self.progbar = Progressbar(type_here="blue_dotted_ring")
 
         self.window_size = sg.Window.get_screen_size()
         self.window_location = (None, None)
@@ -479,16 +480,20 @@ class TaskAttack:
         """loop which is needed for event handling
         """
         while True:
-            main_window = self.mainWindow()
-            event, values = main_window.read()
+            self.main_window = self.mainWindow()
+            self.progbar.stop()
+            event, values = self.main_window.read()
             print(F"#98765 event: {event}; vlues: {values}")
 
-            self.executeEvent(event=event, window=main_window, values=values)
-            self.window_size = main_window.size  # remember breaks down sometimes, why?!?
-            self.window_location = main_window.current_location()
-            main_window.close()
-            # self._bakendDelayedWindowClose(sleep_time=0.2, window=main_window)
+            self.executeEvent(event=event, window=self.main_window, values=values)
+            self.window_size = self.main_window.size  # remember breaks down sometimes, why?!?
+            self.window_location = self.main_window.current_location()
+            self.progbar.start()
+            self.main_window.close()
+
             self.autoSave()
+    def __del__(self):
+        self.progbar.kill()
 
 if __name__ == '__main__':
 
@@ -506,7 +511,7 @@ if __name__ == '__main__':
 # todo beauty taskatack.last_file_path is deprecated with option.file_path_settings
 
 
-# fixme task frame shows file existenc even there is no file
+# fixme task frame shows file existence even there is no file
 # todo dev this fixme is an backend thread dev
 
 # todo check for deleted or moved files,
@@ -522,7 +527,7 @@ if __name__ == '__main__':
 
 # todo dev make a Qt version
 
-
+# todo think maybe make a sort of game out of this like get points for accomplished task etc
 
 
 
