@@ -290,7 +290,7 @@ class ResultFileCreator:
             elif os.path.exists(possible_user_path):
                 save_file_path = os.path.join(possible_user_path, user_file_name)
             elif possible_user_path:
-                existing_path, new_folders = tools.userPathRecursive(possible_user_path)
+                existing_path, new_folders = tools.separateExistingFromDemandedPathsRecursively(possible_user_path)
                 if existing_path:
                     new_folder_path = existing_path
                     for folder in new_folders:
