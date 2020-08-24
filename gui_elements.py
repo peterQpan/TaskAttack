@@ -162,7 +162,6 @@ class RadioNew(sg.Frame):
             # print(f"#io3409283lkjnk event: {event}, values: {values}")
 
 
-
 class MyGuiToolbox:
 
     @staticmethod
@@ -208,7 +207,6 @@ class MyGuiToolbox:
     # user_defined_keys
     # next above: ("-SFL")
     # under-keys: ("-DE", "-IE", "-FB")
-
 
 
 class ResultFileCreator:
@@ -916,12 +914,17 @@ class OptionWindow:
             print(f"key 0932u5: {key}-DE")
             window[f"{key}-DE"].Update(value=text)
 
+    def inputValidation(self):
+        pass
+
 
     def mainLoop(self, window):
+        actual_language = inter.actual_inter_language
         while True:
             event, values = window.read()
             print(f"#092304u event: {event}, values: {values}")
-            if event is None or event in ("Abbrechen", "-CANCEL-"):
+            if event is None or event in (sg.WIN_CLOSED, "Abbrechen", "-CANCEL-"):
+                inter.setLanguage(actual_language)
                 return None, None
             if event == "-RADIO_1-RADIO-": #todo RadioNew clutters the code with his destinct own keys, needs a better inheritance for clearer code
                 self._setDisabledStatusToStandardDirectoryFrame(window=window, disabled=False)
