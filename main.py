@@ -129,7 +129,7 @@ class TaskAttack:
                 }
 
     def onCreateResult(self, task, event, values, command, *args, **kwargs):
-        self.result_file_creator.newResultFile(task=task, kind_of_porogramm=command, result_path=self.opt.sUsedResultFolder(),)
+        self.result_file_creator.newResultFile(task=task, kind_of_porogramm=command, result_path=self.opt.sUsedResultFolder())
 
     def onOptionButtonMenu(self, task, event, values, *args, **kwargs):
         """Method for Button menu command mapping"""
@@ -505,6 +505,13 @@ if __name__ == '__main__':
     setCWDbashFix()
     main_gui_task_atack = TaskAttack(base_file="base.tak")
 
+# add short keys
+
+# user defined folder structure dosent work as expected
+
+# no troubleshooting if file path contains double //
+
+#fixme file icon dont disapeare by deleting files
 
 # todo maybe there is a way for print()/Error > stdout > DebugPrinter
 

@@ -60,7 +60,7 @@ class Option:
         if self.__getattribute__(condition_one) == condition_two:
             return either_true()
         else:
-            return or_false
+            return or_false()
     def sUsedMainFolder(self):
         return self._oneOfTwo(self.sMainFolder, self.sStandardMainFolder)
     def sUsedResultFolder(self):

@@ -172,9 +172,6 @@ class Task:
 
         return self._remaining_timedelta
 
-    def sResults(self):
-        return self._results
-
     def _conditionalTimedeltaReset(self):
         """sets _remaining_timedelta to None if not False, false indicates no end date, so there is no need
         to change this"""
@@ -268,12 +265,15 @@ class Task:
         """
         :return: flat list all tasks hierarchically deeper than self or self
         """
+        print(f"# kjla name: {self.__class__.__name__}, subtasks: {self.sub_tasks}")
+
         if not self.sub_tasks:
             return [self]
         else:
-            all_tasks_under = []
-            all_tasks_under += [x.allSubordinatedTasks() for x in self.sub_tasks]
-            return all_tasks_under
+            all_tasks_under = [self]
+            for own_subtask in self.sub_tasks:
+                all_tasks_under += own_subtask.allSubordinatedTasks()
+        return all_tasks_under
 
     def taskDeadlineColor(self):
         return self._colorSheme(task=self)
@@ -375,13 +375,20 @@ class Task:
     def addResultsFileAndDescription(self, file_path, short_description):
         self._results.append((file_path, short_description))
 
+    def checkResultFileExistens(self):
+        if self._results:
+            self._results = [result for result in self._results if os.path.exists(result[0])]
+
 
 class Taskmanager:
     def __init__(self):
 
         self.renewal_thread = None
+
         self.task_matrix = None
+
         self.reset()
+        self.file_existence_thread = self.fileExistenceAssuranceThread()
 
     def sTaskMatrix(self):
         return self.task_matrix
@@ -392,6 +399,7 @@ class Taskmanager:
         self.sub_tasks = []
         self._side_packed_project = None
         self.task_matrix = None
+        self.alive = True
 
 
     def save(self, filename="dev-auto.atk"):
@@ -539,6 +547,21 @@ class Taskmanager:
         display_matrix = self.addMasterTaskPlaceholderStrings(self.task_matrix)
         return display_matrix
 
+    def allSubordinatedTasks(self):
+        """
+        :return: flat list all tasks hierarchically deeper than self or self
+        """
+
+        print(f"# kjla name: {self.__class__.__name__}, subtasks: {self.sub_tasks}")
+        if not self.sub_tasks:
+            return []
+        else:
+            all_tasks_under = []
+            for own_subtask in self.sub_tasks:
+                all_tasks_under += own_subtask.allSubordinatedTasks()
+            return all_tasks_under
+
+
     def startDataDeletionForRenewalThread(self):
         """starts a thread that resets task-time-mapping, so actuality is ensured"""
         def renewal(subtasks):
@@ -550,7 +573,20 @@ class Taskmanager:
         self.renewal_thread = threading.Thread(target=renewal, args=(self.sub_tasks,), daemon=True)
         self.renewal_thread.start()
 
+    def startFileExistenceAssurance(self):
+        while self.alive:
+            absolut_all_tasks = self.allSubordinatedTasks()
+            [absolut_all_task.checkResultFileExistens() for absolut_all_task in absolut_all_tasks]
+            time.sleep(30)
 
+
+    def fileExistenceAssuranceThread(self):
+        thread_here = threading.Thread(target=self.startFileExistenceAssurance, args=())
+        thread_here.start()
+        return thread_here
+
+    def __del__(self):
+        self.alive = False
 
 if __name__ == '__main__':
     one_task = Task(name="test_task")
