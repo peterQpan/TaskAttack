@@ -176,11 +176,11 @@ class MyGuiToolbox:
 
     # user_defined_keys
     # next above: ("-PFL", "-RFL", "-AsFL")
-    # under-keys: ("-DE", "-IE", "-FB")
+    # under-keys: ("-DE", "-IEX729X", "-FB")
 
     # user_defined_keys
     # next above: ("-SFL")
-    # under-keys: ("-DE", "-IE", "-FB")
+    # under-keys: ("-DE", "-IEX729X", "-FB")
 
 
 class ResultFileCreator:
@@ -645,13 +645,13 @@ class OptionWindow:
         :param disabled: bool is true if user chooses to make distinct saving directory
         frame key:
         next above: ("-PFL", "-RFL", "-AsFL")
-        under-keys: ("-DE":color, "-IE":disabled, "-FB":disabled)
+        under-keys: ("-DE":color, "-IEX729X":disabled, "-FB":disabled)
 
         """
         text_color = "#ff0000" if disabled else "#00ff00"
         for first_part in ("-PFL", "-RFL", "-AsFL"):
             window[f"{first_part}-DE"].Update(text_color=text_color)
-            window[f"{first_part}-IE"].Update(disabled=disabled)
+            window[f"{first_part}-IEX729X"].Update(disabled=disabled)
             window[f"{first_part}-FB"].Update(disabled=disabled)
 
     def _setDisabledStatusToStandardDirectoryFrame(self, window: sg.Window, disabled: bool):
@@ -660,11 +660,11 @@ class OptionWindow:
         :param window: option_window
         :param disabled: bool is true if user chooses to make standard saving directory
         next above: ("-SFL")
-        under-keys: ("-DE":color, "-IE":disabled, "-FB":disabled)
+        under-keys: ("-DE":color, "-IEX729X":disabled, "-FB":disabled)
         """
         text_color = "#ff0000" if disabled else "#00ff00"
         window["-SFL-DE"].Update(text_color=text_color)
-        window["-SFL-IE"].Update(disabled=disabled)
+        window["-SFL-IEX729X"].Update(disabled=disabled)
         window["-SFL-FB"].Update(disabled=disabled)
 
     def _horizontalRadioChoiceFrame(self, all_types: tuple, active_type, disabled, key: str, group_id="dura_radio"):
@@ -754,13 +754,13 @@ class OptionWindow:
         :param name: line description
         :param directory: actual directory
         :param disabled: disables complete line
-        :param key: master_key for this line, becomes sub keys: -DE, -IE, -FB
+        :param key: master_key for this line, becomes sub keys: -DE, -IEX729X, -FB
         :return: layout line: [sg.Text, sg.Input, sg.FolderBrowse]
         """
         text_color = "#ff0000" if disabled else "#00ff00"
         directory = directory if directory else ""
         description_elemetn = sg.Text(text=name, size=(15, 1), text_color=text_color, key=f"{key}-DE")
-        input_element = sg.Input(default_text=directory, size=[25, 1], disabled=disabled, key=f"{key}-IE", )
+        input_element = sg.Input(default_text=directory, size=[25, 1], disabled=disabled, key=f"{key}-IEX729X", enable_events=True)
         folder_button = sg.FolderBrowse(button_text=inter.browse, disabled=disabled, key=f"{key}-FB")
 
         return [description_elemetn, input_element, folder_button]
@@ -898,6 +898,9 @@ class OptionWindow:
         if event is None or event in (sg.WIN_CLOSED, "Abbrechen", "-CANCEL-"):
             inter.setLanguage(actual_language)
             return True
+        if "-IEX729X" in event:
+            if r"//" in values[event]:
+                window[event].Update(values[event].replace("//", "/"))
         if event == "-RADIO_1-RADIO-":  # todo RadioNew clutters the code with his destinct own keys, needs a better inheritance for clearer code
             self._setDisabledStatusToStandardDirectoryFrame(window=window, disabled=False)
             self._setDisabledStatusToUserDirectoryFrame(window=window, disabled=True)
@@ -930,8 +933,8 @@ class OptionWindow:
 
         autosave_amount_type = inter.days if values["-AUTO-S-1-RADIO-"] else inter.pieces #todo is this weak???
         disabled_folder_usage = "std" if values["-RADIO_1-RADIO-"] else "ind"
-        settings = {"main_folder": values["-PFL-IE"], "standard_main_folder":values["-SFL-IE"],
-                    "result_folder":values["-RFL-IE"], "autosave_folder":values["-AsFL-IE"],
+        settings = {"main_folder": values["-PFL-IEX729X"], "standard_main_folder":values["-SFL-IEX729X"],
+                    "result_folder":values["-RFL-IEX729X"], "autosave_folder":values["-AsFL-IEX729X"],
                     "autosave_amount":values["-AUS-2-"], "autosave_amount_type":autosave_amount_type,
                     "language":values["-LANGUAGE-"][0], "disabled_folder_usage":disabled_folder_usage,
                     "autosave_handling":values["-AUTO-S-2-RADIO-"]}
