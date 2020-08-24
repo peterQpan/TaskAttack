@@ -159,9 +159,13 @@ def eventIsNotNone(event):
 
 
 
-def _checkForAndCreatePath(path):
-    if not os.path.exists(path):
-        os.mkdir(path)
+def _checkForAndCreatePath(path:"must be abspath"):
+    existing_path, demanded_paths = separateExistingFromDemandedPathsRecursively(file_path=path)
+    if demanded_paths:
+        for path in demanded_paths:
+            path_to_create = os.path.join(existing_path, path)
+            os.mkdir(path=path_to_create)
+            existing_path = path_to_create
 
 
 def _checkForAndCreatePathFromFilePath(file_path):
@@ -170,7 +174,8 @@ def _checkForAndCreatePathFromFilePath(file_path):
     _checkForAndCreatePath(path)
 
 
-def userPathRecursive(file_path, folders=()):
+def separateExistingFromDemandedPathsRecursively(file_path, folders=()):
+    #todo is this realy an file_path or is it an path?!?
     if os.path.exists(file_path):
         if file_path == os.sep:
             file_path = None
@@ -185,7 +190,7 @@ def userPathRecursive(file_path, folders=()):
     else:
         file_path, folder = os.path.split(file_path)
         folders = (*folders, folder)
-        return userPathRecursive(file_path, folders)
+        return separateExistingFromDemandedPathsRecursively(file_path, folders)
 
 
 def userPath(file_path):
@@ -207,3 +212,21 @@ def userPath(file_path):
                 if folders:
                     folders.reverse()
                     return None, folders
+
+
+def chreateRootDestinguishedPaths(possible_user_path, base_path):
+    existing_path, new_folders = separateExistingFromDemandedPathsRecursively(possible_user_path)
+    if existing_path:
+        new_path = existing_path
+        for folder in new_folders:
+            new_path = os.path.join(new_path, folder)
+            os.mkdir(new_path)
+    else:
+        new_path = base_path
+        for folder in new_folders:
+            new_path = os.path.join(new_path, folder)
+            os.mkdir(new_path)
+    return new_path
+
+
+#todo refactor all path related functions into an path class

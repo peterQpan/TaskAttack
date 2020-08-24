@@ -289,19 +289,14 @@ class ResultFileCreator:
                 save_file_path = os.path.join(suggested_path, user_file_name)
             elif os.path.exists(possible_user_path):
                 save_file_path = os.path.join(possible_user_path, user_file_name)
+
+
             elif possible_user_path:
-                existing_path, new_folders = tools.separateExistingFromDemandedPathsRecursively(possible_user_path)
-                if existing_path:
-                    new_folder_path = existing_path
-                    for folder in new_folders:
-                        new_folder_path = os.path.join(new_folder_path, folder)
-                        os.mkdir(new_folder_path)
-                else:
-                    new_folder_path = result_path
-                    for folder in new_folders:
-                        new_folder_path = os.path.join(new_folder_path, folder)
-                        os.mkdir(new_folder_path)
-                save_file_path = os.path.join(new_folder_path, user_file_name)
+
+                save_path = tools.chreateRootDestinguishedPaths(possible_user_path, base_path, result_path)
+
+
+                save_file_path = os.path.join(save_path, user_file_name)
             else:
                 raise AssertionError("#9817298 irgendetwas nicht bedacht")
 
