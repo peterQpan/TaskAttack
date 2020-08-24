@@ -676,6 +676,7 @@ class OptionWindow:
         :return: sg.Frame()
         """
         # todo make this as an Frame inheritance
+        # todo factor it out, can used otherwise as well
         layout = []
         for index, d_type in enumerate(all_types):
             print(f"#18u3209 ---> d_type: {d_type} -- : active_type -- {active_type}")
@@ -690,12 +691,11 @@ class OptionWindow:
         return frame
 
     def _setDurationRadiosWithNewLanguage(self, all_types: tuple, key: str, window):
-        """option-window
-        makes a horizontal radio button group
-        :param all_types: tuple of all values
-        :param active_type: value which is supposed to be active
-        :param disabled: needed if elements are supposed to be enablede
-        :return: sg.Frame()
+        """
+        option-window
+        sets new language for duration radio buttons
+        :param all_types: inter tuple of duration types (days, pieces)
+        :param key: key used for _horizontalRadioChoiceFrame()
         """
         for index, d_type in enumerate(all_types):
             print(f"#02934u key index: {key}{index}, type: {window[f'{key}{index}']}")
@@ -864,6 +864,9 @@ class OptionWindow:
                                    left_padding=inter.left_pading_amounts["deutsch"])]
 
     def setLanguageAnew(self, values, event, window):
+        """
+        sets language directly anew in option window, all other windows will it do automatically by window reload
+        """
 
         choosen_language = values[event][0]
         inter.setLanguage(choosen_language)
@@ -884,6 +887,9 @@ class OptionWindow:
                 window[key].Update(value=property)
 
     def _setDirectoryFramesWithNewLanguage(self, window):
+        """
+        sets language in directory frames
+        """
         for key, text in {"-PFL": inter.project_folder, "-RFL": inter.results, "-AsFL": inter.auto_save_folder}.items():
             print(f"key 0932u5: {key}-DE")
             window[f"{key}-DE"].Update(value=text)
@@ -920,6 +926,8 @@ class OptionWindow:
             print(f"#092304u event: {event}, values: {values}")
 
     def createReturnSettings(self, values):
+        """createas settings dict usable for option back end class to update self.__dict__"""
+
         autosave_amount_type = inter.days if values["-AUTO-S-1-RADIO-"] else inter.pieces #todo is this weak???
         disabled_folder_usage = "std" if values["-RADIO_1-RADIO-"] else "ind"
         settings = {"main_folder": values["-PFL-IE"], "standard_main_folder":values["-SFL-IE"],
