@@ -136,32 +136,6 @@ class RadioNew(sg.Frame):
         super().Update(visible=visible)
 
 
-
-            #     choosen_language = values[event][0]
-            #     print(f"choosen language: {choosen_language}")
-            #     language = inter.language
-            #     inter.setLanguage(choosen_language)
-            #     for key, text in {"-PFL": inter.project_folder, "-RFL": inter.results,
-            #                       "-AsFL": inter.auto_save_folder}.items():
-            #         print(f"key 0932u5: {key}-DE")
-            #         window[f"{key}-DE"].Update(value=text)
-            #         # sg.Text.Update(value=text)
-            #     window[f"-SFL-DE"].Update(value=inter.project_folder)
-            #     window["language-t-f"].Update(value=inter.language)
-            #     window["-RADIO_1-"].Update(text=inter.standard_folder_setup)
-            #     window["-RADIO_2-"].Update(text=inter.own_folder_setup)
-            #     self._setDurationRadiosWithNewLanguage(all_types=inter.duration_types, key="-AUS-1-", window=window)
-            #     window["-AUTO-S-1-"].Update(text=inter.no_autosave_deletion)
-            #     window["-AUTO-S-2-"].Update(text=inter.autosave_deletion)
-            #     window["-CANCEL-"].Update(text=inter.cancel)
-            #     window["-OK-"].Update(text=inter.ok)
-            #     print(f"left padding amount: {inter.left_pading_amounts[choosen_language]}")
-            #     print(f"left_padding_element_dict: {window['-LEFT-PADDING-'].__dict__}")
-            #     window["-LEFT-PADDING-"].Update(value=f"{' ' * inter.left_pading_amounts[choosen_language]}")
-            #     # sg.Button.Update()
-            # print(f"#io3409283lkjnk event: {event}, values: {values}")
-
-
 class MyGuiToolbox:
 
     @staticmethod
@@ -914,35 +888,36 @@ class OptionWindow:
             print(f"key 0932u5: {key}-DE")
             window[f"{key}-DE"].Update(value=text)
 
-    def inputValidation(self):
-        pass
+    def inputValidation(self, event, values, window, actual_language):
+        if event is None or event in (sg.WIN_CLOSED, "Abbrechen", "-CANCEL-"):
+            inter.setLanguage(actual_language)
+            return True
+        if event == "-RADIO_1-RADIO-":  # todo RadioNew clutters the code with his destinct own keys, needs a better inheritance for clearer code
+            self._setDisabledStatusToStandardDirectoryFrame(window=window, disabled=False)
+            self._setDisabledStatusToUserDirectoryFrame(window=window, disabled=True)
 
+        elif event == "-RADIO_2-RADIO-":
+            self._setDisabledStatusToStandardDirectoryFrame(window=window, disabled=True)
+            self._setDisabledStatusToUserDirectoryFrame(window=window, disabled=False)
+
+        elif event == "-AUTO-S-1-RADIO-":
+            self._setImputAutoSaveFrame(window=window, disabled=True)
+        elif event == "-AUTO-S-2-RADIO-":
+            self._setImputAutoSaveFrame(window=window, disabled=False)
+        elif event == "-LANGUAGE-":
+            self.setLanguageAnew(values=values, event=event, window=window)
+        elif event == "-OK-":
+            self.outcome =event, values
+            return True
 
     def mainLoop(self, window):
         actual_language = inter.actual_inter_language
-        while True:
+        result = None
+        self.outcome = None
+        while not result:
             event, values = window.read()
+            result = self.inputValidation(event=event, values=values, window=window, actual_language=actual_language)
             print(f"#092304u event: {event}, values: {values}")
-            if event is None or event in (sg.WIN_CLOSED, "Abbrechen", "-CANCEL-"):
-                inter.setLanguage(actual_language)
-                return None, None
-            if event == "-RADIO_1-RADIO-": #todo RadioNew clutters the code with his destinct own keys, needs a better inheritance for clearer code
-                self._setDisabledStatusToStandardDirectoryFrame(window=window, disabled=False)
-                self._setDisabledStatusToUserDirectoryFrame(window=window, disabled=True)
-
-            elif event == "-RADIO_2-RADIO-":
-                self._setDisabledStatusToStandardDirectoryFrame(window=window, disabled=True)
-                self._setDisabledStatusToUserDirectoryFrame(window=window, disabled=False)
-
-            elif event == "-AUTO-S-1-RADIO-":
-                self._setImputAutoSaveFrame(window=window, disabled=True)
-            elif event == "-AUTO-S-2-RADIO-":
-                self._setImputAutoSaveFrame(window=window, disabled=False)
-            elif event == "-LANGUAGE-":
-                self.setLanguageAnew(values=values, event=event, window=window)
-            elif event == "-OK-":
-
-                return event, values
 
     def createReturnSettings(self, values):
         autosave_amount_type = inter.days if values["-AUTO-S-1-RADIO-"] else inter.pieces #todo is this weak???
@@ -957,10 +932,10 @@ class OptionWindow:
     def optionWindow(self, settings:dict):
         layout = self._completeOptionWindowLayout(**settings)  #
         window = sg.Window(title=inter.options, layout=layout)
-        event, values = self.mainLoop(window=window)
+        self.mainLoop(window=window)
         window.close()
-        if values:
-            return self.createReturnSettings(values)
+        if self.outcome:
+            return self.createReturnSettings(self.outcome[1])
 
 
 class Progressbar:
