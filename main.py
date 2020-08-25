@@ -9,7 +9,7 @@ import queue
 import sys
 import time
 import warnings
-from datetime import datetime, timedelta
+from datetime import timedelta
 from threading import Thread
 
 import PySimpleGUI as sg
@@ -21,7 +21,7 @@ from gui_elements import TaskInputWindowCreator, TaskFrameCreator, MyGuiToolbox,
 from internationalisation import inter
 from option import Option
 from task import Taskmanager, Task
-from tools import setCWDbashFix, DebugPrinter, nowDateTime
+from tools import cwdBashFix, nowDateTime
 
 
 class TaskAttack:
@@ -35,7 +35,7 @@ class TaskAttack:
         #self.auto_save_thread:Thread = None #now ther will be more worker threads in the back so this changes
         self._clipboard:Task = None
         self._extern_threads = []
-        self.last_file_path_depre = ""
+        self.last_file_path = base_file if base_file else ""
 
         self.backend_queue = queue.Queue()
         self.back_end_thread = self._startBackEndThread()
@@ -60,15 +60,16 @@ class TaskAttack:
                 folders=(self.opt.sUsedMainFolder(), self.opt.sUsedResultFolder(), self.opt.sUsedAutosavePath()))
         self.mainLoop()
 
-    @property
-    def last_file_path(self):
-        warnings.warn("last_file_path is deprecated with optipons_file_settings", DeprecationWarning)
-        return self.last_file_path_depre
-
-    @last_file_path.setter
-    def last_file_path(self, value):
-        warnings.warn("last_file_path is deprecated with options_file_settings", DeprecationWarning)
-        self.last_file_path_depre = value
+    #     #todo make a base file in option
+    # @property
+    # def last_file_path(self):
+    #     #warnings.warn("last_file_path is deprecated with optipons_file_settings", DeprecationWarning)
+    #     return self.last_file_path_depre
+    #
+    # @last_file_path.setter
+    # def last_file_path(self, value):
+    #     #warnings.warn("last_file_path is deprecated with options_file_settings", DeprecationWarning)
+    #     self.last_file_path_depre = value
 
     @staticmethod
     def sMenuBar():
@@ -152,8 +153,8 @@ class TaskAttack:
         self.unsaved_project = False
         file_path = sg.PopupGetFile(message=inter.save_at, save_as=True, file_types=(("TaskAtack", "*.tak"),),
                                     initial_folder=self.sLastUsedFolder(), keep_on_top=True, default_extension=".tak")
-        file_path = tools.completeFilePathWithExtension(file_path)
         if file_path:
+            file_path = tools.path.ensureFilePathExtension(file_path)
             self.last_file_path = file_path
             self.taskmanager.save(file_path)
 
@@ -394,42 +395,37 @@ class TaskAttack:
     def _stopBackEndThread(self):
         self.backend_queue.put(("###breakbreakbreak###", None))
 
-    def _autoSaveTC(self):
-        print(f"#238923 in autosaveTQ")
-        self.taskmanager.save(os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"))
+    def _autoSaveTC(self): #TC: Thread Command
+        self.taskmanager.save(os.path.join(self.opt.sUsedAutosavePath(), f"autosave-{tools.nowDateTime()}.tak"))
 
     def _autoSaveFileHandlingTC(self):
         print(f"#09u10 in _autosaveFileHandlinTQ")
         # todo function is finished, must be but in place, question is,
         #  shall i make many threads for every function like this or implement an single queue.get(block=True)
         #  controlled thread (bring autosave thread in here too than)
+        print(f"#09233 autosavefilehandlingTC: opt.autosave_handling{self.opt.autosave_handling}; autosaveamounttype: {self.opt.sAutosaveAmountType()}")
         if self.opt.autosave_handling:
             autosave_path = self.opt.sUsedAutosavePath()
             all_auto_save_files = os.listdir(autosave_path)
             all_auto_save_files.sort()
             all_file_paths = [os.path.join(autosave_path, file) for file in all_auto_save_files]
 
+            # todo actual workplace opt.AutosaveAmountType is realy autosaveamount, not type
+
             if self.opt.sAutosaveAmountType() == inter.pieces:
+                print(f"#029384 autosave amount: {self.opt.sAutosaveAmount()}")
                 file_paths_for_deletion = all_file_paths[:-self.opt.sAutosaveAmount()]
                 [(print(f"file will be deleted: {file}", end=""     )) for file in file_paths_for_deletion]
-                print(f"all files: {len(all_auto_save_files)}, files for deletion {len(file_paths_for_deletion)}")
-                # achtung [os.remove(file) for file in file_paths_for_deletion]
-            else:
+                print(f"\nall files: {len(all_auto_save_files)}, files for deletion {len(file_paths_for_deletion)}")
+                # achtung
+                [os.remove(file) for file in file_paths_for_deletion]
+            elif self.opt.sAutosaveAmountType() == inter.days:
                 timestamp = self._deltionTimeStamp(self.opt.sAutosaveAmount())
                 file_paths_for_deletion = [file for file in all_file_paths if os.path.getmtime(file) < timestamp]
                 [(print(f"file will be deleted: {file}")) for file in file_paths_for_deletion]
                 print(f"all files: {len(all_auto_save_files)}, files for deletion {len(file_paths_for_deletion)}")
-
-                # achtung [os.remove(file) for file in file_paths_for_deletion]
-
-    # def autoSave(self):
-    #     """perform auto save in a threat
-    #     """
-    #     thread = Thread(
-    #             target=self.taskmanager.save,
-    #             args=(os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"),))
-    #     thread.start()
-    #     self.backend_threads.append(thread)
+                # achtung
+                [os.remove(file) for file in file_paths_for_deletion]
 
     def autoSave(self):
         """perform auto save in a threat
@@ -437,13 +433,13 @@ class TaskAttack:
         self.backend_queue.put((self._autoSaveTC, ()))
         self.backend_queue.put((self._autoSaveFileHandlingTC, ()))
 
-    def _instantiateBasicFolderStructurTC(self, folders):
+    def _instantiateBasicFolderStructurTQ(self, folders):
         print(f"#9028u30 in _instantiateFolderStructurTQ")
         for folder in folders:
-            tools._checkForAndCreatePath(path=folder)
+            tools.createPathWithExistsCheck(path_here=folder)
 
     def _instantiateBasicFolderStructur(self, folders):
-        self.backend_queue.put((self._instantiateBasicFolderStructurTC, folders))
+        self.backend_queue.put((self._instantiateBasicFolderStructurTQ, folders))
 
     # todo did not work out to command sg.window from outside Thread but it is needed to work out this:
     #  invalid command name "140326498775872showtip"
@@ -502,7 +498,7 @@ if __name__ == '__main__':
 
     # debug_printer = DebugPrinter() #achtung removes all console output,
                                      #achtung despite its name its really bad for debuging while dev xD
-    setCWDbashFix()
+    cwdBashFix()
     main_gui_task_atack = TaskAttack(base_file="base.tak")
 
 # add short keys
@@ -538,6 +534,7 @@ if __name__ == '__main__':
 
 # todo think maybe make a sort of game out of this like get points for accomplished task etc
 
+# todo dataloss prevention save gets pycharm folder
 
 
 # remember beauty look out for chances to easily improve performance
@@ -549,6 +546,6 @@ if __name__ == '__main__':
 # or shouldnt i change it in case for later improvements whit exact time?!?
 # as is write this down here i think i shouldnt
 
-
+#todo window displays itself over result programm
 
 

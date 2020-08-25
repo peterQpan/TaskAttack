@@ -43,9 +43,9 @@ class Option:
     def sStandardAutosaveFolder(self):
         return self._standardAutoSaveFolder(self.standard_main_folder)
     def sAutosaveAmount(self):
-        return self.autosave_amount
+        return int(self.autosave_amount)
     def sAutosaveAmountType(self):
-        return self.autosave_amount
+        return self.autosave_amount_type
     def sLanguage(self):
         return self.language
     def sDisabledFolderUsage(self):
@@ -55,7 +55,7 @@ class Option:
     def sAutoSaveHandling(self):
         return self.autosave_handling
 
-    def _oneOfTwo(self, either_true, or_false, condition_one="disabled_folder_usage", condition_two="ind"):
+    def _oneOfTwo(self, either_true, or_false, condition_one="disabled_folder_usage", condition_two="std"):
         """just beats redundancy """
         if self.__getattribute__(condition_one) == condition_two:
             return either_true()
@@ -67,9 +67,6 @@ class Option:
         return self._oneOfTwo(self.sResultFolder, self.sStandardResultFolder)
     def sUsedAutosavePath(self):
         return self._oneOfTwo(self.sAutosaveFolder, self.sStandardAutosaveFolder)
-
-
-
 
     def _setInternationalisationLanguage(self, language):
         """
@@ -133,9 +130,10 @@ class Option:
         settings = OptionWindow().optionWindow(settings=self.sSettings())
         if settings:
             #print(f"self dict: {self.__dict__}")
-            #print(f"updd dict: {settings}")
+            print(f"updd dict: {settings}")
             self.__dict__.update(settings)
             self.saveSettings()
+            print(f"#09923 self.dict: {self.__dict__}")
 
 
 

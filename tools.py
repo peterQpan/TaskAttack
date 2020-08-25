@@ -6,9 +6,8 @@ import datetime
 import os
 import subprocess
 import sys
-import threading
 import time
-from os import getcwd
+import warnings
 
 from pip._vendor.colorama import Fore
 
@@ -95,6 +94,15 @@ def nowDateTime():
     """
     return datetime.datetime(*time.localtime()[:6])
 
+def eventIsNotNone(event):
+    """checks event for None, Abbrechen
+    :param event: sg.window.read()[0]
+    :return: true if not close or Abrechen>>>inter.cancel it is dynamic
+    """
+    if event and event != inter.cancel:
+        return True
+    return False
+
 def printMatrix(casenumber, matrix):
     """debug help print"""
     f = Fore.YELLOW
@@ -114,16 +122,14 @@ def openExternalFile(file_path:str  #, threads:list
     # threads.append(thread)
     subprocess.Popen([f"xdg-open", f"{file_path}"])
 
-def getUserHomeStandardFolders(folder="DOCUMENTS"):
-    try:
-        documents_dir = subprocess.check_output(["xdg-user-dir", "DOCUMENTS"], universal_newlines=True).strip()
-    except Exception as e:
-        print(f"{Fore.RED}ERROR #02893787ihnl -->  {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
 
-        documents_dir = subprocess.check_output(["xdg-user-dir"], universal_newlines=True).strip()
-    return documents_dir
+# todo delte deprecation 2020-08-27
+def getUserHomeStandardFolders(folder="DOCUMENTS"):
+    warnings.warn("use tools.path", DeprecationWarning)
+    return path.getUserHomeStandardFolders(folder=folder)
 
 def venvAbsPath(file_path:str):
+    warnings.warn(message="won't work propperly", category=DeprecationWarning)
     """
     faces os.path.abspath's problems with venv
     :param file_path:
@@ -132,101 +138,143 @@ def venvAbsPath(file_path:str):
     cwd = os.getcwd()
     return cwd + file_path
 
-def completeFilePathWithExtension(file_path, target_extension: str = ".tak"):
+def ensureFilePathExtension(file_path, target_extension: str = ".tak"):
     """
     checks file path for ".ext" and adds it if necessary
     :param file_path: "file_path_string"
     :return: "some "file_path_string.tak"
     """
-    file_name, extension = os.path.splitext(file_path)
-    if not extension:
-        file_path += target_extension
-    return file_path
+    warnings.warn("use tools.path", DeprecationWarning)
+    return path.ensureFilePathExtension(file_path=file_path, target_extension=target_extension)
 
-def setCWDbashFix():
+def cwdBashFix():
+    """
+    sets current working directory to path in which py file resides instead of path of starting bash file
+    """
+    warnings.warn("use tools.path", DeprecationWarning)
+    path.cwdBashFix()
     main_file_path = __file__
     main_path = os.path.split(main_file_path)
     os.chdir(main_path[0])
 
-def eventIsNotNone(event):
-    """checks event for None, Abbrechen
-    :param event: sg.window.read()[0]
-    :return: true if not close or Abrechen>>>inter.cancel it is dynamic
-    """
-    if event and event != inter.cancel:
-        return True
-    return False
+def createPathWithExistsCheck(path_here: "must be abspath"):
+    warnings.warn("use tools.path", DeprecationWarning)
+    path.ensurePathExists(path_here=path_here)
+    
+def createPathFromFilePathWithExistsCheck(file_path):
+    warnings.warn("use tools.path", DeprecationWarning)
+    path.createPathFromFilePathWithExistsCheck(file_path=file_path)
+
+def separateExistingFromDemandedPaths(file_path, folders=()):
+    warnings.warn("use tools.path", DeprecationWarning)
+    return path.separateExistingFromDemandedPaths(file_path=file_path)
+
+def chreateRootDestinguishedPaths(user_path, base_path):
+    warnings.warn("use tools.path", DeprecationWarning)
+    return path.chreateRootDestinguishedPaths(user_path=user_path, base_path=base_path)
 
 
+class path:
 
-def _checkForAndCreatePath(path:"must be abspath"):
-    existing_path, demanded_paths = separateExistingFromDemandedPathsRecursively(file_path=path)
-    if demanded_paths:
-        for path in demanded_paths:
-            path_to_create = os.path.join(existing_path, path)
-            os.mkdir(path=path_to_create)
-            existing_path = path_to_create
+    @staticmethod
+    def ensurePathExists(path_here: "must be abspath"):
+        """creates path if not exist, no matter how deep nested demanded path is
+        :param path_here: must have at least root directory a totally new path structure will not been created"""
+        if not os.path.exists(path_here):
+            existing_path, demanded_paths = path.separateExistingFromDemandedPaths(file_path=path_here)
+            if demanded_paths and existing_path:
+                for path_here in demanded_paths:
+                    path_to_create = os.path.join(existing_path, path_here)
+                    os.mkdir(path=path_to_create)
+                    existing_path = path_to_create
 
+    @staticmethod
+    def createPathFromFilePathWithExistsCheck(file_path):
+        """creates path from complete  if not exist, no matter how deep nested demanded path is"""
+        path, _ = os.path.split(file_path)
+        print(f"in path creation: {path}")
+        path.ensurePathExists(path)
 
-def _checkForAndCreatePathFromFilePath(file_path):
-    path, _ = os.path.split(file_path)
-    print(f"in path creation: {path}")
-    _checkForAndCreatePath(path)
-
-
-def separateExistingFromDemandedPathsRecursively(file_path, folders=()):
-    #todo is this realy an file_path or is it an path?!?
-    if os.path.exists(file_path):
-        if file_path == os.sep:
-            file_path = None
-        if folders:
-            folders = folders[::-1]
-            return file_path, folders
+    @staticmethod
+    def chreateRootDestinguishedPaths(user_path, base_path):
+        """
+        distinguishes between root based paths and incomplete paths,
+        if incomplete path is provided, base path is taken as root
+        then creates all paths they not exist and are needed to make sense of user_path
+        :param user_path: user path may be root based path or incomplete path, con be existing path or non existing path
+        :param base_path: path taken as root if user path has is not root based
+        :return: path that is distinguished corresponding to user inputs and existend
+        """
+        if os.path.exists(user_path):
+            return user_path
+        existing_path, new_folders = path.separateExistingFromDemandedPaths(user_path)
+        if existing_path:
+            base_path = existing_path
+            for folder in new_folders:
+                new_path = os.path.join(base_path, folder)
+                os.mkdir(new_path)
+                base_path = new_path
         else:
-            return file_path, None
-    elif not file_path and folders:
-        folders = folders[::-1]
-        return None, folders
-    else:
-        file_path, folder = os.path.split(file_path)
-        folders = (*folders, folder)
-        return separateExistingFromDemandedPathsRecursively(file_path, folders)
+            for folder in new_folders:
+                new_path = os.path.join(base_path, folder)
+                os.mkdir(new_path)
+                base_path = new_path
+        return base_path
 
-
-def userPath(file_path):
-    folders = []
-    while True:
+    @staticmethod
+    def separateExistingFromDemandedPaths(file_path:str, folders=()):
+        """
+        :param folders: only needed for recursion dont use it extern
+        :return: tuple(file_path, representing the already existing part of file path,
+                       list(folders that represent path parts that not exist))
+        """
+        # todo is this realy an file_path or is it an path?!?
         if os.path.exists(file_path):
             if file_path == os.sep:
                 file_path = None
             if folders:
-                folders.reverse()
+                folders = folders[::-1]
                 return file_path, folders
             else:
                 return file_path, None
+        elif not file_path and folders:
+            folders = folders[::-1]
+            return None, folders
         else:
             file_path, folder = os.path.split(file_path)
-            if folder:
-                folders.append(folder)
-            else:
-                if folders:
-                    folders.reverse()
-                    return None, folders
+            folders = (*folders, folder)
+            return path.separateExistingFromDemandedPaths(file_path, folders)
+
+    @staticmethod
+    def getUserHomeStandardFolders(folder="DOCUMENTS"):
+        try:
+            documents_dir = subprocess.check_output(["xdg-user-dir", "DOCUMENTS"], universal_newlines=True).strip()
+        except Exception as e:
+            print(f"{Fore.RED}ERROR #02893787ihnl -->  {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
+
+            documents_dir = subprocess.check_output(["xdg-user-dir"], universal_newlines=True).strip()
+        return documents_dir
+
+    @staticmethod
+    def ensureFilePathExtension(file_path, target_extension: str = ".tak"):
+        """
+        checks file path for ".ext" and adds it if necessary
+        :param file_path: "file_path_string"
+        :return: "some "file_path_string.tak"
+        """
+        file_name, extension = os.path.splitext(file_path)
+        if not extension:
+            file_path += target_extension
+        return file_path
 
 
-def chreateRootDestinguishedPaths(possible_user_path, base_path):
-    existing_path, new_folders = separateExistingFromDemandedPathsRecursively(possible_user_path)
-    if existing_path:
-        new_path = existing_path
-        for folder in new_folders:
-            new_path = os.path.join(new_path, folder)
-            os.mkdir(new_path)
-    else:
-        new_path = base_path
-        for folder in new_folders:
-            new_path = os.path.join(new_path, folder)
-            os.mkdir(new_path)
-    return new_path
-
+    @staticmethod
+    def cwdBashFix():
+        """
+        sets current working directory to path in which py file resides instead of path of starting bash file
+        """
+        main_file_path = __file__
+        main_path = os.path.split(main_file_path)
+        os.chdir(main_path[0])
 
 #todo refactor all path related functions into an path class

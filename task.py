@@ -265,8 +265,6 @@ class Task:
         """
         :return: flat list all tasks hierarchically deeper than self or self
         """
-        print(f"# kjla name: {self.__class__.__name__}, subtasks: {self.sub_tasks}")
-
         if not self.sub_tasks:
             return [self]
         else:
@@ -515,24 +513,36 @@ class Taskmanager:
             span_here += projekt.rowExpansion()
 
     def addMasterTaskPlaceholderStrings(self, display_matrix):
+        # todo 2020-09-01 programm works just fine without this method and i cant remember what it was used for
+        #  delete it if there is no trouble till the time
         """
         adds master-tree-placeholder-str to display matrix
         :param display_matrix: task filled list of list
-        :return: dask and master-string filled lost of list
+        :return: Task and master-string filled lost of list
         """
+        # todo this function makes no sense on second thought
         display_matrix_to_work_on = copy.deepcopy(display_matrix)
         for y_index, y in enumerate(display_matrix):
             actual_task = None
-            # print(f"y_index: {y_index}, y: {y}")
             for x_index, x in enumerate(y):
-                # print(f"x_index: {x_index}, x: {x}")
                 if isinstance(x, Task):
                     all_masters_strings_list = x.hierarchyTreePositionString()
-                    actual_tasfile_typek = ">".join(all_masters_strings_list)
+                    # actual_taskfile_type = ">".join(all_masters_strings_list)
                 else:
                     if actual_task:
                         display_matrix_to_work_on[y_index][x_index] = actual_task
         return display_matrix_to_work_on
+        # display_matrix_to_work_on = copy.deepcopy(display_matrix)
+        # for y_index, y in enumerate(display_matrix):
+        #     actual_task = None
+        #     for x_index, x in enumerate(y):
+        #         if isinstance(x, Task):
+        #             all_masters_strings_list = x.hierarchyTreePositionString()
+        #             # actual_taskfile_type = ">".join(all_masters_strings_list)
+        #         else:
+        #             if actual_task:
+        #                 display_matrix_to_work_on[y_index][x_index] = actual_task
+        # return display_matrix_to_work_on
 
     def displayMatrix(self):
         """
@@ -544,15 +554,14 @@ class Taskmanager:
 
         self.recognizeMatrixPositions()
         self.task_matrix = self.createTaskMatix()
-        display_matrix = self.addMasterTaskPlaceholderStrings(self.task_matrix)
+        #display_matrix = self.addMasterTaskPlaceholderStrings(self.task_matrix)
+        display_matrix = self.task_matrix
         return display_matrix
 
     def allSubordinatedTasks(self):
         """
         :return: flat list all tasks hierarchically deeper than self or self
         """
-
-        print(f"# kjla name: {self.__class__.__name__}, subtasks: {self.sub_tasks}")
         if not self.sub_tasks:
             return []
         else:
@@ -567,7 +576,6 @@ class Taskmanager:
         def renewal(subtasks):
             while True:
                 time.sleep(7200)
-                # print(f"#09u09u recursive reset triggered in thread")
                 [subtask.recursiveConditionalTimedeltaReset() for subtask in subtasks]
 
         self.renewal_thread = threading.Thread(target=renewal, args=(self.sub_tasks,), daemon=True)
