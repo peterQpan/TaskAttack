@@ -45,7 +45,7 @@ class Option:
     def sAutosaveAmount(self):
         return self.autosave_amount
     def sAutosaveAmountType(self):
-        return self.autosave_amount
+        return self.autosave_amount_type
     def sLanguage(self):
         return self.language
     def sDisabledFolderUsage(self):
