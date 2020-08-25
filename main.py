@@ -9,7 +9,7 @@ import queue
 import sys
 import time
 import warnings
-from datetime import datetime, timedelta
+from datetime import timedelta
 from threading import Thread
 
 import PySimpleGUI as sg
@@ -21,7 +21,7 @@ from gui_elements import TaskInputWindowCreator, TaskFrameCreator, MyGuiToolbox,
 from internationalisation import inter
 from option import Option
 from task import Taskmanager, Task
-from tools import cwdBashFix, DebugPrinter, nowDateTime
+from tools import cwdBashFix, nowDateTime
 
 
 class TaskAttack:

@@ -6,10 +6,8 @@ import datetime
 import os
 import subprocess
 import sys
-import threading
 import time
 import warnings
-from os import getcwd
 
 from pip._vendor.colorama import Fore
 

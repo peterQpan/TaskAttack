@@ -9,7 +9,6 @@ import shutil
 import textwrap
 import time
 from copy import deepcopy
-from threading import Thread
 from time import strftime
 
 import PySimpleGUI as sg
