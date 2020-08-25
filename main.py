@@ -152,8 +152,8 @@ class TaskAttack:
         self.unsaved_project = False
         file_path = sg.PopupGetFile(message=inter.save_at, save_as=True, file_types=(("TaskAtack", "*.tak"),),
                                     initial_folder=self.sLastUsedFolder(), keep_on_top=True, default_extension=".tak")
-        file_path = tools.ensureFilePathExtension(file_path)
         if file_path:
+            file_path = tools.path.ensureFilePathExtension(file_path)
             self.last_file_path = file_path
             self.taskmanager.save(file_path)
 
