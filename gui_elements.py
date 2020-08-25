@@ -255,7 +255,7 @@ class ResultFileCreator:
     def _fetchResultFileParameters(self, values, file_ext, window):
         """gets filename and short description from popup window and returns it"""
         file_name = values['-FILE-NAME-']
-        file_path = tools.completeFilePathWithExtension(file_name, file_ext)
+        file_path = tools.ensureFilePathExtension(file_name, file_ext)
         short_description = values['-SHORT_DESCRIPTIOM-']
         window.close()
         return file_path, short_description
@@ -285,7 +285,7 @@ class ResultFileCreator:
             possible_user_path, user_file_name = os.path.split(user_file_name)
             if not possible_user_path:
                 print(f"#09uio1 suggested path: {suggested_path}")
-                tools._checkForAndCreatePath(suggested_path)
+                tools.createPathWithExistsCheck(suggested_path)
                 save_file_path = os.path.join(suggested_path, user_file_name)
             elif os.path.exists(possible_user_path):
                 save_file_path = os.path.join(possible_user_path, user_file_name)
@@ -293,7 +293,7 @@ class ResultFileCreator:
 
             elif possible_user_path:
 
-                save_path = tools.chreateRootDestinguishedPaths(possible_user_path, base_path, result_path)
+                save_path = tools.chreateRootDestinguishedPaths(user_path=possible_user_path, base_path=result_path)
 
 
                 save_file_path = os.path.join(save_path, user_file_name)

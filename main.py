@@ -21,7 +21,7 @@ from gui_elements import TaskInputWindowCreator, TaskFrameCreator, MyGuiToolbox,
 from internationalisation import inter
 from option import Option
 from task import Taskmanager, Task
-from tools import setCWDbashFix, DebugPrinter, nowDateTime
+from tools import cwdBashFix, DebugPrinter, nowDateTime
 
 
 class TaskAttack:
@@ -152,7 +152,7 @@ class TaskAttack:
         self.unsaved_project = False
         file_path = sg.PopupGetFile(message=inter.save_at, save_as=True, file_types=(("TaskAtack", "*.tak"),),
                                     initial_folder=self.sLastUsedFolder(), keep_on_top=True, default_extension=".tak")
-        file_path = tools.completeFilePathWithExtension(file_path)
+        file_path = tools.ensureFilePathExtension(file_path)
         if file_path:
             self.last_file_path = file_path
             self.taskmanager.save(file_path)
@@ -440,7 +440,7 @@ class TaskAttack:
     def _instantiateBasicFolderStructurTC(self, folders):
         print(f"#9028u30 in _instantiateFolderStructurTQ")
         for folder in folders:
-            tools._checkForAndCreatePath(path=folder)
+            tools.createPathWithExistsCheck(path=folder)
 
     def _instantiateBasicFolderStructur(self, folders):
         self.backend_queue.put((self._instantiateBasicFolderStructurTC, folders))
@@ -502,7 +502,7 @@ if __name__ == '__main__':
 
     # debug_printer = DebugPrinter() #achtung removes all console output,
                                      #achtung despite its name its really bad for debuging while dev xD
-    setCWDbashFix()
+    cwdBashFix()
     main_gui_task_atack = TaskAttack(base_file="base.tak")
 
 # add short keys
@@ -549,6 +549,6 @@ if __name__ == '__main__':
 # or shouldnt i change it in case for later improvements whit exact time?!?
 # as is write this down here i think i shouldnt
 
-
+#todo window displays itself over result programm
 
 
