@@ -394,9 +394,8 @@ class TaskAttack:
     def _stopBackEndThread(self):
         self.backend_queue.put(("###breakbreakbreak###", None))
 
-    def _autoSaveTC(self):
-        print(f"#238923 in autosaveTQ")
-        self.taskmanager.save(os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"))
+    def _autoSaveTC(self): #TC: Thread Command
+        self.taskmanager.save(os.path.join(self.opt.sUsedAutosavePath(), f"autosave-{tools.nowDateTime()}.tak"))
 
     def _autoSaveFileHandlingTC(self):
         print(f"#09u10 in _autosaveFileHandlinTQ")
