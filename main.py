@@ -416,15 +416,16 @@ class TaskAttack:
                 print(f"#029384 autosave amount: {self.opt.sAutosaveAmount()}")
                 file_paths_for_deletion = all_file_paths[:-self.opt.sAutosaveAmount()]
                 [(print(f"file will be deleted: {file}", end=""     )) for file in file_paths_for_deletion]
-                print(f"all files: {len(all_auto_save_files)}, files for deletion {len(file_paths_for_deletion)}")
-                # achtung [os.remove(file) for file in file_paths_for_deletion]
+                print(f"\nall files: {len(all_auto_save_files)}, files for deletion {len(file_paths_for_deletion)}")
+                # achtung
+                [os.remove(file) for file in file_paths_for_deletion]
             elif self.opt.sAutosaveAmountType() == inter.days:
                 timestamp = self._deltionTimeStamp(self.opt.sAutosaveAmount())
                 file_paths_for_deletion = [file for file in all_file_paths if os.path.getmtime(file) < timestamp]
                 [(print(f"file will be deleted: {file}")) for file in file_paths_for_deletion]
                 print(f"all files: {len(all_auto_save_files)}, files for deletion {len(file_paths_for_deletion)}")
-
-                # achtung [os.remove(file) for file in file_paths_for_deletion]
+                # achtung
+                [os.remove(file) for file in file_paths_for_deletion]
 
     def autoSave(self):
         """perform auto save in a threat
