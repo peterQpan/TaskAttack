@@ -555,7 +555,6 @@ class Taskmanager:
         self.recognizeMatrixPositions()
         self.task_matrix = self.createTaskMatix()
         #display_matrix = self.addMasterTaskPlaceholderStrings(self.task_matrix)
-        self.addMasterTaskPlaceholderStrings()
         display_matrix = self.task_matrix
         return display_matrix
 

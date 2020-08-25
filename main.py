@@ -35,7 +35,7 @@ class TaskAttack:
         #self.auto_save_thread:Thread = None #now ther will be more worker threads in the back so this changes
         self._clipboard:Task = None
         self._extern_threads = []
-        self.last_file_path_depre = ""
+        self.last_file_path = base_file if base_file else ""
 
         self.backend_queue = queue.Queue()
         self.back_end_thread = self._startBackEndThread()
@@ -60,15 +60,16 @@ class TaskAttack:
                 folders=(self.opt.sUsedMainFolder(), self.opt.sUsedResultFolder(), self.opt.sUsedAutosavePath()))
         self.mainLoop()
 
-    @property
-    def last_file_path(self):
-        warnings.warn("last_file_path is deprecated with optipons_file_settings", DeprecationWarning)
-        return self.last_file_path_depre
-
-    @last_file_path.setter
-    def last_file_path(self, value):
-        warnings.warn("last_file_path is deprecated with options_file_settings", DeprecationWarning)
-        self.last_file_path_depre = value
+    #     #todo make a base file in option
+    # @property
+    # def last_file_path(self):
+    #     #warnings.warn("last_file_path is deprecated with optipons_file_settings", DeprecationWarning)
+    #     return self.last_file_path_depre
+    #
+    # @last_file_path.setter
+    # def last_file_path(self, value):
+    #     #warnings.warn("last_file_path is deprecated with options_file_settings", DeprecationWarning)
+    #     self.last_file_path_depre = value
 
     @staticmethod
     def sMenuBar():
