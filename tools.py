@@ -157,9 +157,9 @@ def cwdBashFix():
     main_path = os.path.split(main_file_path)
     os.chdir(main_path[0])
 
-def createPathWithExistsCheck(path: "must be abspath"):
+def createPathWithExistsCheck(path_here: "must be abspath"):
     warnings.warn("use tools.path", DeprecationWarning)
-    path.createPathWithExistsCheck(path=path)
+    path.ensurePathExists(path_here=path_here)
     
 def createPathFromFilePathWithExistsCheck(file_path):
     warnings.warn("use tools.path", DeprecationWarning)
@@ -177,14 +177,14 @@ def chreateRootDestinguishedPaths(user_path, base_path):
 class path:
 
     @staticmethod
-    def createPathWithExistsCheck(path: "must be abspath"):
+    def ensurePathExists(path_here: "must be abspath"):
         """creates path if not exist, no matter how deep nested demanded path is
-        :param path: must have at least root directory a totally new path structure will not been created"""
-        if not os.path.exists(path):
-            existing_path, demanded_paths = path.separateExistingFromDemandedPaths(file_path=path)
+        :param path_here: must have at least root directory a totally new path structure will not been created"""
+        if not os.path.exists(path_here):
+            existing_path, demanded_paths = path.separateExistingFromDemandedPaths(file_path=path_here)
             if demanded_paths and existing_path:
-                for path in demanded_paths:
-                    path_to_create = os.path.join(existing_path, path)
+                for path_here in demanded_paths:
+                    path_to_create = os.path.join(existing_path, path_here)
                     os.mkdir(path=path_to_create)
                     existing_path = path_to_create
 
@@ -193,7 +193,7 @@ class path:
         """creates path from complete  if not exist, no matter how deep nested demanded path is"""
         path, _ = os.path.split(file_path)
         print(f"in path creation: {path}")
-        path.createPathWithExistsCheck(path)
+        path.ensurePathExists(path)
 
     @staticmethod
     def chreateRootDestinguishedPaths(user_path, base_path):

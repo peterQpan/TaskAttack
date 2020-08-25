@@ -437,13 +437,13 @@ class TaskAttack:
         self.backend_queue.put((self._autoSaveTC, ()))
         self.backend_queue.put((self._autoSaveFileHandlingTC, ()))
 
-    def _instantiateBasicFolderStructurTC(self, folders):
+    def _instantiateBasicFolderStructurTQ(self, folders):
         print(f"#9028u30 in _instantiateFolderStructurTQ")
         for folder in folders:
-            tools.createPathWithExistsCheck(path=folder)
+            tools.createPathWithExistsCheck(path_here=folder)
 
     def _instantiateBasicFolderStructur(self, folders):
-        self.backend_queue.put((self._instantiateBasicFolderStructurTC, folders))
+        self.backend_queue.put((self._instantiateBasicFolderStructurTQ, folders))
 
     # todo did not work out to command sg.window from outside Thread but it is needed to work out this:
     #  invalid command name "140326498775872showtip"
@@ -538,6 +538,7 @@ if __name__ == '__main__':
 
 # todo think maybe make a sort of game out of this like get points for accomplished task etc
 
+# todo dataloss prevention save gets pycharm folder
 
 
 # remember beauty look out for chances to easily improve performance

@@ -161,7 +161,7 @@ class MyGuiToolbox:
         :param keep_on_top: If True, window will be created on top of all other windows on screen.
         :return: True or False corresponding to users button click
         """
-        layout = [[sg.Text(text=text)],
+        layout = [[sg.Text(text=text, auto_size_text=True)],
                   MyGuiToolbox._okCancelLine(ok_button=ok_button, cancel_button=cancel_button,
                                              key_ok=key_ok, key_cancel=key_cancel)]
         window = sg.Window(title=title, layout=layout, auto_size_buttons=True, keep_on_top=keep_on_top, size=size)
@@ -194,7 +194,8 @@ class ResultFileCreator:
                                 inter.gimp: ("/templates/gimp_template.xcf", ".xcf"),
                                 inter.svg: ("/templates/inkscape_template.svg", ".svg")}
 
-    def _newLayout(self, file_name, result_path, file_ext, kind_of_program):
+    @staticmethod
+    def _newLayout(file_name, result_path, file_ext, kind_of_program):
         """creates new layout for file name / save as; short descripton pop up window"""
         print(f"initial folder: {os.path.join(result_path, os.path.split(file_name)[0])}")
 
@@ -208,7 +209,8 @@ class ResultFileCreator:
                             sg.Ok()]
         return [file_name_line, description_line]
 
-    def _correctInputEnforcement(self, window, values):
+    @staticmethod
+    def _correctInputEnforcement(window, values):
         """
         takes care that short description dont gets longer than 30 figures
         and that not the file_name <-> short desciption seperator gets used by the user
@@ -231,8 +233,8 @@ class ResultFileCreator:
         while True:
             event, values = window.read()
             print(F"#099823 event: {event}; vlues: {values}")
-            if event is None:
-                return None
+            if event in (sg.WIN_CLOSED ,None):
+                return False, False
             elif event == '-SHORT_DESCRIPTIOM-':
                 self._correctInputEnforcement(window=window, values=values)
             elif event == "Ok":  # could be else but for fast later additions withoutt trouble i will be very precise
@@ -240,21 +242,17 @@ class ResultFileCreator:
                     values=values, file_ext=file_ext, window=window)
                 return file_name, short_description
 
-    # def _checkForAndCreatePath(self, file_path):
-    #     target_path, _ = os.path.split(file_path)
-    #     if not os.path.exists(target_path):
-    #         os.mkdir(target_path)
-
-    def _copyFileTemplateAndOpenExternalApplicationToEditIt(self, kind_of_porogramm, file_path):
+    def _createAndOpenResultFile(self, kind_of_porogramm, file_path):
         template_file_path = self._file_templates[kind_of_porogramm][0]
         shutil.copy(tools.venvAbsPath(template_file_path), file_path)
         tools.openExternalFile(file_path=file_path  # , threads=self._external_threads
                                )
 
-    def _fetchResultFileParameters(self, values, file_ext, window):
+    @staticmethod
+    def _fetchResultFileParameters(values, file_ext, window):
         """gets filename and short description from popup window and returns it"""
         file_name = values['-FILE-NAME-']
-        file_path = tools.ensureFilePathExtension(file_name, file_ext)
+        file_path = tools.path.ensureFilePathExtension(file_name, file_ext)
         short_description = values['-SHORT_DESCRIPTIOM-']
         window.close()
         return file_path, short_description
@@ -265,48 +263,35 @@ class ResultFileCreator:
         :param result_path: result path fetched from option.Option, no direct access here, so no import needed
         :param kind_of_porogram: inter.presentation, inter.spreadsheet, etc...
         """
-        # todo beauty, this method have to be more modularised
         suggested_path, suggested_file_name = task.suggestetFileName(result_path)
 
-
         while True:
-            try:
-                user_file_name, short_description = self._newResultFilePopup(
-                    suggested_file_name=suggested_file_name,
-                    result_path=result_path, kind_of_program=kind_of_porogramm,
-                    file_ext=self._file_templates[kind_of_porogramm][1],)
-                print(f"#09232223 user file path: {user_file_name}, short description: {short_description}")
-            except TypeError as e:
-                print(f"{Fore.RED}ERROR #92083u32oi -->  {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
+            user_file_path, description = self._newResultFilePopup(
+                    suggested_file_name=suggested_file_name, result_path=result_path,
+                    kind_of_program=kind_of_porogramm, file_ext=self._file_templates[kind_of_porogramm][1],)
+
+            if user_file_path is False and description is False:
                 break
-            if user_file_name.startswith(os.sep):
-                user_file_name = user_file_name[1:]
-            possible_user_path, user_file_name = os.path.split(user_file_name)
-            if not possible_user_path:
-                print(f"#09uio1 suggested path: {suggested_path}")
-                tools.createPathWithExistsCheck(suggested_path)
+
+            if user_file_path.startswith(os.sep): user_file_path = user_file_path[1:]
+            user_path, user_file_name = os.path.split(user_file_path)
+            
+            if not user_path:
+                tools.path.ensurePathExists(suggested_path)
                 save_file_path = os.path.join(suggested_path, user_file_name)
-            elif os.path.exists(possible_user_path):
-                save_file_path = os.path.join(possible_user_path, user_file_name)
-
-
-            elif possible_user_path:
-
-                save_path = tools.chreateRootDestinguishedPaths(user_path=possible_user_path, base_path=result_path)
-
-
-                save_file_path = os.path.join(save_path, user_file_name)
+            elif os.path.exists(user_path):
+                save_file_path = user_file_path
             else:
-                raise AssertionError("#9817298 irgendetwas nicht bedacht")
+                save_path = tools.path.chreateRootDestinguishedPaths(user_path=user_path, base_path=result_path)
+                save_file_path = os.path.join(save_path, user_file_name)
 
-
-
-
-            if os.path.exists(save_file_path):
-                if not MyGuiToolbox.YesNoPopup(title=inter.save_at, text=inter.allready_exists_override):
+            if os.path.isfile(save_file_path):
+                if not MyGuiToolbox.YesNoPopup(title=inter.save_at, size=(None, None),
+                                               text=f"{save_file_path}{inter.already_exists_override}"):
                     continue
-            self._copyFileTemplateAndOpenExternalApplicationToEditIt(kind_of_porogramm, save_file_path)
-            task.addResultsFileAndDescription(save_file_path, short_description)
+                    
+            self._createAndOpenResultFile(kind_of_porogramm, save_file_path)
+            task.addResultsFileAndDescription(save_file_path, description)
             break
 
 

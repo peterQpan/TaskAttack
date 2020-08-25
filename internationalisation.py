@@ -119,6 +119,8 @@ class Internationalisation:
 
         self.no_autosave_deletion = "Kein Löschen der Autospeicherdateien"
         self.autosave_deletion = "Autospeicherdateien löschen bis auf"
+        self.already_exists_override = "\nbesteht bereits!!!\nÜberschreiben?"
+
 
 
     def _setEnglish(self):
@@ -207,6 +209,7 @@ class Internationalisation:
 
         self.no_autosave_deletion = "No auto save file deletion"
         self.autosave_deletion = "Delete auto save files to"
+        self.already_exists_override = "\nalready exists!!!\nOverride?"
 
 
 
