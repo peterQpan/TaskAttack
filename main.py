@@ -402,33 +402,27 @@ class TaskAttack:
         # todo function is finished, must be but in place, question is,
         #  shall i make many threads for every function like this or implement an single queue.get(block=True)
         #  controlled thread (bring autosave thread in here too than)
+        print(f"#09233 autosavefilehandlingTC: opt.autosave_handling{self.opt.autosave_handling}; autosaveamounttype: {self.opt.sAutosaveAmountType()}")
         if self.opt.autosave_handling:
             autosave_path = self.opt.sUsedAutosavePath()
             all_auto_save_files = os.listdir(autosave_path)
             all_auto_save_files.sort()
             all_file_paths = [os.path.join(autosave_path, file) for file in all_auto_save_files]
 
+            # todo actual workplace opt.AutosaveAmountType is realy autosaveamount, not type
+
             if self.opt.sAutosaveAmountType() == inter.pieces:
                 file_paths_for_deletion = all_file_paths[:-self.opt.sAutosaveAmount()]
                 [(print(f"file will be deleted: {file}", end=""     )) for file in file_paths_for_deletion]
                 print(f"all files: {len(all_auto_save_files)}, files for deletion {len(file_paths_for_deletion)}")
                 # achtung [os.remove(file) for file in file_paths_for_deletion]
-            else:
+            elif self.opt.sAutosaveAmountType() == inter.days:
                 timestamp = self._deltionTimeStamp(self.opt.sAutosaveAmount())
                 file_paths_for_deletion = [file for file in all_file_paths if os.path.getmtime(file) < timestamp]
                 [(print(f"file will be deleted: {file}")) for file in file_paths_for_deletion]
                 print(f"all files: {len(all_auto_save_files)}, files for deletion {len(file_paths_for_deletion)}")
 
                 # achtung [os.remove(file) for file in file_paths_for_deletion]
-
-    # def autoSave(self):
-    #     """perform auto save in a threat
-    #     """
-    #     thread = Thread(
-    #             target=self.taskmanager.save,
-    #             args=(os.path.join("autosave", f"autosave-{tools.nowDateTime()}.tak"),))
-    #     thread.start()
-    #     self.backend_threads.append(thread)
 
     def autoSave(self):
         """perform auto save in a threat
