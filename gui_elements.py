@@ -166,7 +166,6 @@ class MyGuiToolbox:
                                              key_ok=key_ok, key_cancel=key_cancel)]
         window = sg.Window(title=title, layout=layout, auto_size_buttons=True, keep_on_top=keep_on_top, size=size)
         event, values = window.read()
-        print(F"#092976o23 event: {event}; vlues: {values}")
 
         window.close()
         if event == key_ok:
@@ -490,7 +489,6 @@ class TaskInputWindowCreator:
         subtask dont prolong master task"""
         while True:
             event, values = window.read()
-            print(F"#897868912 event: {event}; vlues: {values}")
 
             if event in {inter.cancel, None}:
                 break

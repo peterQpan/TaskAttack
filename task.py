@@ -265,8 +265,6 @@ class Task:
         """
         :return: flat list all tasks hierarchically deeper than self or self
         """
-        print(f"# kjla name: {self.__class__.__name__}, subtasks: {self.sub_tasks}")
-
         if not self.sub_tasks:
             return [self]
         else:
@@ -520,15 +518,14 @@ class Taskmanager:
         :param display_matrix: task filled list of list
         :return: dask and master-string filled lost of list
         """
+
         display_matrix_to_work_on = copy.deepcopy(display_matrix)
         for y_index, y in enumerate(display_matrix):
             actual_task = None
-            # print(f"y_index: {y_index}, y: {y}")
             for x_index, x in enumerate(y):
-                # print(f"x_index: {x_index}, x: {x}")
                 if isinstance(x, Task):
                     all_masters_strings_list = x.hierarchyTreePositionString()
-                    actual_tasfile_typek = ">".join(all_masters_strings_list)
+                    # actual_taskfile_type = ">".join(all_masters_strings_list) todo ??? what is this line for?!?
                 else:
                     if actual_task:
                         display_matrix_to_work_on[y_index][x_index] = actual_task
@@ -551,8 +548,6 @@ class Taskmanager:
         """
         :return: flat list all tasks hierarchically deeper than self or self
         """
-
-        print(f"# kjla name: {self.__class__.__name__}, subtasks: {self.sub_tasks}")
         if not self.sub_tasks:
             return []
         else:
@@ -567,7 +562,6 @@ class Taskmanager:
         def renewal(subtasks):
             while True:
                 time.sleep(7200)
-                # print(f"#09u09u recursive reset triggered in thread")
                 [subtask.recursiveConditionalTimedeltaReset() for subtask in subtasks]
 
         self.renewal_thread = threading.Thread(target=renewal, args=(self.sub_tasks,), daemon=True)

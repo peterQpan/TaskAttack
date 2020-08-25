@@ -43,7 +43,7 @@ class Option:
     def sStandardAutosaveFolder(self):
         return self._standardAutoSaveFolder(self.standard_main_folder)
     def sAutosaveAmount(self):
-        return self.autosave_amount
+        return int(self.autosave_amount)
     def sAutosaveAmountType(self):
         return self.autosave_amount_type
     def sLanguage(self):

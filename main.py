@@ -412,6 +412,7 @@ class TaskAttack:
             # todo actual workplace opt.AutosaveAmountType is realy autosaveamount, not type
 
             if self.opt.sAutosaveAmountType() == inter.pieces:
+                print(f"#029384 autosave amount: {self.opt.sAutosaveAmount()}")
                 file_paths_for_deletion = all_file_paths[:-self.opt.sAutosaveAmount()]
                 [(print(f"file will be deleted: {file}", end=""     )) for file in file_paths_for_deletion]
                 print(f"all files: {len(all_auto_save_files)}, files for deletion {len(file_paths_for_deletion)}")
