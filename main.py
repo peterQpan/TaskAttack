@@ -400,17 +400,12 @@ class TaskAttack:
 
     def _autoSaveFileHandlingTC(self):
         print(f"#09u10 in _autosaveFileHandlinTQ")
-        # todo function is finished, must be but in place, question is,
-        #  shall i make many threads for every function like this or implement an single queue.get(block=True)
-        #  controlled thread (bring autosave thread in here too than)
         print(f"#09233 autosavefilehandlingTC: opt.autosave_handling{self.opt.autosave_handling}; autosaveamounttype: {self.opt.sAutosaveAmountType()}")
         if self.opt.autosave_handling:
             autosave_path = self.opt.sUsedAutosavePath()
             all_auto_save_files = os.listdir(autosave_path)
             all_auto_save_files.sort()
             all_file_paths = [os.path.join(autosave_path, file) for file in all_auto_save_files]
-
-            # todo actual workplace opt.AutosaveAmountType is realy autosaveamount, not type
 
             if self.opt.sAutosaveAmountType() == inter.pieces:
                 print(f"#029384 autosave amount: {self.opt.sAutosaveAmount()}")
@@ -498,44 +493,25 @@ if __name__ == '__main__':
 
     # debug_printer = DebugPrinter() #achtung removes all console output,
                                      #achtung despite its name its really bad for debuging while dev xD
-    cwdBashFix()
+    tools.path.cwdBashFix()
     main_gui_task_atack = TaskAttack(base_file="base.tak")
 
-# add short keys
+# todo next add short keys
 
-# user defined folder structure dosent work as expected
+# todo make update or reload decision. i.e. load, save, etc. dont need new window, not even an update,
+#  so there is potential for easy improvement
 
-# no troubleshooting if file path contains double //
-
-#fixme file icon dont disapeare by deleting files
+# todo set RadioRow in Place, instead of horizontal decision function !!!ACHTUNG first search for all kex appearances etc.
 
 # todo maybe there is a way for print()/Error > stdout > DebugPrinter
 
-# fixme if language gets changed in option menu and one press cancel
-
-# todo beauty taskatack.last_file_path is deprecated with option.file_path_settings
-
-
-# fixme task frame shows file existence even there is no file
-# todo dev this fixme is an backend thread dev
-
-# todo check for deleted or moved files,
-#  file symbol once activated it never updates becouse
-#  there is no check that updates task.results.list
-
 # todo complet documentation and code cleanup
 
-# todo insert links, implement it like results
-# this todo is an todo dev
-
-# todo make a reload progressbar
+# todo dev insert links, implement it like results
 
 # todo dev make a Qt version
 
 # todo think maybe make a sort of game out of this like get points for accomplished task etc
-
-# todo dataloss prevention save gets pycharm folder
-
 
 # remember beauty look out for chances to easily improve performance
 

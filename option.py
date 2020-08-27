@@ -121,7 +121,7 @@ class Option:
         self.result_folder = self._standardProjectFolder(self.main_folder)
         self.autosave_folder = self._standardAutoSaveFolder(self.main_folder)
         self.autosave_amount = 10
-        self.autosave_amount_type = inter.pieces  # todo this may be a weak desing
+        self.autosave_amount_type = inter.pieces
         self.disabled_folder_usage = "ind"
         self.autosave_handling = True
 

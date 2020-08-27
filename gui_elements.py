@@ -8,8 +8,10 @@ import os
 import shutil
 import textwrap
 import time
+import warnings
 from copy import deepcopy
 from time import strftime
+from typing import Any
 
 import PySimpleGUI as sg
 from colorama import Fore
@@ -133,6 +135,57 @@ class RadioNew(sg.Frame):
                          visible=visible)
         self.radio.Update(value=radio_value, disabled=disabled, visible=visible)
         super().Update(visible=visible)
+
+
+
+
+class RadioRow(sg.Frame):
+    """makes a horizontal radio button group"""
+
+    GROUP_ID = 345678
+    def __init__(self, all_values:tuple, active_value, disabled:bool, key:Any, group_id=None):
+        """
+        :param all_values: tuple of all values
+        :param active_value: value which is supposed to be active
+        :param disabled: true if elements are supposed to be disabled
+        :return: sg.Frame() """
+        self.values = all_values
+        # self.value_index_mapping = {index: value for index, value in enumerate(all_values)}
+        self.active = active_value
+        self.disabled = disabled
+        self.key = key
+
+        self.group_id = self._take_id(group_id)
+
+        layout, self.radios = self._horizontalLayout()
+
+        super().__init__(title="", relief=sg.RELIEF_FLAT, layout=layout, pad=(0, 0), key=key)
+
+    def _horizontalLayout(self):
+        layout = []
+        radios = []
+        for value in self.values:
+            print(f"#18u3209 ---> d_type: {value} -- : active_type -- {self.active}")
+            if value == self.active:
+                radio_button = RadioNew(text=value, group_id=self.group_id, default=True, disabled=self.disabled,
+                                        key=f"{self.key}{value}")
+            else:
+                radio_button = RadioNew(text=value, group_id=self.group_id, default=False, disabled=self.disabled,
+                                        key=f"{self.key}{value}")
+            layout.append([radio_button])
+            radios.append(radio_button)
+        return layout
+
+    def _take_id(self, group_id):
+        if not group_id:
+            group_id = self.__class__.GROUP_ID
+            RadioRow.GROUP_ID += 1
+        return group_id
+
+    def getValue(self):
+        for radio, value in zip(self.radios, self.values):
+            if radio.get():
+                return value
 
 
 class MyGuiToolbox:
@@ -652,8 +705,7 @@ class OptionWindow:
         :param disabled: needed if elements are supposed to be enablede
         :return: sg.Frame()
         """
-        # todo make this as an Frame inheritance
-        # todo factor it out, can used otherwise as well
+        warnings.warn("use RadioRow instead", DeprecationWarning)
         layout = []
         for index, d_type in enumerate(all_types):
             print(f"#18u3209 ---> d_type: {d_type} -- : active_type -- {active_type}")
@@ -908,7 +960,8 @@ class OptionWindow:
     def createReturnSettings(self, values):
         """createas settings dict usable for option back end class to update self.__dict__"""
 
-        autosave_amount_type = inter.days if values["-AUS-1-0RADIO-"] else inter.pieces # todo is this weak??? cant be week becaus if you enter settings to change language, this value gets set anew
+        print(f"#88888888888888888888888 radio value: {values['-AUS-1-0RADIO-']}")
+        autosave_amount_type = inter.pieces if values["-AUS-1-1RADIO-"] else inter.days
         disabled_folder_usage = "ind" if values["-RADIO_1-RADIO-"] else "std"
         settings = {"main_folder": values["-PFL-IEX729X"], "standard_main_folder":values["-SFL-IEX729X"],
                     "result_folder":values["-RFL-IEX729X"], "autosave_folder":values["-AsFL-IEX729X"],
@@ -1007,7 +1060,6 @@ if __name__ == '__main__':
     time.sleep(1.5)
     progressbar.kill()
 
-# todo make horizontal radios better implemention maybe trough frame inheritanse and update splitting
 # TODO ASAP fork or support PYSIMPPLEGUI
 
 

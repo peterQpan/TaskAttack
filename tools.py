@@ -123,7 +123,7 @@ def openExternalFile(file_path:str  #, threads:list
     subprocess.Popen([f"xdg-open", f"{file_path}"])
 
 
-# todo delte deprecation 2020-08-27
+# todo delte deprecation 2020-10-5 no rush needed
 def getUserHomeStandardFolders(folder="DOCUMENTS"):
     warnings.warn("use tools.path", DeprecationWarning)
     return path.getUserHomeStandardFolders(folder=folder)
@@ -167,7 +167,7 @@ def createPathFromFilePathWithExistsCheck(file_path):
 
 def separateExistingFromDemandedPaths(file_path, folders=()):
     warnings.warn("use tools.path", DeprecationWarning)
-    return path.separateExistingFromDemandedPaths(file_path=file_path)
+    return path.separateExistingFromDemandedPaths(path_here=file_path)
 
 def chreateRootDestinguishedPaths(user_path, base_path):
     warnings.warn("use tools.path", DeprecationWarning)
@@ -181,7 +181,7 @@ class path:
         """creates path if not exist, no matter how deep nested demanded path is
         :param path_here: must have at least root directory a totally new path structure will not been created"""
         if not os.path.exists(path_here):
-            existing_path, demanded_paths = path.separateExistingFromDemandedPaths(file_path=path_here)
+            existing_path, demanded_paths = path.separateExistingFromDemandedPaths(path_here=path_here)
             if demanded_paths and existing_path:
                 for path_here in demanded_paths:
                     path_to_create = os.path.join(existing_path, path_here)
@@ -222,28 +222,27 @@ class path:
         return base_path
 
     @staticmethod
-    def separateExistingFromDemandedPaths(file_path:str, folders=()):
+    def separateExistingFromDemandedPaths(path_here:str, folders=()):
         """
         :param folders: only needed for recursion dont use it extern
         :return: tuple(file_path, representing the already existing part of file path,
                        list(folders that represent path parts that not exist))
         """
-        # todo is this realy an file_path or is it an path?!?
-        if os.path.exists(file_path):
-            if file_path == os.sep:
-                file_path = None
+        if os.path.exists(path_here):
+            if path_here == os.sep:
+                path_here = None
             if folders:
                 folders = folders[::-1]
-                return file_path, folders
+                return path_here, folders
             else:
-                return file_path, None
-        elif not file_path and folders:
+                return path_here, None
+        elif not path_here and folders:
             folders = folders[::-1]
             return None, folders
         else:
-            file_path, folder = os.path.split(file_path)
+            path_here, folder = os.path.split(path_here)
             folders = (*folders, folder)
-            return path.separateExistingFromDemandedPaths(file_path, folders)
+            return path.separateExistingFromDemandedPaths(path_here, folders)
 
     @staticmethod
     def getUserHomeStandardFolders(folder="DOCUMENTS"):
@@ -277,4 +276,3 @@ class path:
         main_path = os.path.split(main_file_path)
         os.chdir(main_path[0])
 
-#todo refactor all path related functions into an path class

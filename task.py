@@ -209,15 +209,8 @@ class Task:
         nowtime_str = nowtime_str.replace(":", "_")
         first_tree = nameing_list[1:2]
         complete_file_path = os.path.join(result_path,
-                nameing_list[0].replace(' ', '_'),
                 f"{nowtime_str}{f'_{first_tree[0]}'if first_tree else ''}_{nameing_list[-1]}".replace(' ', '_'))
         return os.path.split(complete_file_path)
-
-        # #todo think if second result folder == project name, should suggested
-        # nameing_list = self.hierarchyTreePositionList()
-        # nowtime_str = str(nowDateTime()).replace(" ", "_")
-        # return f"{nowtime_str}_{nameing_list[0]}_{nameing_list[-1]}"
-
 
     def hierarchyTreePositionString(self, lenght=30):
         """
@@ -513,7 +506,7 @@ class Taskmanager:
             span_here += projekt.rowExpansion()
 
     def addMasterTaskPlaceholderStrings(self, display_matrix):
-        # todo 2020-09-01 programm works just fine without this method and i cant remember what it was used for
+        # todo 2020-09-05 programm works just fine without this method and i cant remember what it was used for
         #  delete it if there is no trouble till the time
         """
         adds master-tree-placeholder-str to display matrix
