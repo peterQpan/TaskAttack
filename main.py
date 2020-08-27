@@ -524,4 +524,3 @@ if __name__ == '__main__':
 
 #todo window displays itself over result programm
 
-#todo test
