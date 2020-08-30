@@ -514,6 +514,216 @@ class TaskFrameCreator:
             """
         return sg.Frame(layout=[[sg.Text(text="", size=(self.sSize() - 5, 5))]], title=" ", relief=sg.RELIEF_FLAT,
                         size=(300, 50))
+    
+    
+"""in order to tackle this shortcut key thing i need my own task frames, i didnt do it i the first place because 
+pysimplegui documentation said if you starting with making your own windows class you probably got it all wrong, so 
+i tried to stick to the functional approach of py simple gui, but i think it would become very ugly at this point. 
+shall i do a class wich can be utalized from task frame creator, so i dont have to change any code, 
+or should i do it from scratch?!?, i think i first do the task frame creator approach, without any major code changes"""
+
+class TaskFrame(sg.Frame):
+    
+    def __init__(self, task: task.Task=None, size=30):
+
+        self.size = size
+        self.setBasichButtonMenuList()
+
+        if task:
+            self.task = task
+            self.key = F"-MY_FRAME-{self.task.sPosition()}"
+            self.taskFrame()
+        else:
+            self.emptyTaskFrame()
+
+
+    def sSize(self):
+        """
+        :return: int:
+        """
+        return self.size
+
+    # def setSize(self, size: int):
+    #     """
+    #     :param size: sets width of a frame / x-axis size
+    #     """
+    #     self.size = size
+
+    @staticmethod
+    def nAIt(wantet_value):
+        return "N.A." if not wantet_value else wantet_value
+
+    @staticmethod
+    def _toolTipText(task: task.Task):
+        """
+        :return: full plain textual representation of an task.Task() suitable as tooltip_text
+        """
+        tt = ""
+        tt += f"   {task.hierarchyTreePositionString()}\n\n"
+        tt += f"   {task.sName()}\n\n"
+        tt += f"   {inter.start}: {task.sStart()}   {inter.end}:v{TaskFrameCreator.nAIt(task.sEnde())}   {inter.priority}: {task.sPriority()}   \n"
+        tt += f"   {inter.rem_days}:..................................... {TaskFrameCreator.nAIt(task.sRemainingDays())}   \n"
+        tt += f"   {inter.project_part_percentage}:............... {task.sPercentage()}%   \n"
+        tt += f"   {inter.sub_task_amount}:............................... {len(task.sSubTasks()) if task.sSubTasks() else '0'}   \n"
+        tt += f"   {inter.percent_compled}:............................. {task.sCompleted():5.1f}%   \n\n"
+        tt += "    \n   ".join(textwrap.wrap(task.sDescription(), width=90))
+
+        return tt
+
+    @staticmethod
+    def _isCompletedElement(task: task.Task, tooltip_text, background_color: str):
+        """
+        builds up task completed line either an percentage, or an checkbox corresponding to kind of task
+        :param background_color: hexstring like "#ff0000"
+        :return: in frame layout usable completed line
+        """
+        default = True if task.sCompleted() else False
+        if type(task.sCompleted()) == int:
+            return sg.Checkbox(text=inter.completed, key=f"compl-#7#{str(task.sPosition())}", default=default,
+                               enable_events=True, tooltip=tooltip_text, background_color=background_color)
+        return sg.Text(f"{inter.completed}: {task.sCompleted():6.2f}", tooltip=tooltip_text,
+                       background_color=background_color, key=f"COMPL-TEXT{task.sPosition()}")
+
+
+    def sOptionButtonMenuList(self):
+        """
+        :return: list of list, sg.ButtonMenu.layout for option button menu
+        """
+
+        return self._button_menu_list
+
+    def setBasichButtonMenuList(self):
+        """
+        fetches basic option button menu list of list from internationalisation module
+        """
+        self._button_menu_list = inter.b_b_m_l
+
+    def changeMenuListToIsolated(self):
+        """
+        fetches altered >tree view< option button menu list of list from internationalisation module
+        """
+        self._button_menu_list = inter.c_b_m_l
+
+    def _buttonLinePlaceHolder(self, background_color, padding_size):
+        # origiinal x_size: self.sSize() - 15
+        return sg.Text(text="", size=(padding_size, 1), background_color=background_color)
+
+    def _createButtonMenuWithResultFileEntrys(self):
+        button_list = deepcopy(self.sOptionButtonMenuList())
+        button_list[1][5] = []
+        results = self.task.sResults()
+
+        if results:
+            for file_path, short_description in results:
+                if short_description:
+                    line = f"{short_description} <-> {file_path}"
+                else:
+                    line = f"{file_path}"
+                button_list[1][5].append(line)
+            return button_list
+
+    def _buttonMenuLine(self, background_color):
+        """
+        :return: option menu button for every task frame
+        """
+        result_file_button_menu_list = self._createButtonMenuWithResultFileEntrys()
+
+
+        if result_file_button_menu_list:
+            placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 20)
+            image = sg.Image(filename="templates/file.png")
+            option_button = sg.ButtonMenu(button_text=inter.options, menu_def=result_file_button_menu_list,
+                                          key=f'-BMENU-#7#{self.task.sPosition()}')
+
+            return [placeholer, image, option_button]
+
+        else:
+            placeholder = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 15)
+            option_button = sg.ButtonMenu(button_text=inter.options, menu_def=self.sOptionButtonMenuList(),
+                                          key=f'-BMENU-#7#{self.task.sPosition()}')
+            return [placeholder, option_button]
+
+
+
+
+    def _nameLine(self, tooltip_text, background_color):
+        """Key: f"{self.key}NAME-L-"
+        :param tooltip_text:
+        :param background_color:
+        :return:
+        """
+        name_line = [sg.Text(text=self.task.sName(), size=(self.sSize() - 5, 1), tooltip=tooltip_text,
+                             background_color=background_color, key=f"{self.key}NAME-L-")]
+        return name_line
+
+
+
+
+    def _basicTaskFrame(self, frame_name: str, name_line: list, priority, completed, option_button_line: list,
+                        relief=sg.RELIEF_RAISED, tooltip_text: str = "", frame_color: str = None):
+        """task frame creation
+        :param name: simplegu element name line
+        :param priority: simplegui priority line
+        :param completed: simplegui completed line
+        :param edit: edit button
+        :param add: add subtask button
+        :return: short task representation in a frame
+        """
+        super(TaskFrame, self).__init__(layout=[name_line,
+                                 [priority, completed],
+                                 option_button_line],
+                         title=frame_name[-(self.sSize() - 3):], relief=relief, size=(self.sSize(), 5),
+                         tooltip=tooltip_text, background_color=frame_color, key=self.key)
+
+    def taskFrame(self):
+        """
+        :return: sg.Frame which represents the short Tree notation of an Task inclusive a full tooltip text
+        """
+        tooltip_text = self._toolTipText(self.task)
+        background_color = self.task.taskDeadlineColor()
+
+        name_line = self._nameLine(tooltip_text=tooltip_text, background_color=background_color)
+        priority_sg_object = sg.Text(text=f"{inter.short_pr}:.{self.task.sPriority():3d}", tooltip=tooltip_text,
+                                     background_color=background_color, key=f"{self.key}PRIORITY-")
+        completed_sg_object = self._isCompletedElement(self.task, tooltip_text=tooltip_text,
+                                                       background_color=background_color)
+
+        frame_name = self.task.hierarchyTreePositionString()
+
+        button_menu_line = self._buttonMenuLine(background_color=background_color)
+
+        self._basicTaskFrame(frame_name=frame_name, name_line=name_line, priority=priority_sg_object,
+                             completed=completed_sg_object, option_button_line=button_menu_line,
+                             tooltip_text=tooltip_text, frame_color=background_color)
+
+    def emptyTaskFrame(self):
+        """
+            :return: empty sg.Frame in same size than a task frame
+            """
+        super(TaskFrame, self).__init__(layout=[[sg.Text(text="", size=(self.sSize() - 5, 5))]], title=" ", relief=sg.RELIEF_FLAT,
+                        size=(300, self.size+20))
+
+    def Update(self, window, value=None, visible=None):
+        tooltip_text = self._toolTipText(self.task)
+        background_color = self.task.taskDeadlineColor()
+        frame_name = self.task.hierarchyTreePositionString()
+
+        print(f"#09288309u parentWindow: {self.ParentWindow}")
+        window[f"{self.key}NAME-L-"].Update(value=self.task.sName(), background_color=background_color)
+        window[f"{self.key}NAME-L-"].SetTooltip(tooltip_text=tooltip_text)
+        window[f"{self.key}PRIORITY-"].Update(value=f"{inter.short_pr}:.{self.task.sPriority():3d}", background_color=background_color)
+        window[f"{self.key}PRIORITY-"].SetTooltip(tooltip_text=tooltip_text)
+        try:
+            window[f"compl-#7#{str(self.task.sPosition())}"].Update(background_color=background_color)
+            window[f"compl-#7#{str(self.task.sPosition())}"].SetTooltip(tooltip_text=tooltip_text)
+        except:
+            window[f"COMPL-TEXT{self.task.sPosition()}"].Update(background_color=background_color)
+            window[f"COMPL-TEXT{self.task.sPosition()}"].SetTooltip(tooltip_text=tooltip_text)
+
+        super(TaskFrame, self).Update(value=frame_name)
+        self.SetTooltip(tooltip_text=tooltip_text)
+
+
 
 
 class TaskInputWindowCreator:
@@ -1043,22 +1253,64 @@ class Progressbar:
         print(f"#9212345 shall kill")
         [self.queue.put("kill") for _ in range(3)]
 
-
 if __name__ == '__main__':
-    progressbar = Progressbar(type_here="blue_dotted_ring")
-    progressbar.start()
-    time.sleep(1.5)
-    progressbar.stop()
-    time.sleep(1.5)
+    start = datetime.datetime(*time.localtime()[:6])
+    end = start + datetime.timedelta(days=8)
+    task_here = task.Task(name="bk",
+                          description="noch etwa, noch mehr, immer mehr mehr mehr emers",
+                          start=start, end=end, priority=20)
+    task_here.position = (2, 3)
+    frame = TaskFrame(task_here)
 
-    progressbar.start()
-    time.sleep(1.5)
-    progressbar.stop()
-    time.sleep(1.5)
+    window = sg.Window("test", layout=[[frame]])
 
-    progressbar.start()
-    time.sleep(1.5)
-    progressbar.kill()
+    for i in range(60, 260):
+
+        window.read(timeout=200)
+        if i % 2 == 0:
+            print(f"#9820932 chr:{i}: {chr(i)}")
+            task_here.name = task_here.name + chr(i)
+        else:
+            task_here.name = task_here.name + "B"
+        window[frame.key].Update(window)
+    # while True:
+    # task_button_creator = TaskFrameCreator()
+    # button = task_button_creator.taskFrame(task_here)
+    # buttonb = task_button_creator.emptyTaskFrame()
+    # buttonc = task_button_creator.emptyTaskFrame()
+    # buttond = task_button_creator.emptyTaskFrame()
+    # buttone = task_button_creator.taskFrame(task_here)
+    # buttonf = task_button_creator.emptyTaskFrame()
+    # buttong = task_button_creator.emptyTaskFrame()
+    # buttonh = task_button_creator.emptyTaskFrame()
+    # buttoni = task_button_creator.taskFrame(task_here)
+    # event, values = window.read()
+    # print(F"#0823823 event: {event}; vlues: {values}")
+    # window.close()
+    # window = sg.Window("test", layout=[[button, buttonb, buttonc],
+    #                                    [buttond, buttone, buttonf],
+    #                                    [buttong, buttonh, buttoni]])
+    #
+    # win_creator = TaskInputWindowCreator()
+    # event, values = win_creator.inputWindow(kind="Projekt", start=None)
+    # print(event, values)
+
+
+# if __name__ == '__main__':
+#     progressbar = Progressbar(type_here="blue_dotted_ring")
+#     progressbar.start()
+#     time.sleep(1.5)
+#     progressbar.stop()
+#     time.sleep(1.5)
+#
+#     progressbar.start()
+#     time.sleep(1.5)
+#     progressbar.stop()
+#     time.sleep(1.5)
+#
+#     progressbar.start()
+#     time.sleep(1.5)
+#     progressbar.kill()
 
 # TODO ASAP fork or support PYSIMPPLEGUI
 

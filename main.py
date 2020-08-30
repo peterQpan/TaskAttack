@@ -196,7 +196,7 @@ class TaskAttack:
         if self.last_deleted_task:
             self.last_deleted_task.recover()
 
-    def onEditTask(self, task, *args, **kwargs):
+    def onEditTask(self, task,  *args, **kwargs):
         # raise TypeError
         event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation())
         print(F"#125456 event: {event}; vlues: {values}")
