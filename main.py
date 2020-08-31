@@ -44,6 +44,7 @@ class TaskAttack:
         self.taskmanager = Taskmanager()
         self.mygtb = MyGuiToolbox()
         self.task_window_crator = TaskInputWindowCreator()
+        #todo this time would be unnessasary
         self.task_frames_creator = TaskFrameCreator()
         self.result_file_creator = gui_elements.ResultFileCreator()
         self.progbar = Progressbar(type_here="blue_dotted_ring")
@@ -129,14 +130,25 @@ class TaskAttack:
                 self.onCreateResult, inter.gimp: self.onCreateResult, inter.svg: self.onCreateResult,
                 }
 
+    def sRenewalNeedingFunctions(self):
+        """
+        all functions that needs an new window to display changes
+        :return:
+        """
+        return {inter.new_project, inter.reload, inter.new_project_sheet, inter.open, inter.restore_task,
+                inter.settings, "subta-", "compl-", #"-BMENU-",
+                inter.sub_task, inter.isolate,inter.delete,
+                inter.paste, inter.cut, inter.tree_view, }
+
     def onCreateResult(self, task, event, values, command, *args, **kwargs):
         self.result_file_creator.newResultFile(task=task, kind_of_porogramm=command, result_path=self.opt.sUsedResultFolder())
 
     def onOptionButtonMenu(self, task, event, values, *args, **kwargs):
-        """Method for Button menu command mapping"""
-        print()
+        """Method for Button menu command mapping
+        :return if executed command is one thats needs renewal of window"""
         try:
-            self._executeBasicOptionButtonMenuCommands(values=values, event=event, task=task)
+            return self._executeBasicOptionButtonMenuCommands(values=values, event=event, task=task)
+
         except KeyError as e:
             print(f"No Problem ERROR #34ehtrfh --> war kein basic option button command {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}")
             self._executeCreatedFile(event=event, values=values)
@@ -185,7 +197,7 @@ class TaskAttack:
         if self.last_deleted_task:
             self.last_deleted_task.recover()
 
-    def onEditTask(self, task, *args, **kwargs):
+    def onEditTask(self, task,  *args, **kwargs):
         # raise TypeError
         event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation())
         print(F"#125456 event: {event}; vlues: {values}")
@@ -247,10 +259,12 @@ class TaskAttack:
                                    )
 
     def _executeBasicOptionButtonMenuCommands(self, values, event, task):
-        """executes the basic commands of the option Button menue"""
+        """executes the basic commands of the option Button menue
+        :return if executed command is one thats needs renewal of window"""
         command = values[event]
         action = self.sFunctionMapping()[command]
         action(task=task, values=values, command=command, event=event)
+        return command in self.sRenewalNeedingFunctions()
 
     def _userExit(self, event, window):
         """checks for and executes Exit if asked for"""
@@ -270,11 +284,12 @@ class TaskAttack:
         """
         executes Task specific commands, which alters with every task
         :param string_coordinates: task matrix coordinates
+        # todo this time what gets returned here
         """
         int_coordinates = self._getCoordinatesAsInts(string_coordinates)
         task = self.getTaskFromMatrix(coordinates=int_coordinates)
         action = self.sFunctionMapping()[command]
-        action(task=task, values=values, event=event, command=command)
+        return action(task=task, values=values, event=event, command=command) or command in self.sRenewalNeedingFunctions(), int_coordinates
 
     def executeEvent(self, event, window, values, *args, **kwargs):
         """takes event, values and window and executes corresponding action from command-mapping
@@ -290,7 +305,7 @@ class TaskAttack:
         print(f"command: {command}, string_coordinates:{string_coordinates}, some string_co: {'True' if string_coordinates else 'False'}")
 
         if string_coordinates:
-            self._executeCoordinateCommand(string_coordinates=string_coordinates, command=command,
+            return self._executeCoordinateCommand(string_coordinates=string_coordinates, command=command,
                                            values= values, event=event)
         else:
             print(f"#iuihbjlksndfoij command: {command}")
@@ -298,6 +313,7 @@ class TaskAttack:
             action = self.sFunctionMapping()[command]
             print(f"#90920983 {action}")
             action()
+            return command in self.sRenewalNeedingFunctions(), None #todo this time documentation whta is this none (no coordinates)
 
     def dataLossPrevention(self):
         """checks if there is an open unsaved file and asks for wish to save
@@ -328,9 +344,12 @@ class TaskAttack:
         for y_index, y in enumerate(orginal_display_matrix):
             for x_index, element in enumerate(y):
                 if isinstance(element, Task):
+                    #todo this time here comes class Task frame in
                     frame_here = self.task_frames_creator.taskFrame(element)
                     base_layout[y_index][x_index] = frame_here
                 else:
+                    #todo this time here comes class Task frame in
+
                     frame_here = self.task_frames_creator.emptyTaskFrame()
                     base_layout[y_index][x_index] = frame_here
         return base_layout
@@ -359,6 +378,7 @@ class TaskAttack:
         :param project_table: list of lists task frames
         :return: list of lists task frames one bit bigger so tooltip wont show out of screensize
         """
+        #todo this time her is empty task Frame
         try:
             project_table[0].append(self.task_frames_creator.emptyTaskFrame())
             project_table.append([self.task_frames_creator.emptyTaskFrame()])
@@ -471,17 +491,22 @@ class TaskAttack:
     def mainLoop(self):
         """loop which is needed for event handling
         """
+        window_renewal_flag = True
         while True:
-            self.main_window = self.mainWindow()
+            if window_renewal_flag:
+                self.main_window = self.mainWindow()
             self.progbar.stop()
             event, values = self.main_window.read()
             print(F"#98765 event: {event}; vlues: {values}")
 
-            self.executeEvent(event=event, window=self.main_window, values=values)
-            self.window_size = self.main_window.size  # remember breaks down sometimes, why?!?
-            self.window_location = self.main_window.current_location()
-            self.progbar.start()
-            self.main_window.close()
+            window_renewal_flag, int_coordinates = self.executeEvent(event=event, window=self.main_window, values=values)
+            print(f"#ß02i3ß0 event: {event}; window must be renewed: {window_renewal_flag}, frame cords to update: {int_coordinates}")
+            #todo this time use int_coordinates for frame update, set new task_frame_class in place
+            if window_renewal_flag:
+                self.window_size = self.main_window.size  # remember breaks down sometimes, why?!?
+                self.window_location = self.main_window.current_location()
+                self.progbar.start()
+                self.main_window.close()
 
             self.autoSave()
 
@@ -496,7 +521,7 @@ if __name__ == '__main__':
     tools.path.cwdBashFix()
     main_gui_task_atack = TaskAttack(base_file="base.tak")
 
-# todo next add short keys
+# todo next add short keys --> before short keys there must be distinguished between update and reload
 
 # todo make update or reload decision. i.e. load, save, etc. dont need new window, not even an update,
 #  so there is potential for easy improvement
