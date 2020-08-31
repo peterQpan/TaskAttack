@@ -44,6 +44,7 @@ class TaskAttack:
         self.taskmanager = Taskmanager()
         self.mygtb = MyGuiToolbox()
         self.task_window_crator = TaskInputWindowCreator()
+        #todo this time would be unnessasary
         self.task_frames_creator = TaskFrameCreator()
         self.result_file_creator = gui_elements.ResultFileCreator()
         self.progbar = Progressbar(type_here="blue_dotted_ring")
@@ -283,11 +284,12 @@ class TaskAttack:
         """
         executes Task specific commands, which alters with every task
         :param string_coordinates: task matrix coordinates
+        # todo this time what gets returned here
         """
         int_coordinates = self._getCoordinatesAsInts(string_coordinates)
         task = self.getTaskFromMatrix(coordinates=int_coordinates)
         action = self.sFunctionMapping()[command]
-        return action(task=task, values=values, event=event, command=command) or command in self.sRenewalNeedingFunctions()
+        return action(task=task, values=values, event=event, command=command) or command in self.sRenewalNeedingFunctions(), int_coordinates
 
     def executeEvent(self, event, window, values, *args, **kwargs):
         """takes event, values and window and executes corresponding action from command-mapping
@@ -311,7 +313,7 @@ class TaskAttack:
             action = self.sFunctionMapping()[command]
             print(f"#90920983 {action}")
             action()
-            return command in self.sRenewalNeedingFunctions()
+            return command in self.sRenewalNeedingFunctions(), None #todo this time documentation whta is this none (no coordinates)
 
     def dataLossPrevention(self):
         """checks if there is an open unsaved file and asks for wish to save
@@ -342,9 +344,12 @@ class TaskAttack:
         for y_index, y in enumerate(orginal_display_matrix):
             for x_index, element in enumerate(y):
                 if isinstance(element, Task):
+                    #todo this time here comes class Task frame in
                     frame_here = self.task_frames_creator.taskFrame(element)
                     base_layout[y_index][x_index] = frame_here
                 else:
+                    #todo this time here comes class Task frame in
+
                     frame_here = self.task_frames_creator.emptyTaskFrame()
                     base_layout[y_index][x_index] = frame_here
         return base_layout
@@ -373,6 +378,7 @@ class TaskAttack:
         :param project_table: list of lists task frames
         :return: list of lists task frames one bit bigger so tooltip wont show out of screensize
         """
+        #todo this time her is empty task Frame
         try:
             project_table[0].append(self.task_frames_creator.emptyTaskFrame())
             project_table.append([self.task_frames_creator.emptyTaskFrame()])
@@ -493,7 +499,9 @@ class TaskAttack:
             event, values = self.main_window.read()
             print(F"#98765 event: {event}; vlues: {values}")
 
-            window_renewal_flag = self.executeEvent(event=event, window=self.main_window, values=values)
+            window_renewal_flag, int_coordinates = self.executeEvent(event=event, window=self.main_window, values=values)
+            print(f"#ß02i3ß0 event: {event}; window must be renewed: {window_renewal_flag}, frame cords to update: {int_coordinates}")
+            #todo this time use int_coordinates for frame update, set new task_frame_class in place
             if window_renewal_flag:
                 self.window_size = self.main_window.size  # remember breaks down sometimes, why?!?
                 self.window_location = self.main_window.current_location()
