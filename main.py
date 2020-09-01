@@ -510,8 +510,9 @@ class TaskAttack:
                 self.progbar.start()
                 self.main_window.close()
             else:
-                print(f"#902893 key to update: {f'-MY-TASK-FRAME-{str(int_coordinates)}'}")
-                self.main_window[f"-MY-TASK-FRAME-{str(int_coordinates)}"].Update(self.main_window)
+                if int_coordinates:
+                    print(f"#902893 key to update: {f'-MY-TASK-FRAME-{str(int_coordinates)}'}")
+                    self.main_window[f"-MY-TASK-FRAME-{str(int_coordinates)}"].Update(self.main_window)
 
             self.autoSave()
 
