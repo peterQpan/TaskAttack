@@ -707,10 +707,12 @@ class TaskFrame(sg.Frame):
                                         size=(300, self.size + 20))
 
     def _completeUpdate(self, window, key, value, background_color, tooltip_text):
+        """makes a complete update of an sg.element text, bg_color AND tooltip_text"""
         window[key].Update(value=value, background_color=background_color)
         window[key].SetTooltip(tooltip_text=tooltip_text)
 
     def _updateFixedElements(self, window, background_color, tooltip_text):
+        """Updates all elements in Task frame which never changes like sg.TExt <-> sg.Checkbox"""
         self._completeUpdate(
             window=window, key=f"{self.key}NAME-L-", value=self.task.sName(), background_color=background_color,
             tooltip_text=tooltip_text)
@@ -719,6 +721,8 @@ class TaskFrame(sg.Frame):
             background_color=background_color, tooltip_text=tooltip_text)
 
     def _updateChangingElements(self, window, background_color, tooltip_text):
+        """Updates all elements in Task frame which changes like sg.TExt <-> sg.Checkbox"""
+
         element = window.Element(key=f"compl-#7#{str(self.task.sPosition())}", silent_on_error=True)
         if element:
             self._completeUpdate(
@@ -736,6 +740,8 @@ class TaskFrame(sg.Frame):
             # window[f"COMPL-TEXT{self.task.sPosition()}"].SetTooltip(tooltip_text=tooltip_text)
 
     def Update(self, window, value=None, visible=None):
+        """overriding of method wich enables the direct window[key] access
+        and passes it along to the containing elements"""
         tooltip_text = self._toolTipText(self.task)
         background_color = self.task.taskDeadlineColor()
         frame_name = self.task.hierarchyTreePositionString()
