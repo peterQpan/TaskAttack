@@ -417,10 +417,10 @@ class TaskAttack:
     def _stopBackEndThread(self):
         self.backend_queue.put(("###breakbreakbreak###", None))
 
-    def _autoSaveTC(self): #TC: Thread Command
+    def _autoSaveTC(self, *args, **kwargs): #TC: Thread Command
         self.taskmanager.save(os.path.join(self.opt.sUsedAutosavePath(), f"autosave-{tools.nowDateTime()}.tak"))
 
-    def _autoSaveFileHandlingTC(self):
+    def _autoSaveFileHandlingTC(self, *args, **kwargs):
         print(f"#09u10 in _autosaveFileHandlinTQ")
         print(f"#09233 autosavefilehandlingTC: opt.autosave_handling{self.opt.autosave_handling}; autosaveamounttype: {self.opt.sAutosaveAmountType()}")
         if self.opt.autosave_handling:
@@ -430,18 +430,11 @@ class TaskAttack:
             all_file_paths = [os.path.join(autosave_path, file) for file in all_auto_save_files]
 
             if self.opt.sAutosaveAmountType() == inter.pieces:
-                print(f"#029384 autosave amount: {self.opt.sAutosaveAmount()}")
                 file_paths_for_deletion = all_file_paths[:-self.opt.sAutosaveAmount()]
-                [(print(f"file will be deleted: {file}", end=""     )) for file in file_paths_for_deletion]
-                print(f"\nall files: {len(all_auto_save_files)}, files for deletion {len(file_paths_for_deletion)}")
-                # achtung
                 [os.remove(file) for file in file_paths_for_deletion]
             elif self.opt.sAutosaveAmountType() == inter.days:
                 timestamp = self._deltionTimeStamp(self.opt.sAutosaveAmount())
                 file_paths_for_deletion = [file for file in all_file_paths if os.path.getmtime(file) < timestamp]
-                [(print(f"file will be deleted: {file}")) for file in file_paths_for_deletion]
-                print(f"all files: {len(all_auto_save_files)}, files for deletion {len(file_paths_for_deletion)}")
-                # achtung
                 [os.remove(file) for file in file_paths_for_deletion]
 
     def autoSave(self):
@@ -450,13 +443,13 @@ class TaskAttack:
         self.backend_queue.put((self._autoSaveTC, ()))
         self.backend_queue.put((self._autoSaveFileHandlingTC, ()))
 
-    def _instantiateBasicFolderStructurTQ(self, folders):
+    def _instantiateBasicFolderStructurTC(self, folders, *args, **kwargs):
         print(f"#9028u30 in _instantiateFolderStructurTQ")
         for folder in folders:
-            tools.createPathWithExistsCheck(path_here=folder)
+            tools.path.ensurePathExists(path_here=folder)
 
     def _instantiateBasicFolderStructur(self, folders):
-        self.backend_queue.put((self._instantiateBasicFolderStructurTQ, folders))
+        self.backend_queue.put((self._instantiateBasicFolderStructurTC, folders))
 
     # todo did not work out to command sg.window from outside Thread but it is needed to work out this:
     #  invalid command name "140326498775872showtip"
@@ -481,14 +474,11 @@ class TaskAttack:
     def _backEndThread(self):
         while True:
             action, args = self.backend_queue.get(block=True)
-            if args:
+            if action == "###breakbreakbreak###":
+                break
+            else:
                 print(f"#0293i action: {action}, args: {args}")
                 action(args)
-            else:
-                if action == "###breakbreakbreak###":
-                    break
-                print(f"#013918 action: {action}")
-                action()
 
     def mainLoop(self):
         """loop which is needed for event handling
@@ -499,11 +489,8 @@ class TaskAttack:
                 self.main_window = self.mainWindow()
             self.progbar.stop()
             event, values = self.main_window.read()
-            print(F"#98765 event: {event}; vlues: {values}")
-
             window_renewal_flag, int_coordinates = self.executeEvent(event=event, window=self.main_window, values=values)
             print(f"#ß02i3ß0 event: {event}; window must be renewed: {window_renewal_flag}, frame cords to update: {int_coordinates}")
-            #todo this time use int_coordinates for frame update, set new task_frame_class in place
             if window_renewal_flag:
                 self.window_size = self.main_window.size  # remember breaks down sometimes, why?!?
                 self.window_location = self.main_window.current_location()
