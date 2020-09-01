@@ -700,8 +700,8 @@ class TaskFrame(sg.Frame):
 
     def emptyTaskFrame(self):
         """
-            :return: empty sg.Frame in same size than a task frame
-            """
+        :return: empty sg.Frame in same size than a task frame
+        """
         super(TaskFrame, self).__init__(layout=[[sg.Text(text="", size=(self.sSize() - 5, 5))]], title=" ",
                                         relief=sg.RELIEF_FLAT,
                                         size=(300, self.size + 20))
@@ -727,17 +727,11 @@ class TaskFrame(sg.Frame):
         if element:
             self._completeUpdate(
                 window=window, key=f"compl-#7#{str(self.task.sPosition())}", value=None,
-                # window=window, key=f"compl-#7#{str(self.task.sPosition())}", value=None,
-                background_color=background_color, tooltip_text=tooltip_text)  # achtung maby this none brings trouble
-            # window[f"compl-#7#{str(self.task.sPosition())}"].Update(background_color=background_color)
-            # window[f"compl-#7#{str(self.task.sPosition())}"].SetTooltip(tooltip_text=tooltip_text)
+                background_color=background_color, tooltip_text=tooltip_text)
         else:
             self._completeUpdate(
                 window=window, key=f"COMPL-TEXT{self.task.sPosition()}", value=None,
-                background_color=background_color, tooltip_text=tooltip_text)  # achtung maby this none brings trouble
-
-            # window[f"COMPL-TEXT{self.task.sPosition()}"].Update(background_color=background_color)
-            # window[f"COMPL-TEXT{self.task.sPosition()}"].SetTooltip(tooltip_text=tooltip_text)
+                background_color=background_color, tooltip_text=tooltip_text)
 
     def Update(self, window, value=None, visible=None):
         """overriding of method wich enables the direct window[key] access
