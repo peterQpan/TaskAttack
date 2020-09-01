@@ -539,7 +539,8 @@ class TaskFrame(sg.Frame):
 
         if task:
             self.task = task
-            self.key = F"-MY-TASK-FRAME-{self.task.sPosition()}"
+            print(f"#9923u0923 key for frame: {f'-MY-TASK-FRAME-{str(self.task.sPosition())}'}")
+            self.key = F"-MY-TASK-FRAME-{str(self.task.sPosition())}"
             self.taskFrame() #superMethod
         else:
             self.emptyTaskFrame()#superMethod

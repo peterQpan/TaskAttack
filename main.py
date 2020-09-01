@@ -247,7 +247,7 @@ class TaskAttack:
         coordinates = coordinates.replace("(", "")
         coordinates = coordinates.replace(")", "")
         coordinates = coordinates.replace(",", "")
-        y, x = [int(x) for x in coordinates.split()]
+        x, y = [int(x) for x in coordinates.split()]
         return x, y
 
     def _executeCreatedFile(self, event, values):
@@ -510,7 +510,8 @@ class TaskAttack:
                 self.progbar.start()
                 self.main_window.close()
             else:
-                self.main_window[f"-MY-TASK-FRAME-{int_coordinates}"].Update(self.main_window)
+                print(f"#902893 key to update: {f'-MY-TASK-FRAME-{str(int_coordinates)}'}")
+                self.main_window[f"-MY-TASK-FRAME-{str(int_coordinates)}"].Update(self.main_window)
 
             self.autoSave()
 
