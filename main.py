@@ -247,7 +247,7 @@ class TaskAttack:
         coordinates = coordinates.replace("(", "")
         coordinates = coordinates.replace(")", "")
         coordinates = coordinates.replace(",", "")
-        x, y = [int(x) for x in coordinates.split()]
+        x, y = [int(xr) for xr in coordinates.split()]
         return x, y
 
     def _executeCreatedFile(self, event, values):
@@ -363,7 +363,7 @@ class TaskAttack:
         :return: destinct task from matric
         """
         task_matrix = self.taskmanager.sTaskMatrix()
-        return task_matrix[coordinates[0]][coordinates[1]]
+        return task_matrix[coordinates[1]][coordinates[0]]
 
     def propperWindowLayout(self, menu_bar, project_matrix):
         """creates tree layout either with project_matrix if available, or with a table dummy
