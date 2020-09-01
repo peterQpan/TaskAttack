@@ -661,7 +661,7 @@ class TaskFrame(sg.Frame):
                              background_color=background_color, key=f"{self.key}NAME-L-")]
         return name_line
 
-    def _basicTaskFrame(self, frame_name: str, name_line: list, priority, completed, option_button_line: list,
+    def _basicTaskFrame(self, frame_name: str, name_line: list, priority_completed_line, option_button_line: list,
                         relief=sg.RELIEF_RAISED, tooltip_text: str = "", frame_color: str = None):
         """task frame creation
         :param name: simplegu element name line
@@ -672,7 +672,7 @@ class TaskFrame(sg.Frame):
         :return: short task representation in a frame
         """
         super(TaskFrame, self).__init__(layout=[name_line,
-                                                [priority, completed],
+                                                priority_completed_line,
                                                 option_button_line],
                                         title=frame_name[-(self.sSize() - 3):], relief=relief, size=(self.sSize(), 5),
                                         tooltip=tooltip_text, background_color=frame_color, key=self.key)
@@ -685,18 +685,16 @@ class TaskFrame(sg.Frame):
         background_color = self.task.taskDeadlineColor()
 
         name_line = self._nameLine(tooltip_text=tooltip_text, background_color=background_color)
-        priority_sg_object = sg.Text(text=f"{inter.short_pr}:.{self.task.sPriority():3d}", tooltip=tooltip_text,
-                                     background_color=background_color, key=f"{self.key}PRIORITY-")
-        completed_sg_object = self._isCompletedElement(self.task, tooltip_text=tooltip_text,
-                                                       background_color=background_color)
+
+        prio_completed_line = self._priorityCompletedLine(tooltip_text=tooltip_text, background_color=background_color)
 
         frame_name = self.task.hierarchyTreePositionString()
 
         button_menu_line = self._buttonMenuLine(background_color=background_color)
 
-        self._basicTaskFrame(frame_name=frame_name, name_line=name_line, priority=priority_sg_object,
-                             completed=completed_sg_object, option_button_line=button_menu_line,
-                             tooltip_text=tooltip_text, frame_color=background_color)
+        self._basicTaskFrame(frame_name=frame_name, name_line=name_line, priority_completed_line=prio_completed_line,
+                             option_button_line=button_menu_line, tooltip_text=tooltip_text,
+                             frame_color=background_color)
 
     def emptyTaskFrame(self):
         """
@@ -746,6 +744,13 @@ class TaskFrame(sg.Frame):
 
         super(TaskFrame, self).Update(value=frame_name)
         self.SetTooltip(tooltip_text=tooltip_text)
+
+    def _priorityCompletedLine(self, tooltip_text, background_color, ):
+        priority_sg_object = sg.Text(text=f"{inter.short_pr}:.{self.task.sPriority():3d}", tooltip=tooltip_text,
+                                     background_color=background_color, key=f"{self.key}PRIORITY-")
+        completed_sg_object = self._isCompletedElement(self.task, tooltip_text=tooltip_text,
+                                                       background_color=background_color)
+        return [priority_sg_object, completed_sg_object]
 
 
 class TaskInputWindowCreator:
