@@ -347,6 +347,8 @@ class ResultFileCreator:
 
 
 # todo this time make a task frame creator wich inplements TaskFrame(Frame_class)
+#  not necessary at this time
+
 # todo think about maybe task frame creator is not necessary at all
 # todo think about, which is better in performance??? because of update,
 #  instead of renewal update is a big improvement,
@@ -537,7 +539,7 @@ class TaskFrame(sg.Frame):
 
         if task:
             self.task = task
-            self.key = F"-MY_FRAME-{self.task.sPosition()}"
+            self.key = F"-MY-TASK-FRAME-{self.task.sPosition()}"
             self.taskFrame() #superMethod
         else:
             self.emptyTaskFrame()#superMethod
@@ -586,6 +588,7 @@ class TaskFrame(sg.Frame):
         """
         default = True if task.sCompleted() else False
         if type(task.sCompleted()) == int:
+            print(f"#0923ßn checkboxkey: {f'compl-#7#{str(task.sPosition())}'}")
             return sg.Checkbox(text=inter.completed, key=f"compl-#7#{str(task.sPosition())}", default=default,
                                enable_events=True, tooltip=tooltip_text, background_color=background_color)
         return sg.Text(f"{inter.completed}: {task.sCompleted():6.2f}", tooltip=tooltip_text,
@@ -716,13 +719,15 @@ class TaskFrame(sg.Frame):
             background_color=background_color, tooltip_text=tooltip_text)
 
     def _updateChangingElements(self, window, background_color, tooltip_text):
-        try:
+        element = window.Element(key=f"compl-#7#{str(self.task.sPosition())}", silent_on_error=True)
+        if element:
             self._completeUpdate(
                 window=window, key=f"compl-#7#{str(self.task.sPosition())}", value=None,
+                # window=window, key=f"compl-#7#{str(self.task.sPosition())}", value=None,
                 background_color=background_color, tooltip_text=tooltip_text)  # achtung maby this none brings trouble
             # window[f"compl-#7#{str(self.task.sPosition())}"].Update(background_color=background_color)
             # window[f"compl-#7#{str(self.task.sPosition())}"].SetTooltip(tooltip_text=tooltip_text)
-        except:
+        else:
             self._completeUpdate(
                 window=window, key=f"COMPL-TEXT{self.task.sPosition()}", value=None,
                 background_color=background_color, tooltip_text=tooltip_text)  # achtung maby this none brings trouble

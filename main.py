@@ -45,7 +45,7 @@ class TaskAttack:
         self.mygtb = MyGuiToolbox()
         self.task_window_crator = TaskInputWindowCreator()
         #todo this time would be unnessasary
-        self.task_frames_creator = TaskFrameCreator()
+        # self.task_frames_creator = TaskFrameCreator()
         self.result_file_creator = gui_elements.ResultFileCreator()
         self.progbar = Progressbar(type_here="blue_dotted_ring")
 
@@ -344,13 +344,10 @@ class TaskAttack:
 
         for y_index, y in enumerate(orginal_display_matrix):
             for x_index, element in enumerate(y):
-
                     frame_here = gui_elements.TaskFrame(task=element)
-                    # frame_here = self.task_frames_creator.taskFrame(element)
                     base_layout[y_index][x_index] = frame_here
                 # if isinstance(element, Task):
                 #     #todo this time here comes class Task frame in
-                #     frame_here = gui_elements.TaskFrame(task=element)
                 #     # frame_here = self.task_frames_creator.taskFrame(element)
                 #     base_layout[y_index][x_index] = frame_here
                 # else:
@@ -384,10 +381,9 @@ class TaskAttack:
         :param project_table: list of lists task frames
         :return: list of lists task frames one bit bigger so tooltip wont show out of screensize
         """
-        #todo this time her is empty task Frame
         try:
-            project_table[0].append(self.task_frames_creator.emptyTaskFrame())
-            project_table.append([self.task_frames_creator.emptyTaskFrame()])
+            project_table[0].append(gui_elements.TaskFrame(None))
+            project_table.append([gui_elements.TaskFrame(None)])
         except AttributeError as e:
             print(f"{Fore.RED}ERROR #08029i233 --> {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
 
@@ -513,6 +509,8 @@ class TaskAttack:
                 self.window_location = self.main_window.current_location()
                 self.progbar.start()
                 self.main_window.close()
+            else:
+                self.main_window[f"-MY-TASK-FRAME-{int_coordinates}"].Update(self.main_window)
 
             self.autoSave()
 
