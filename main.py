@@ -45,7 +45,7 @@ class TaskAttack:
         self.mygtb = MyGuiToolbox()
         self.task_window_crator = TaskInputWindowCreator()
         #todo this time would be unnessasary
-        self.task_frames_creator = TaskFrameCreator()
+        # self.task_frames_creator = TaskFrameCreator()
         self.result_file_creator = gui_elements.ResultFileCreator()
         self.progbar = Progressbar(type_here="blue_dotted_ring")
 
@@ -247,7 +247,7 @@ class TaskAttack:
         coordinates = coordinates.replace("(", "")
         coordinates = coordinates.replace(")", "")
         coordinates = coordinates.replace(",", "")
-        y, x = [int(x) for x in coordinates.split()]
+        x, y = [int(xr) for xr in coordinates.split()]
         return x, y
 
     def _executeCreatedFile(self, event, values):
@@ -284,7 +284,7 @@ class TaskAttack:
         """
         executes Task specific commands, which alters with every task
         :param string_coordinates: task matrix coordinates
-        # todo this time what gets returned here
+        :returns tuple: 1st window_renewal_flag: boolean, 2nd either task coordinates, or none if no coordinate
         """
         int_coordinates = self._getCoordinatesAsInts(string_coordinates)
         task = self.getTaskFromMatrix(coordinates=int_coordinates)
@@ -296,6 +296,7 @@ class TaskAttack:
         :param event: user_event
         :param window: TaskAttack-window
         :param values: dict sg.values
+        :returns tuple: 1st window_renewal_flag: boolean, 2nd either task coordinates, or none if no coordinate
         """
         self._userExit(event=event, window=window)
         self._setDataLossPreventionStatus(event)
@@ -313,7 +314,7 @@ class TaskAttack:
             action = self.sFunctionMapping()[command]
             print(f"#90920983 {action}")
             action()
-            return command in self.sRenewalNeedingFunctions(), None #todo this time documentation whta is this none (no coordinates)
+            return command in self.sRenewalNeedingFunctions(), None
 
     def dataLossPrevention(self):
         """checks if there is an open unsaved file and asks for wish to save
@@ -343,15 +344,17 @@ class TaskAttack:
 
         for y_index, y in enumerate(orginal_display_matrix):
             for x_index, element in enumerate(y):
-                if isinstance(element, Task):
-                    #todo this time here comes class Task frame in
-                    frame_here = self.task_frames_creator.taskFrame(element)
+                    frame_here = gui_elements.TaskFrame(task=element)
                     base_layout[y_index][x_index] = frame_here
-                else:
-                    #todo this time here comes class Task frame in
-
-                    frame_here = self.task_frames_creator.emptyTaskFrame()
-                    base_layout[y_index][x_index] = frame_here
+                # if isinstance(element, Task):
+                #     #todo this time here comes class Task frame in
+                #     # frame_here = self.task_frames_creator.taskFrame(element)
+                #     base_layout[y_index][x_index] = frame_here
+                # else:
+                #     #todo this time here comes class Task frame in
+                #
+                #     frame_here = self.task_frames_creator.emptyTaskFrame()
+                #     base_layout[y_index][x_index] = frame_here
         return base_layout
 
     def getTaskFromMatrix(self, coordinates):
@@ -360,7 +363,7 @@ class TaskAttack:
         :return: destinct task from matric
         """
         task_matrix = self.taskmanager.sTaskMatrix()
-        return task_matrix[coordinates[0]][coordinates[1]]
+        return task_matrix[coordinates[1]][coordinates[0]]
 
     def propperWindowLayout(self, menu_bar, project_matrix):
         """creates tree layout either with project_matrix if available, or with a table dummy
@@ -378,10 +381,9 @@ class TaskAttack:
         :param project_table: list of lists task frames
         :return: list of lists task frames one bit bigger so tooltip wont show out of screensize
         """
-        #todo this time her is empty task Frame
         try:
-            project_table[0].append(self.task_frames_creator.emptyTaskFrame())
-            project_table.append([self.task_frames_creator.emptyTaskFrame()])
+            project_table[0].append(gui_elements.TaskFrame(None))
+            project_table.append([gui_elements.TaskFrame(None)])
         except AttributeError as e:
             print(f"{Fore.RED}ERROR #08029i233 --> {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
 
@@ -507,6 +509,10 @@ class TaskAttack:
                 self.window_location = self.main_window.current_location()
                 self.progbar.start()
                 self.main_window.close()
+            else:
+                if int_coordinates:
+                    print(f"#902893 key to update: {f'-MY-TASK-FRAME-{str(int_coordinates)}'}")
+                    self.main_window[f"-MY-TASK-FRAME-{str(int_coordinates)}"].Update(self.main_window)
 
             self.autoSave()
 

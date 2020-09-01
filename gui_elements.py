@@ -347,6 +347,8 @@ class ResultFileCreator:
 
 
 # todo this time make a task frame creator wich inplements TaskFrame(Frame_class)
+#  not necessary at this time
+
 # todo think about maybe task frame creator is not necessary at all
 # todo think about, which is better in performance??? because of update,
 #  instead of renewal update is a big improvement,
@@ -537,7 +539,8 @@ class TaskFrame(sg.Frame):
 
         if task:
             self.task = task
-            self.key = F"-MY_FRAME-{self.task.sPosition()}"
+            print(f"#9923u0923 key for frame: {f'-MY-TASK-FRAME-{str(self.task.sPosition())}'}")
+            self.key = F"-MY-TASK-FRAME-{str(self.task.sPosition())}"
             self.taskFrame() #superMethod
         else:
             self.emptyTaskFrame()#superMethod
@@ -586,6 +589,7 @@ class TaskFrame(sg.Frame):
         """
         default = True if task.sCompleted() else False
         if type(task.sCompleted()) == int:
+            print(f"#0923ßn checkboxkey: {f'compl-#7#{str(task.sPosition())}'}")
             return sg.Checkbox(text=inter.completed, key=f"compl-#7#{str(task.sPosition())}", default=default,
                                enable_events=True, tooltip=tooltip_text, background_color=background_color)
         return sg.Text(f"{inter.completed}: {task.sCompleted():6.2f}", tooltip=tooltip_text,
@@ -658,7 +662,7 @@ class TaskFrame(sg.Frame):
                              background_color=background_color, key=f"{self.key}NAME-L-")]
         return name_line
 
-    def _basicTaskFrame(self, frame_name: str, name_line: list, priority, completed, option_button_line: list,
+    def _basicTaskFrame(self, frame_name: str, name_line: list, priority_completed_line, option_button_line: list,
                         relief=sg.RELIEF_RAISED, tooltip_text: str = "", frame_color: str = None):
         """task frame creation
         :param name: simplegu element name line
@@ -669,7 +673,7 @@ class TaskFrame(sg.Frame):
         :return: short task representation in a frame
         """
         super(TaskFrame, self).__init__(layout=[name_line,
-                                                [priority, completed],
+                                                priority_completed_line,
                                                 option_button_line],
                                         title=frame_name[-(self.sSize() - 3):], relief=relief, size=(self.sSize(), 5),
                                         tooltip=tooltip_text, background_color=frame_color, key=self.key)
@@ -682,32 +686,32 @@ class TaskFrame(sg.Frame):
         background_color = self.task.taskDeadlineColor()
 
         name_line = self._nameLine(tooltip_text=tooltip_text, background_color=background_color)
-        priority_sg_object = sg.Text(text=f"{inter.short_pr}:.{self.task.sPriority():3d}", tooltip=tooltip_text,
-                                     background_color=background_color, key=f"{self.key}PRIORITY-")
-        completed_sg_object = self._isCompletedElement(self.task, tooltip_text=tooltip_text,
-                                                       background_color=background_color)
+
+        prio_completed_line = self._priorityCompletedLine(tooltip_text=tooltip_text, background_color=background_color)
 
         frame_name = self.task.hierarchyTreePositionString()
 
         button_menu_line = self._buttonMenuLine(background_color=background_color)
 
-        self._basicTaskFrame(frame_name=frame_name, name_line=name_line, priority=priority_sg_object,
-                             completed=completed_sg_object, option_button_line=button_menu_line,
-                             tooltip_text=tooltip_text, frame_color=background_color)
+        self._basicTaskFrame(frame_name=frame_name, name_line=name_line, priority_completed_line=prio_completed_line,
+                             option_button_line=button_menu_line, tooltip_text=tooltip_text,
+                             frame_color=background_color)
 
     def emptyTaskFrame(self):
         """
-            :return: empty sg.Frame in same size than a task frame
-            """
+        :return: empty sg.Frame in same size than a task frame
+        """
         super(TaskFrame, self).__init__(layout=[[sg.Text(text="", size=(self.sSize() - 5, 5))]], title=" ",
                                         relief=sg.RELIEF_FLAT,
                                         size=(300, self.size + 20))
 
     def _completeUpdate(self, window, key, value, background_color, tooltip_text):
+        """makes a complete update of an sg.element text, bg_color AND tooltip_text"""
         window[key].Update(value=value, background_color=background_color)
         window[key].SetTooltip(tooltip_text=tooltip_text)
 
     def _updateFixedElements(self, window, background_color, tooltip_text):
+        """Updates all elements in Task frame which never changes like sg.TExt <-> sg.Checkbox"""
         self._completeUpdate(
             window=window, key=f"{self.key}NAME-L-", value=self.task.sName(), background_color=background_color,
             tooltip_text=tooltip_text)
@@ -716,21 +720,21 @@ class TaskFrame(sg.Frame):
             background_color=background_color, tooltip_text=tooltip_text)
 
     def _updateChangingElements(self, window, background_color, tooltip_text):
-        try:
+        """Updates all elements in Task frame which changes like sg.TExt <-> sg.Checkbox"""
+
+        element = window.Element(key=f"compl-#7#{str(self.task.sPosition())}", silent_on_error=True)
+        if element:
             self._completeUpdate(
                 window=window, key=f"compl-#7#{str(self.task.sPosition())}", value=None,
-                background_color=background_color, tooltip_text=tooltip_text)  # achtung maby this none brings trouble
-            # window[f"compl-#7#{str(self.task.sPosition())}"].Update(background_color=background_color)
-            # window[f"compl-#7#{str(self.task.sPosition())}"].SetTooltip(tooltip_text=tooltip_text)
-        except:
+                background_color=background_color, tooltip_text=tooltip_text)
+        else:
             self._completeUpdate(
                 window=window, key=f"COMPL-TEXT{self.task.sPosition()}", value=None,
-                background_color=background_color, tooltip_text=tooltip_text)  # achtung maby this none brings trouble
-
-            # window[f"COMPL-TEXT{self.task.sPosition()}"].Update(background_color=background_color)
-            # window[f"COMPL-TEXT{self.task.sPosition()}"].SetTooltip(tooltip_text=tooltip_text)
+                background_color=background_color, tooltip_text=tooltip_text)
 
     def Update(self, window, value=None, visible=None):
+        """overriding of method wich enables the direct window[key] access
+        and passes it along to the containing elements"""
         tooltip_text = self._toolTipText(self.task)
         background_color = self.task.taskDeadlineColor()
         frame_name = self.task.hierarchyTreePositionString()
@@ -741,6 +745,13 @@ class TaskFrame(sg.Frame):
 
         super(TaskFrame, self).Update(value=frame_name)
         self.SetTooltip(tooltip_text=tooltip_text)
+
+    def _priorityCompletedLine(self, tooltip_text, background_color, ):
+        priority_sg_object = sg.Text(text=f"{inter.short_pr}:.{self.task.sPriority():3d}", tooltip=tooltip_text,
+                                     background_color=background_color, key=f"{self.key}PRIORITY-")
+        completed_sg_object = self._isCompletedElement(self.task, tooltip_text=tooltip_text,
+                                                       background_color=background_color)
+        return [priority_sg_object, completed_sg_object]
 
 
 class TaskInputWindowCreator:

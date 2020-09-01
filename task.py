@@ -478,7 +478,7 @@ class Taskmanager:
         """
         x, y = self.matrixDimensions()
         try:
-            one_row = [0 for _ in range(x)]
+            one_row = [None for _ in range(x)]
             return [one_row[:] for _ in range(y)]
         except TypeError as e:
             if e.__str__() == "can't multiply sequence by non-int of type 'NoneType'":
@@ -548,8 +548,8 @@ class Taskmanager:
         self.recognizeMatrixPositions()
         self.task_matrix = self.createTaskMatix()
         #display_matrix = self.addMasterTaskPlaceholderStrings(self.task_matrix)
-        display_matrix = self.task_matrix
-        return display_matrix
+        # display_matrix = self.task_matrix
+        return self.task_matrix
 
     def allSubordinatedTasks(self):
         """
