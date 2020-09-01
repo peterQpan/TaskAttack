@@ -284,7 +284,7 @@ class TaskAttack:
         """
         executes Task specific commands, which alters with every task
         :param string_coordinates: task matrix coordinates
-        # todo this time what gets returned here
+        :returns tuple: 1st window_renewal_flag: boolean, 2nd either task coordinates, or none if no coordinate
         """
         int_coordinates = self._getCoordinatesAsInts(string_coordinates)
         task = self.getTaskFromMatrix(coordinates=int_coordinates)
@@ -296,6 +296,7 @@ class TaskAttack:
         :param event: user_event
         :param window: TaskAttack-window
         :param values: dict sg.values
+        :returns tuple: 1st window_renewal_flag: boolean, 2nd either task coordinates, or none if no coordinate
         """
         self._userExit(event=event, window=window)
         self._setDataLossPreventionStatus(event)
@@ -313,7 +314,7 @@ class TaskAttack:
             action = self.sFunctionMapping()[command]
             print(f"#90920983 {action}")
             action()
-            return command in self.sRenewalNeedingFunctions(), None #todo this time documentation whta is this none (no coordinates)
+            return command in self.sRenewalNeedingFunctions(), None
 
     def dataLossPrevention(self):
         """checks if there is an open unsaved file and asks for wish to save
@@ -343,15 +344,20 @@ class TaskAttack:
 
         for y_index, y in enumerate(orginal_display_matrix):
             for x_index, element in enumerate(y):
-                if isinstance(element, Task):
-                    #todo this time here comes class Task frame in
-                    frame_here = self.task_frames_creator.taskFrame(element)
-                    base_layout[y_index][x_index] = frame_here
-                else:
-                    #todo this time here comes class Task frame in
 
-                    frame_here = self.task_frames_creator.emptyTaskFrame()
+                    frame_here = gui_elements.TaskFrame(task=element)
+                    # frame_here = self.task_frames_creator.taskFrame(element)
                     base_layout[y_index][x_index] = frame_here
+                # if isinstance(element, Task):
+                #     #todo this time here comes class Task frame in
+                #     frame_here = gui_elements.TaskFrame(task=element)
+                #     # frame_here = self.task_frames_creator.taskFrame(element)
+                #     base_layout[y_index][x_index] = frame_here
+                # else:
+                #     #todo this time here comes class Task frame in
+                #
+                #     frame_here = self.task_frames_creator.emptyTaskFrame()
+                #     base_layout[y_index][x_index] = frame_here
         return base_layout
 
     def getTaskFromMatrix(self, coordinates):
