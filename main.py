@@ -505,3 +505,6 @@ if __name__ == '__main__':
 # todo dev scroll position beibehalten --> sg.Frame.set_vscroll_position()?!?
 
 # todo window displays itself over result programm
+
+# todo after close, some thread or else runs on, the ide red quarter did not disappear
+
