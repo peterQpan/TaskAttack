@@ -560,21 +560,19 @@ class TaskFrame(sg.Frame):
     def nAIt(wantet_value):
         return "N.A." if not wantet_value else wantet_value
 
-    # todo think about as now taskFrames are are real classes, should this methods remain static?!?
-    @staticmethod
-    def _toolTipText(task: task.Task):
+    def _toolTipText(self):
         """
         :return: full plain textual representation of an task.Task() suitable as tooltip_text
         """
         tt = ""
-        tt += f"   {task.hierarchyTreePositionString()}\n\n"
-        tt += f"   {task.sName()}\n\n"
-        tt += f"   {inter.start}: {task.sStart()}   {inter.end}:v{TaskFrameCreator.nAIt(task.sEnde())}   {inter.priority}: {task.sPriority()}   \n"
-        tt += f"   {inter.rem_days}:..................................... {TaskFrameCreator.nAIt(task.sRemainingDays())}   \n"
-        tt += f"   {inter.project_part_percentage}:............... {task.sPercentage()}%   \n"
-        tt += f"   {inter.sub_task_amount}:............................... {len(task.sSubTasks()) if task.sSubTasks() else '0'}   \n"
-        tt += f"   {inter.percent_compled}:............................. {task.sCompleted():5.1f}%   \n\n"
-        tt += "    \n   ".join(textwrap.wrap(task.sDescription(), width=90))
+        tt += f"   {self.task.hierarchyTreePositionString()}\n\n"
+        tt += f"   {self.task.sName()}\n\n"
+        tt += f"   {inter.start}: {self.task.sStart()}   {inter.end}:v{TaskFrameCreator.nAIt(self.task.sEnde())}   {inter.priority}: {self.task.sPriority()}   \n"
+        tt += f"   {inter.rem_days}:..................................... {TaskFrameCreator.nAIt(self.task.sRemainingDays())}   \n"
+        tt += f"   {inter.project_part_percentage}:............... {self.task.sPercentage()}%   \n"
+        tt += f"   {inter.sub_task_amount}:............................... {len(self.task.sSubTasks()) if self.task.sSubTasks() else '0'}   \n"
+        tt += f"   {inter.percent_compled}:............................. {self.task.sCompleted():5.1f}%   \n\n"
+        tt += "    \n   ".join(textwrap.wrap(self.task.sDescription(), width=90))
 
         return tt
 
