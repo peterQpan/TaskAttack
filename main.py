@@ -37,8 +37,8 @@ class TaskAttack:
         self._extern_threads = []
         self.last_file_path = base_file if base_file else ""
 
-        self.backend_queue = queue.Queue()
-        self.back_end_thread = self._startBackEndThread()
+        self.background_queue = queue.Queue()
+        self.back_end_thread = self._startBackGroundThread()
 
 
         self.taskmanager = Taskmanager()
@@ -266,15 +266,15 @@ class TaskAttack:
         action(task=task, values=values, command=command, event=event)
         return command in self.sRenewalNeedingFunctions()
 
-    def _userExit(self, event, window):
+    def _ifUserExit(self, event, window):
         """checks for and executes Exit if asked for"""
         if event in (inter.exit, None):
-            self._stopBackEndThread()
+            self._stopBackGroundThread()
             self.dataLossPrevention()
             window.close()
             sys.exit(0)
 
-    def _setDataLossPreventionStatus(self, event):
+    def _setDataLossPreventionFlag(self, event):
         """looks for user action and sets flag for not saved question, if new data is created"""
         if event not in (inter.new_project_sheet, inter.open, inter.save, inter.save_at,
                          inter.exit, inter.reload, inter.help, inter.about, None):
@@ -298,21 +298,16 @@ class TaskAttack:
         :param values: dict sg.values
         :returns tuple: 1st window_renewal_flag: boolean, 2nd either task coordinates, or none if no coordinate
         """
-        self._userExit(event=event, window=window)
-        self._setDataLossPreventionStatus(event)
+        self._ifUserExit(event=event, window=window)
+        self._setDataLossPreventionFlag(event)
 
-        print(f"#29824 event: {event}, values: {values}")
         command, _, string_coordinates = event.partition("#7#")
-        print(f"command: {command}, string_coordinates:{string_coordinates}, some string_co: {'True' if string_coordinates else 'False'}")
 
         if string_coordinates:
             return self._executeCoordinateCommand(string_coordinates=string_coordinates, command=command,
                                            values= values, event=event)
         else:
-            print(f"#iuihbjlksndfoij command: {command}")
-            print(f"self.function mapping: {self.sFunctionMapping()}")
             action = self.sFunctionMapping()[command]
-            print(f"#90920983 {action}")
             action()
             return command in self.sRenewalNeedingFunctions(), None
 
@@ -346,15 +341,6 @@ class TaskAttack:
             for x_index, element in enumerate(y):
                     frame_here = gui_elements.TaskFrame(task=element)
                     base_layout[y_index][x_index] = frame_here
-                # if isinstance(element, Task):
-                #     #todo this time here comes class Task frame in
-                #     # frame_here = self.task_frames_creator.taskFrame(element)
-                #     base_layout[y_index][x_index] = frame_here
-                # else:
-                #     #todo this time here comes class Task frame in
-                #
-                #     frame_here = self.task_frames_creator.emptyTaskFrame()
-                #     base_layout[y_index][x_index] = frame_here
         return base_layout
 
     def getTaskFromMatrix(self, coordinates):
@@ -414,15 +400,16 @@ class TaskAttack:
                                 finalize=True, resizable=True, size=self.window_size, location=self.window_location)
         return main_window
 
-    def _stopBackEndThread(self):
-        self.backend_queue.put(("###breakbreakbreak###", None))
+    def _stopBackGroundThread(self):
+        """sends break command which causes while loop to exit"""
+        self.background_queue.put(("###breakbreakbreak###", None))
 
     def _autoSaveTC(self, *args, **kwargs): #TC: Thread Command
+        """performs auto save in background"""
         self.taskmanager.save(os.path.join(self.opt.sUsedAutosavePath(), f"autosave-{tools.nowDateTime()}.tak"))
 
     def _autoSaveFileHandlingTC(self, *args, **kwargs):
-        print(f"#09u10 in _autosaveFileHandlinTQ")
-        print(f"#09233 autosavefilehandlingTC: opt.autosave_handling{self.opt.autosave_handling}; autosaveamounttype: {self.opt.sAutosaveAmountType()}")
+        """deletes auto save files to users settings""" #achtung
         if self.opt.autosave_handling:
             autosave_path = self.opt.sUsedAutosavePath()
             all_auto_save_files = os.listdir(autosave_path)
@@ -431,17 +418,17 @@ class TaskAttack:
 
             if self.opt.sAutosaveAmountType() == inter.pieces:
                 file_paths_for_deletion = all_file_paths[:-self.opt.sAutosaveAmount()]
-                [os.remove(file) for file in file_paths_for_deletion]
+                [os.remove(file) for file in file_paths_for_deletion] #achtung
             elif self.opt.sAutosaveAmountType() == inter.days:
                 timestamp = self._deltionTimeStamp(self.opt.sAutosaveAmount())
                 file_paths_for_deletion = [file for file in all_file_paths if os.path.getmtime(file) < timestamp]
-                [os.remove(file) for file in file_paths_for_deletion]
+                [os.remove(file) for file in file_paths_for_deletion] #achtung
 
     def autoSave(self):
         """perform auto save in a threat
         """
-        self.backend_queue.put((self._autoSaveTC, ()))
-        self.backend_queue.put((self._autoSaveFileHandlingTC, ()))
+        self.background_queue.put((self._autoSaveTC, ()))
+        self.background_queue.put((self._autoSaveFileHandlingTC, ()))
 
     def _instantiateBasicFolderStructurTC(self, folders, *args, **kwargs):
         print(f"#9028u30 in _instantiateFolderStructurTQ")
@@ -449,31 +436,17 @@ class TaskAttack:
             tools.path.ensurePathExists(path_here=folder)
 
     def _instantiateBasicFolderStructur(self, folders):
-        self.backend_queue.put((self._instantiateBasicFolderStructurTC, folders))
+        self.background_queue.put((self._instantiateBasicFolderStructurTC, folders))
 
-    # todo did not work out to command sg.window from outside Thread but it is needed to work out this:
-    #  invalid command name "140326498775872showtip"
-    #      while executing
-    #  "140326498775872showtip"
-    #      ("after" script)
-    #  error message its indicates that window gets closed before all ending-related-work is done
-
-# def _bakendDelayedWindowCloseTC(self, sleep_time_and_window):
-    #     sleep_time, window = sleep_time_and_window
-    #     time.sleep(sleep_time)
-    #     window.close()
-    #
-    # def _bakendDelayedWindowClose(self, sleep_time, window):
-    #     self.backend_queue.put((self._bakendDelayedWindowCloseTC, (sleep_time, window)))
-
-    def _startBackEndThread(self):
-        thread = Thread(target=self._backEndThread, args=())
+    def _startBackGroundThread(self):
+        thread = Thread(target=self._backGroundThread, args=())
         thread.start()
         return thread
 
-    def _backEndThread(self):
+    def _backGroundThread(self):
+        """executes commands in the background"""
         while True:
-            action, args = self.backend_queue.get(block=True)
+            action, args = self.background_queue.get(block=True)
             if action == "###breakbreakbreak###":
                 break
             else:
@@ -505,6 +478,7 @@ class TaskAttack:
 
     def __del__(self):
         self.progbar.kill()
+        self._stopBackGroundThread()
 
 if __name__ == '__main__':
 
@@ -513,6 +487,14 @@ if __name__ == '__main__':
                                      #achtung despite its name its really bad for debuging while dev xD
     tools.path.cwdBashFix()
     main_gui_task_atack = TaskAttack(base_file="base.tak")
+
+# todo this still troubles once in a while
+#  invalid command name "140326498775872showtip"
+#      while executing
+#  "140326498775872showtip"
+#      ("after" script)
+#  error message its indicates that window gets closed before all ending-related-work is done
+
 
 # todo next add short keys --> before short keys there must be distinguished between update and reload
 

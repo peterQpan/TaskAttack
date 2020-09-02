@@ -346,10 +346,8 @@ class ResultFileCreator:
             break
 
 
-# todo this time make a task frame creator wich inplements TaskFrame(Frame_class)
-#  not necessary at this time
-
-# todo think about maybe task frame creator is not necessary at all
+# todo think about task frame creator or task frames of its own
+#  maybe more simplicity since task frame creator can take care of it?!?
 # todo think about, which is better in performance??? because of update,
 #  instead of renewal update is a big improvement,
 #  and i dont have to keep track of all the sg-Elements... by frame inheritance
