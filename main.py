@@ -42,10 +42,8 @@ class TaskAttack:
         self.taskmanager = Taskmanager()
         self.mygtb = MyGuiToolbox()
         self.task_window_crator = TaskInputWindowCreator()
-        # todo this time would be unnessasary
-        # self.task_frames_creator = TaskFrameCreator()
         self.result_file_creator = gui_elements.ResultFileCreator()
-        self.progbar = Progressbar()  # todo progress bar change in options otherwise there is
+        self.progbar = Progressbar()  # todo dev progress bar change in options otherwise there is
                                       #  no sense in different possibilities
 
         self.window_size = sg.Window.get_screen_size()
@@ -59,17 +57,6 @@ class TaskAttack:
         self._instantiateBasicFolderStructur(
             folders=(self.opt.sUsedMainFolder(), self.opt.sUsedResultFolder(), self.opt.sUsedAutosavePath()))
         self.mainLoop()
-
-    #     #todo make a base file in option
-    # @property
-    # def last_file_path(self):
-    #     #warnings.warn("last_file_path is deprecated with optipons_file_settings", DeprecationWarning)
-    #     return self.last_file_path_depre
-    #
-    # @last_file_path.setter
-    # def last_file_path(self, value):
-    #     #warnings.warn("last_file_path is deprecated with options_file_settings", DeprecationWarning)
-    #     self.last_file_path_depre = value
 
     @staticmethod
     def sMenuBar():
@@ -503,11 +490,6 @@ if __name__ == '__main__':
 
 # todo next add short keys --> before short keys there must be distinguished between update and reload
 
-# todo make update or reload decision. i.e. load, save, etc. dont need new window, not even an update,
-#  so there is potential for easy improvement
-
-# todo set RadioRow in Place, instead of horizontal decision function !!!ACHTUNG first search for all kex appearances etc.
-
 # todo maybe there is a way for print()/Error > stdout > DebugPrinter
 
 # todo complet documentation and code cleanup
@@ -520,11 +502,6 @@ if __name__ == '__main__':
 
 # remember beauty look out for chances to easily improve performance
 
-# remember or later scroll position beibehalten (not possible as i know)
-
-# remember or later gui_element.TaskFrameCreater._toolTipText
-# date is shown yyyy-mm-dd 00:00:00 should i exclude the hours if its always zerro,
-# or shouldnt i change it in case for later improvements whit exact time?!?
-# as is write this down here i think i shouldnt
+# todo dev scroll position beibehalten --> sg.Frame.set_vscroll_position()?!?
 
 # todo window displays itself over result programm
