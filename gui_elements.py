@@ -101,7 +101,6 @@ class RadioNew(sg.Frame):
                               enable_events=enable_events, visible=visible, metadata=metadata)
         self.text_key = f"{key}TEXT-"
         self.text = sg.Text(text=text, size=text_size, auto_size_text=auto_size_text, click_submits=click_submits,
-                            # enable_events=enable_events,
                             relief=relief, font=font, text_color=text_color,
                             background_color=background_color, border_width=border_width, justification=justification,
                             pad=text_pad, key=self.text_key, right_click_menu=right_click_menu, tooltip=tooltip,
