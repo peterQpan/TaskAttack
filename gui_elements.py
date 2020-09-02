@@ -296,8 +296,7 @@ class ResultFileCreator:
     def _createAndOpenResultFile(self, kind_of_porogramm, file_path):
         template_file_path = self._file_templates[kind_of_porogramm][0]
         shutil.copy(tools.venvAbsPath(template_file_path), file_path)
-        tools.openExternalFileSubPro(file_path=file_path  # , threads=self._external_threads
-                                     )
+        tools.openExternalFileSubPro(file_path=file_path)
 
     @staticmethod
     def _fetchResultFileParameters(values, file_ext, window):
@@ -540,9 +539,9 @@ class TaskFrame(sg.Frame):
             self.task = task
             print(f"#9923u0923 key for frame: {f'-MY-TASK-FRAME-{str(self.task.sPosition())}'}")
             self.key = F"-MY-TASK-FRAME-{str(self.task.sPosition())}"
-            self.taskFrame() #superMethod
+            self.taskFrame()  # superMethod
         else:
-            self.emptyTaskFrame()#superMethod
+            self.emptyTaskFrame()  # superMethod
 
     def sSize(self):
         """
@@ -730,6 +729,8 @@ class TaskFrame(sg.Frame):
                 background_color=background_color, tooltip_text=tooltip_text)
 
     def Update(self, window, value=None, visible=None):
+        # todo think is it really smart to refer to elements by using sg.window[key] instead of make all elements
+        #  part of self and update them by self.element.Update ??
         """overriding of method wich enables the direct window[key] access
         and passes it along to the containing elements"""
         tooltip_text = self._toolTipText()
@@ -738,7 +739,7 @@ class TaskFrame(sg.Frame):
 
         print(f"#09288309u parentWindow: {self.ParentWindow}")
         self._updateFixedElements(window=window, background_color=background_color, tooltip_text=tooltip_text)
-        self._updateChangingElements(window=window, background_color=background_color, tooltip_text= tooltip_text)
+        self._updateChangingElements(window=window, background_color=background_color, tooltip_text=tooltip_text)
 
         super(TaskFrame, self).Update(value=frame_name)
         self.SetTooltip(tooltip_text=tooltip_text)

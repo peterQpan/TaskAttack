@@ -112,7 +112,7 @@ def printMatrix(casenumber, matrix):
         print(f"{list_h}")
         print(f"{Fore.RESET}")
 
-def openExternalFile(file_path:str):
+def openExternalFileSubPro(file_path:str):
     """
     starts external corresponding programm for task result file
     :param file_path: file_path of file to open
