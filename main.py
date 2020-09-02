@@ -244,8 +244,8 @@ class TaskAttack:
         command = values[event]
         _, _, file_path = command.rpartition(" <-> ")
         if os.path.isfile(file_path):
-            tools.openExternalFile(file_path=file_path  # , threads=self._extern_threads
-                                   )
+            tools.openExternalFileSubPro(file_path=file_path  # , threads=self._extern_threads
+                                         )
 
     def _executeBasicOptionButtonMenuCommands(self, values, event, task):
         """executes the basic commands of the option Button menue

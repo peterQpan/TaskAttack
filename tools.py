@@ -6,6 +6,7 @@ import datetime
 import os
 import subprocess
 import sys
+import threading
 import time
 import warnings
 
@@ -111,22 +112,26 @@ def printMatrix(casenumber, matrix):
         print(f"{list_h}")
         print(f"{Fore.RESET}")
 
-def openExternalFile(file_path:str  #, threads:list
-                     ):
+def openExternalFile(file_path:str):
+    """
+    starts external corresponding programm for task result file
+    :param file_path: file_path of file to open
+    """
+    subprocess.Popen([f"xdg-open", f"{file_path}"])
+
+def openExternalFileThreads(file_path:str , threads:list):
     """
     starts external corresponding programm for task result file
     :param threads: list to save thread in it to prevent garbage collection and enables later referencing
     """
-    # thread = threading.Thread(target=os.system, args=(f"xdg-open '{file_path}'",))
-    # thread.start()
-    # threads.append(thread)
-    subprocess.Popen([f"xdg-open", f"{file_path}"])
-
+    thread = threading.Thread(target=os.system, args=(f"xdg-open '{file_path}'",))
+    thread.start()
+    threads.append(thread)
 
 # todo delte deprecation 2020-10-5 no rush needed
-def getUserHomeStandardFolders(folder="DOCUMENTS"):
-    warnings.warn("use tools.path", DeprecationWarning)
-    return path.getUserHomeStandardFolders(folder=folder)
+# def getUserHomeStandardFolders(folder="DOCUMENTS"):
+#     warnings.warn("use tools.path", DeprecationWarning)
+#     return path.getUserHomeStandardFolders(folder=folder)
 
 def venvAbsPath(file_path:str):
     warnings.warn(message="won't work propperly", category=DeprecationWarning)
