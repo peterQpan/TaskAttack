@@ -25,29 +25,26 @@ from tools import cwdBashFix, nowDateTime
 
 
 class TaskAttack:
-    def __init__(self, base_file:str=None):
-
+    def __init__(self, base_file: str = None):
 
         self.opt = Option("user_setup.ats")
 
         self.unsaved_project = False
-        self.last_deleted_task:Task = None
-        #self.auto_save_thread:Thread = None #now ther will be more worker threads in the back so this changes
-        self._clipboard:Task = None
+        self.last_deleted_task: Task = None
+        # self.auto_save_thread:Thread = None #now ther will be more worker threads in the back so this changes
+        self._clipboard: Task = None
         self._extern_threads = []
         self.last_file_path = base_file if base_file else ""
 
-        self.backend_queue = queue.Queue()
-        self.back_end_thread = self._startBackEndThread()
-
+        self.background_queue = queue.Queue()
+        self.back_end_thread = self._startBackGroundThread()
 
         self.taskmanager = Taskmanager()
         self.mygtb = MyGuiToolbox()
         self.task_window_crator = TaskInputWindowCreator()
-        #todo this time would be unnessasary
-        # self.task_frames_creator = TaskFrameCreator()
         self.result_file_creator = gui_elements.ResultFileCreator()
-        self.progbar = Progressbar(type_here="blue_dotted_ring")
+        self.progbar = Progressbar()  # todo dev progress bar change in options otherwise there is
+                                      #  no sense in different possibilities
 
         self.window_size = sg.Window.get_screen_size()
         self.window_location = (None, None)
@@ -58,19 +55,8 @@ class TaskAttack:
             except:
                 pass
         self._instantiateBasicFolderStructur(
-                folders=(self.opt.sUsedMainFolder(), self.opt.sUsedResultFolder(), self.opt.sUsedAutosavePath()))
+            folders=(self.opt.sUsedMainFolder(), self.opt.sUsedResultFolder(), self.opt.sUsedAutosavePath()))
         self.mainLoop()
-
-    #     #todo make a base file in option
-    # @property
-    # def last_file_path(self):
-    #     #warnings.warn("last_file_path is deprecated with optipons_file_settings", DeprecationWarning)
-    #     return self.last_file_path_depre
-    #
-    # @last_file_path.setter
-    # def last_file_path(self, value):
-    #     #warnings.warn("last_file_path is deprecated with options_file_settings", DeprecationWarning)
-    #     self.last_file_path_depre = value
 
     @staticmethod
     def sMenuBar():
@@ -109,26 +95,26 @@ class TaskAttack:
         # inter.c_b_m_l
         # inter.chreate_result_menu
 
-        return {#Globals:
-                inter.new_project: self.onAddProject, inter.reload: self.onReload,
-                inter.new_project_sheet: self.onNewFile, inter.open: self.onLoad, inter.save: self.onSave,
-                inter.save_at: self.onSaveAt, inter.restore_task: self.onRestoreTask,
-                inter.settings: self.onGlobalOptions,
+        return {  # Globals:
+            inter.new_project: self.onAddProject, inter.reload: self.onReload,
+            inter.new_project_sheet: self.onNewFile, inter.open: self.onLoad, inter.save: self.onSave,
+            inter.save_at: self.onSaveAt, inter.restore_task: self.onRestoreTask,
+            inter.settings: self.onGlobalOptions,
 
-                #Locals:
-                "bearb-": self.onEditTask, "subta-": self.onNewSubTask, "compl-": self.onSetTaskAsCompleted,
-                "-BMENU-": self.onOptionButtonMenu,
+            # Locals:
+            "bearb-": self.onEditTask, "subta-": self.onNewSubTask, "compl-": self.onSetTaskAsCompleted,
+            "-BMENU-": self.onOptionButtonMenu,
 
-                #ButtonCommands:
-                inter.sub_task: self.onNewSubTask, inter.isolate: self.onIsolateTask, inter.edit: self.onEditTask,
-                inter.delete: self.onDeleteTask, inter.paste: self.onInsertTask, inter.cut: self.onCutTask,
-                inter.copy: self.onCopyTask, inter.tree_view: self.onTreeView,
+            # ButtonCommands:
+            inter.sub_task: self.onNewSubTask, inter.isolate: self.onIsolateTask, inter.edit: self.onEditTask,
+            inter.delete: self.onDeleteTask, inter.paste: self.onInsertTask, inter.cut: self.onCutTask,
+            inter.copy: self.onCopyTask, inter.tree_view: self.onTreeView,
 
-                #Extern Programms
-                inter.writer: self.onCreateResult, inter.spreadsheet: self.onCreateResult,
-                inter.presentation:self.onCreateResult, inter.database: self.onCreateResult, inter.drawing:
+            # Extern Programms
+            inter.writer: self.onCreateResult, inter.spreadsheet: self.onCreateResult,
+            inter.presentation: self.onCreateResult, inter.database: self.onCreateResult, inter.drawing:
                 self.onCreateResult, inter.gimp: self.onCreateResult, inter.svg: self.onCreateResult,
-                }
+        }
 
     def sRenewalNeedingFunctions(self):
         """
@@ -136,12 +122,13 @@ class TaskAttack:
         :return:
         """
         return {inter.new_project, inter.reload, inter.new_project_sheet, inter.open, inter.restore_task,
-                inter.settings, "subta-", "compl-", #"-BMENU-",
-                inter.sub_task, inter.isolate,inter.delete,
+                inter.settings, "subta-", "compl-",  # "-BMENU-",
+                inter.sub_task, inter.isolate, inter.delete,
                 inter.paste, inter.cut, inter.tree_view, }
 
     def onCreateResult(self, task, event, values, command, *args, **kwargs):
-        self.result_file_creator.newResultFile(task=task, kind_of_porogramm=command, result_path=self.opt.sUsedResultFolder())
+        self.result_file_creator.newResultFile(task=task, kind_of_porogramm=command,
+                                               result_path=self.opt.sUsedResultFolder())
 
     def onOptionButtonMenu(self, task, event, values, *args, **kwargs):
         """Method for Button menu command mapping
@@ -150,7 +137,8 @@ class TaskAttack:
             return self._executeBasicOptionButtonMenuCommands(values=values, event=event, task=task)
 
         except KeyError as e:
-            print(f"No Problem ERROR #34ehtrfh --> war kein basic option button command {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}")
+            print(
+                f"No Problem ERROR #34ehtrfh --> war kein basic option button command {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}")
             self._executeCreatedFile(event=event, values=values)
 
     def onLoad(self, *args, **kwargs):
@@ -197,7 +185,7 @@ class TaskAttack:
         if self.last_deleted_task:
             self.last_deleted_task.recover()
 
-    def onEditTask(self, task,  *args, **kwargs):
+    def onEditTask(self, task, *args, **kwargs):
         # raise TypeError
         event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation())
         print(F"#125456 event: {event}; vlues: {values}")
@@ -205,7 +193,8 @@ class TaskAttack:
             task.update(**values)
 
     def onNewSubTask(self, task, *args, **kwargs):
-        event, values = self.task_window_crator.inputWindow(kind=inter.task, masters_ende=task.sEnde(), masters_priority=task.sPriority())
+        event, values = self.task_window_crator.inputWindow(kind=inter.task, masters_ende=task.sEnde(),
+                                                            masters_priority=task.sPriority())
         print(F"#987453 event: {event}; vlues: {values}")
         if tools.eventIsNotNone(event):
             task.addSubTask(**values)
@@ -255,8 +244,8 @@ class TaskAttack:
         command = values[event]
         _, _, file_path = command.rpartition(" <-> ")
         if os.path.isfile(file_path):
-            tools.openExternalFile(file_path=file_path#, threads=self._extern_threads
-                                   )
+            tools.openExternalFileSubPro(file_path=file_path  # , threads=self._extern_threads
+                                         )
 
     def _executeBasicOptionButtonMenuCommands(self, values, event, task):
         """executes the basic commands of the option Button menue
@@ -266,21 +255,21 @@ class TaskAttack:
         action(task=task, values=values, command=command, event=event)
         return command in self.sRenewalNeedingFunctions()
 
-    def _userExit(self, event, window):
+    def _ifUserExit(self, event, window):
         """checks for and executes Exit if asked for"""
         if event in (inter.exit, None):
-            self._stopBackEndThread()
+            self._stopBackGroundThread()
             self.dataLossPrevention()
             window.close()
             sys.exit(0)
 
-    def _setDataLossPreventionStatus(self, event):
+    def _setDataLossPreventionFlag(self, event):
         """looks for user action and sets flag for not saved question, if new data is created"""
         if event not in (inter.new_project_sheet, inter.open, inter.save, inter.save_at,
                          inter.exit, inter.reload, inter.help, inter.about, None):
             self.unsaved_project = True
 
-    def _executeCoordinateCommand(self, string_coordinates:str, command:str, values:dict, event:str):
+    def _executeCoordinateCommand(self, string_coordinates: str, command: str, values: dict, event: str):
         """
         executes Task specific commands, which alters with every task
         :param string_coordinates: task matrix coordinates
@@ -289,7 +278,8 @@ class TaskAttack:
         int_coordinates = self._getCoordinatesAsInts(string_coordinates)
         task = self.getTaskFromMatrix(coordinates=int_coordinates)
         action = self.sFunctionMapping()[command]
-        return action(task=task, values=values, event=event, command=command) or command in self.sRenewalNeedingFunctions(), int_coordinates
+        return action(task=task, values=values, event=event,
+                      command=command) or command in self.sRenewalNeedingFunctions(), int_coordinates
 
     def executeEvent(self, event, window, values, *args, **kwargs):
         """takes event, values and window and executes corresponding action from command-mapping
@@ -298,21 +288,16 @@ class TaskAttack:
         :param values: dict sg.values
         :returns tuple: 1st window_renewal_flag: boolean, 2nd either task coordinates, or none if no coordinate
         """
-        self._userExit(event=event, window=window)
-        self._setDataLossPreventionStatus(event)
+        self._ifUserExit(event=event, window=window)
+        self._setDataLossPreventionFlag(event)
 
-        print(f"#29824 event: {event}, values: {values}")
         command, _, string_coordinates = event.partition("#7#")
-        print(f"command: {command}, string_coordinates:{string_coordinates}, some string_co: {'True' if string_coordinates else 'False'}")
 
         if string_coordinates:
             return self._executeCoordinateCommand(string_coordinates=string_coordinates, command=command,
-                                           values= values, event=event)
+                                                  values=values, event=event)
         else:
-            print(f"#iuihbjlksndfoij command: {command}")
-            print(f"self.function mapping: {self.sFunctionMapping()}")
             action = self.sFunctionMapping()[command]
-            print(f"#90920983 {action}")
             action()
             return command in self.sRenewalNeedingFunctions(), None
 
@@ -344,17 +329,8 @@ class TaskAttack:
 
         for y_index, y in enumerate(orginal_display_matrix):
             for x_index, element in enumerate(y):
-                    frame_here = gui_elements.TaskFrame(task=element)
-                    base_layout[y_index][x_index] = frame_here
-                # if isinstance(element, Task):
-                #     #todo this time here comes class Task frame in
-                #     # frame_here = self.task_frames_creator.taskFrame(element)
-                #     base_layout[y_index][x_index] = frame_here
-                # else:
-                #     #todo this time here comes class Task frame in
-                #
-                #     frame_here = self.task_frames_creator.emptyTaskFrame()
-                #     base_layout[y_index][x_index] = frame_here
+                frame_here = gui_elements.TaskFrame(task=element)
+                base_layout[y_index][x_index] = frame_here
         return base_layout
 
     def getTaskFromMatrix(self, coordinates):
@@ -385,7 +361,8 @@ class TaskAttack:
             project_table[0].append(gui_elements.TaskFrame(None))
             project_table.append([gui_elements.TaskFrame(None)])
         except AttributeError as e:
-            print(f"{Fore.RED}ERROR #08029i233 --> {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
+            print(
+                f"{Fore.RED}ERROR #08029i233 --> {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
 
             pass
         return project_table
@@ -408,21 +385,22 @@ class TaskAttack:
         :return: main window
         """
         project_matrix = self.propperProjectMatrix()
-        #tools.printMatrix("#333", project_matrix)
+        # tools.printMatrix("#333", project_matrix)
         layout = self.propperWindowLayout(self.sMenuBar(), project_matrix)
         main_window = sg.Window(title=inter.app_name, layout=layout,
                                 finalize=True, resizable=True, size=self.window_size, location=self.window_location)
         return main_window
 
-    def _stopBackEndThread(self):
-        self.backend_queue.put(("###breakbreakbreak###", None))
+    def _stopBackGroundThread(self):
+        """sends break command which causes while loop to exit"""
+        self.background_queue.put(("###breakbreakbreak###", None))
 
-    def _autoSaveTC(self): #TC: Thread Command
+    def _autoSaveTC(self, *args, **kwargs):  # TC: Thread Command
+        """performs auto save in background"""
         self.taskmanager.save(os.path.join(self.opt.sUsedAutosavePath(), f"autosave-{tools.nowDateTime()}.tak"))
 
-    def _autoSaveFileHandlingTC(self):
-        print(f"#09u10 in _autosaveFileHandlinTQ")
-        print(f"#09233 autosavefilehandlingTC: opt.autosave_handling{self.opt.autosave_handling}; autosaveamounttype: {self.opt.sAutosaveAmountType()}")
+    def _autoSaveFileHandlingTC(self, *args, **kwargs):
+        """deletes auto save files to users settings"""  # achtung
         if self.opt.autosave_handling:
             autosave_path = self.opt.sUsedAutosavePath()
             all_auto_save_files = os.listdir(autosave_path)
@@ -430,65 +408,41 @@ class TaskAttack:
             all_file_paths = [os.path.join(autosave_path, file) for file in all_auto_save_files]
 
             if self.opt.sAutosaveAmountType() == inter.pieces:
-                print(f"#029384 autosave amount: {self.opt.sAutosaveAmount()}")
                 file_paths_for_deletion = all_file_paths[:-self.opt.sAutosaveAmount()]
-                [(print(f"file will be deleted: {file}", end=""     )) for file in file_paths_for_deletion]
-                print(f"\nall files: {len(all_auto_save_files)}, files for deletion {len(file_paths_for_deletion)}")
-                # achtung
-                [os.remove(file) for file in file_paths_for_deletion]
+                [os.remove(file) for file in file_paths_for_deletion]  # achtung
             elif self.opt.sAutosaveAmountType() == inter.days:
                 timestamp = self._deltionTimeStamp(self.opt.sAutosaveAmount())
                 file_paths_for_deletion = [file for file in all_file_paths if os.path.getmtime(file) < timestamp]
-                [(print(f"file will be deleted: {file}")) for file in file_paths_for_deletion]
-                print(f"all files: {len(all_auto_save_files)}, files for deletion {len(file_paths_for_deletion)}")
-                # achtung
-                [os.remove(file) for file in file_paths_for_deletion]
+                [os.remove(file) for file in file_paths_for_deletion]  # achtung
 
     def autoSave(self):
         """perform auto save in a threat
         """
-        self.backend_queue.put((self._autoSaveTC, ()))
-        self.backend_queue.put((self._autoSaveFileHandlingTC, ()))
+        self.background_queue.put((self._autoSaveTC, ()))
+        self.background_queue.put((self._autoSaveFileHandlingTC, ()))
 
-    def _instantiateBasicFolderStructurTQ(self, folders):
+    def _instantiateBasicFolderStructurTC(self, folders, *args, **kwargs):
         print(f"#9028u30 in _instantiateFolderStructurTQ")
         for folder in folders:
-            tools.createPathWithExistsCheck(path_here=folder)
+            tools.path.ensurePathExists(path_here=folder)
 
     def _instantiateBasicFolderStructur(self, folders):
-        self.backend_queue.put((self._instantiateBasicFolderStructurTQ, folders))
+        self.background_queue.put((self._instantiateBasicFolderStructurTC, folders))
 
-    # todo did not work out to command sg.window from outside Thread but it is needed to work out this:
-    #  invalid command name "140326498775872showtip"
-    #      while executing
-    #  "140326498775872showtip"
-    #      ("after" script)
-    #  error message its indicates that window gets closed before all ending-related-work is done
-
-# def _bakendDelayedWindowCloseTC(self, sleep_time_and_window):
-    #     sleep_time, window = sleep_time_and_window
-    #     time.sleep(sleep_time)
-    #     window.close()
-    #
-    # def _bakendDelayedWindowClose(self, sleep_time, window):
-    #     self.backend_queue.put((self._bakendDelayedWindowCloseTC, (sleep_time, window)))
-
-    def _startBackEndThread(self):
-        thread = Thread(target=self._backEndThread, args=())
+    def _startBackGroundThread(self):
+        thread = Thread(target=self._backGroundThread, args=())
         thread.start()
         return thread
 
-    def _backEndThread(self):
+    def _backGroundThread(self):
+        """executes commands in the background"""
         while True:
-            action, args = self.backend_queue.get(block=True)
-            if args:
+            action, args = self.background_queue.get(block=True)
+            if action == "###breakbreakbreak###":
+                break
+            else:
                 print(f"#0293i action: {action}, args: {args}")
                 action(args)
-            else:
-                if action == "###breakbreakbreak###":
-                    break
-                print(f"#013918 action: {action}")
-                action()
 
     def mainLoop(self):
         """loop which is needed for event handling
@@ -499,11 +453,10 @@ class TaskAttack:
                 self.main_window = self.mainWindow()
             self.progbar.stop()
             event, values = self.main_window.read()
-            print(F"#98765 event: {event}; vlues: {values}")
-
-            window_renewal_flag, int_coordinates = self.executeEvent(event=event, window=self.main_window, values=values)
-            print(f"#ß02i3ß0 event: {event}; window must be renewed: {window_renewal_flag}, frame cords to update: {int_coordinates}")
-            #todo this time use int_coordinates for frame update, set new task_frame_class in place
+            window_renewal_flag, int_coordinates = self.executeEvent(event=event, window=self.main_window,
+                                                                     values=values)
+            print(
+                f"#ß02i3ß0 event: {event}; window must be renewed: {window_renewal_flag}, frame cords to update: {int_coordinates}")
             if window_renewal_flag:
                 self.window_size = self.main_window.size  # remember breaks down sometimes, why?!?
                 self.window_location = self.main_window.current_location()
@@ -518,21 +471,24 @@ class TaskAttack:
 
     def __del__(self):
         self.progbar.kill()
+        self._stopBackGroundThread()
+
 
 if __name__ == '__main__':
-
-
     # debug_printer = DebugPrinter() #achtung removes all console output,
-                                     #achtung despite its name its really bad for debuging while dev xD
+    # achtung despite its name its really bad for debuging while dev xD
     tools.path.cwdBashFix()
     main_gui_task_atack = TaskAttack(base_file="base.tak")
 
+# todo this still troubles once in a while
+#  invalid command name "140326498775872showtip"
+#      while executing
+#  "140326498775872showtip"
+#      ("after" script)
+#  error message its indicates that window gets closed before all ending-related-work is done
+
+
 # todo next add short keys --> before short keys there must be distinguished between update and reload
-
-# todo make update or reload decision. i.e. load, save, etc. dont need new window, not even an update,
-#  so there is potential for easy improvement
-
-# todo set RadioRow in Place, instead of horizontal decision function !!!ACHTUNG first search for all kex appearances etc.
 
 # todo maybe there is a way for print()/Error > stdout > DebugPrinter
 
@@ -546,12 +502,6 @@ if __name__ == '__main__':
 
 # remember beauty look out for chances to easily improve performance
 
-# remember or later scroll position beibehalten (not possible as i know)
+# todo dev scroll position beibehalten --> sg.Frame.set_vscroll_position()?!?
 
-#remember or later gui_element.TaskFrameCreater._toolTipText
-# date is shown yyyy-mm-dd 00:00:00 should i exclude the hours if its always zerro,
-# or shouldnt i change it in case for later improvements whit exact time?!?
-# as is write this down here i think i shouldnt
-
-#todo window displays itself over result programm
-
+# todo window displays itself over result programm
