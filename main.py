@@ -17,7 +17,7 @@ from colorama import Fore
 
 import gui_elements
 import tools
-from gui_elements import TaskInputWindowCreator, TaskFrameCreator, MyGuiToolbox, Progressbar
+from gui_elements import TaskInputWindowCreator, MyGuiToolbox, Progressbar
 from internationalisation import inter
 from option import Option
 from task import Taskmanager, Task
@@ -33,6 +33,8 @@ class TaskAttack:
         self.last_deleted_task: Task = None
         # self.auto_save_thread:Thread = None #now ther will be more worker threads in the back so this changes
         self._clipboard: Task = None
+        self.selected_frame_coordinates = None
+
         self._extern_threads = []
         self.last_file_path = base_file if base_file else ""
 
@@ -103,7 +105,7 @@ class TaskAttack:
 
             # Locals:
             "bearb-": self.onEditTask, "subta-": self.onNewSubTask, "compl-": self.onSetTaskAsCompleted,
-            "-BMENU-": self.onOptionButtonMenu,
+            "-BMENU-": self.onOptionButtonMenu, "-TARGET-": self.onTarget,
 
             # ButtonCommands:
             inter.sub_task: self.onNewSubTask, inter.isolate: self.onIsolateTask, inter.edit: self.onEditTask,
@@ -228,6 +230,14 @@ class TaskAttack:
     def onGlobalOptions(self, *args, **kwargs):
         self.opt.getSettingsFromUser()
 
+    def onTarget(self, task, window, *args, **kwargs):
+        actual_coordinates = task.sPosition()
+        if self.selected_frame_coordinates != actual_coordinates:
+            window[f'-MY-TASK-FRAME-{str(task.sPosition())}'].activateTarget()
+            if self.selected_frame_coordinates:
+                window[f'-MY-TASK-FRAME-{str(self.selected_frame_coordinates)}'].deActivateTarget()
+            self.selected_frame_coordinates = task.sPosition()
+
     @staticmethod
     def _getCoordinatesAsInts(coordinates):
         """strips button event down to button coordinates
@@ -269,7 +279,7 @@ class TaskAttack:
                          inter.exit, inter.reload, inter.help, inter.about, None):
             self.unsaved_project = True
 
-    def _executeCoordinateCommand(self, string_coordinates: str, command: str, values: dict, event: str):
+    def _executeCoordinateCommand(self, string_coordinates: str, command: str, values: dict, event: str, window:sg.Window):
         """
         executes Task specific commands, which alters with every task
         :param string_coordinates: task matrix coordinates
@@ -279,7 +289,7 @@ class TaskAttack:
         task = self.getTaskFromMatrix(coordinates=int_coordinates)
         action = self.sFunctionMapping()[command]
         return action(task=task, values=values, event=event,
-                      command=command) or command in self.sRenewalNeedingFunctions(), int_coordinates
+                      command=command, window=window) or command in self.sRenewalNeedingFunctions(), int_coordinates
 
     def executeEvent(self, event, window, values, *args, **kwargs):
         """takes event, values and window and executes corresponding action from command-mapping
@@ -295,7 +305,7 @@ class TaskAttack:
 
         if string_coordinates:
             return self._executeCoordinateCommand(string_coordinates=string_coordinates, command=command,
-                                                  values=values, event=event)
+                                                  values=values, event=event, window=window)
         else:
             action = self.sFunctionMapping()[command]
             action()
@@ -466,6 +476,9 @@ class TaskAttack:
                 if int_coordinates:
                     print(f"#902893 key to update: {f'-MY-TASK-FRAME-{str(int_coordinates)}'}")
                     self.main_window[f"-MY-TASK-FRAME-{str(int_coordinates)}"].Update(self.main_window)
+
+            # todo beautification this is to complex, give window as an parameter and evey function can decide itself
+            #  and have not to give back this much and cluttered information
 
             self.autoSave()
 

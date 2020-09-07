@@ -531,7 +531,7 @@ or should i do it from scratch?!?, i think i first do the task frame creator app
 
 class TaskFrame(sg.Frame):
 
-    def __init__(self, task: task.Task = None, size=30):
+    def __init__(self, task: task.Task = None, size=31):
 
         self.size = size
         self.setBasichButtonMenuList()
@@ -629,25 +629,28 @@ class TaskFrame(sg.Frame):
                 button_list[1][5].append(line)
             return button_list
 
+    #todo key function(sting) --> stirng{self.task.sPosition}
+
     def _buttonMenuLine(self, background_color):
         """
         :return: option menu button for every task frame
         """
         result_file_button_menu_list = self._createButtonMenuWithResultFileEntrys()
+        self.target_image = sg.Image(filename="templates/crosshair_black.png", enable_events=True, key=f"-TARGET-#7#{self.task.sPosition()}")
 
         if result_file_button_menu_list:
-            placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 20)
+            placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 25)
             image = sg.Image(filename="templates/file.png")
             option_button = sg.ButtonMenu(button_text=inter.options, menu_def=result_file_button_menu_list,
                                           key=f'-BMENU-#7#{self.task.sPosition()}')
 
-            return [placeholer, image, option_button]
+            return [self.target_image, placeholer, image, option_button]
 
         else:
-            placeholder = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 15)
+            placeholder = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 20)
             option_button = sg.ButtonMenu(button_text=inter.options, menu_def=self.sOptionButtonMenuList(),
                                           key=f'-BMENU-#7#{self.task.sPosition()}')
-            return [placeholder, option_button]
+            return [self.target_image, placeholder, option_button]
 
     def _nameLine(self, tooltip_text, background_color):
         """Key: f"{self.key}NAME-L-"
@@ -673,7 +676,7 @@ class TaskFrame(sg.Frame):
                                                 priority_completed_line,
                                                 option_button_line],
                                         title=frame_name[-(self.sSize() - 3):], relief=relief, size=(self.sSize(), 5),
-                                        tooltip=tooltip_text, background_color=frame_color, key=self.key)
+                                        tooltip=tooltip_text, background_color=frame_color, key=self.key, )
 
     def taskFrame(self):
         """
@@ -751,6 +754,12 @@ class TaskFrame(sg.Frame):
         completed_sg_object = self._isCompletedElement(self.task, tooltip_text=tooltip_text,
                                                        background_color=background_color)
         return [priority_sg_object, completed_sg_object]
+
+    def activateTarget(self):
+        self.target_image.Update(filename="templates/crosshair_white.png", size=(26,26))
+
+    def deActivateTarget(self):
+        self.target_image.Update(filename="templates/crosshair_black.png", size=(26,26))
 
 
 class TaskInputWindowCreator:
