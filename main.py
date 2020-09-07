@@ -397,7 +397,8 @@ class TaskAttack:
         project_matrix = self.propperProjectMatrix()
         # tools.printMatrix("#333", project_matrix)
         layout = self.propperWindowLayout(self.sMenuBar(), project_matrix)
-        main_window = sg.Window(title=inter.app_name, layout=layout,
+        #todo make window title filename if posible
+        main_window = sg.Window(title=inter.app_name, layout=layout, return_keyboard_events=True,
                                 finalize=True, resizable=True, size=self.window_size, location=self.window_location)
         return main_window
 
