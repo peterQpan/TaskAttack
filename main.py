@@ -302,12 +302,18 @@ class TaskAttack:
         self._setDataLossPreventionFlag(event)
 
         command, _, string_coordinates = event.partition("#7#")
-
+        # todo: here as well get rid of this complex renewal and int coordinates return by transmit window every time
         if string_coordinates:
-            return self._executeCoordinateCommand(string_coordinates=string_coordinates, command=command,
+                return self._executeCoordinateCommand(string_coordinates=string_coordinates, command=command,
                                                   values=values, event=event, window=window)
         else:
-            action = self.sFunctionMapping()[command]
+            # todo this time: get rid of this try except
+            try:
+                action = self.sFunctionMapping()[command]
+            except:
+                print(f"#01898102 command: {command}")
+                return None, None
+
             action()
             return command in self.sRenewalNeedingFunctions(), None
 
