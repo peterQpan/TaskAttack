@@ -319,7 +319,6 @@ class TaskAttack:
     def keyCommandMapping(self):
         # todo this time complete key commands with all commands
         #fixme bevor "t" implementiert wird erstmal die probleme lösen
-        #fixme after select taget icon and reloading window, the same target can not be selectet bzw. is selected but not shown
         return {"n": "subta-", "e": "bearb-", "D":inter.delete, "c":inter.copy, #"t": inter.tree_view,
                 "s": inter.save,
                 "r":inter.reload, "P": inter.new_project}
@@ -331,6 +330,9 @@ class TaskAttack:
             if self.selected_frame_coordinates:
                 window[f'-MY-TASK-FRAME-{str(self.selected_frame_coordinates)}'].deActivateTarget()
             self.selected_frame_coordinates = task.sPosition()
+        else:
+            window[f'-MY-TASK-FRAME-{str(task.sPosition())}'].activateTarget()
+
         return None
 
     def onKeyCommand(self, key, *args, **kwargs):
@@ -517,6 +519,8 @@ class TaskAttack:
     def __del__(self):
         self.progbar.kill()
         self._stopBackGroundThread()
+
+# fixme after closing there is some zombi thread running
 
 
 if __name__ == '__main__':
