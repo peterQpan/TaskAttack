@@ -429,6 +429,7 @@ class Taskmanager:
 
 
     def isolatedTaskView(self, task):
+        #fixme das button menu unterscheidet zwischen isolate und deisolate, schortcuts aber nicht, wenn ich also strg+t drücke, bekomme ich isolierten task,
         """
         isolate one task ond gives him the hole sheet space to look and work on
         :param task:
@@ -441,7 +442,7 @@ class Taskmanager:
     def deisolateTaskView(self, *args, **kwargs):
         """
         brings isolated view back to complete tree view of all the tasks"""
-        self.sub_tasks[0].taskmanager = None
+        # self.sub_tasks[0].taskmanager = None
         self.sub_tasks = self._side_packed_project
         self._side_packed_project = None
 

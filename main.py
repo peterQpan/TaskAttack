@@ -29,6 +29,7 @@ class TaskAttack:
 
         self.opt = Option("user_setup.ats")
 
+        self.tree_view = "complete"
         self.unsaved_project = False
         self.last_deleted_task: Task = None
         # self.auto_save_thread:Thread = None #now ther will be more worker threads in the back so this changes
@@ -47,6 +48,8 @@ class TaskAttack:
         self.result_file_creator = gui_elements.ResultFileCreator()
         self.progbar = Progressbar()  # todo dev progress bar change in options otherwise there is
                                       #  no sense in different possibilities
+
+        self.str_key_command_converter = tools.strgCommandConverter(self.keyCommandMapping())
 
         self.window_size = sg.Window.get_screen_size()
         self.window_location = (None, None)
@@ -123,8 +126,10 @@ class TaskAttack:
         all functions that needs an new window to display changes
         :return:
         """
+        #todo next get rid of this mapping makes everything sooo complex, renewalflag should be returned by
+        # every funtion itself, so it can be returned along the way
         return {inter.new_project, inter.reload, inter.new_project_sheet, inter.open, inter.restore_task,
-                inter.settings, "subta-", "compl-",  # "-BMENU-",
+                inter.settings, "subta-", "compl-", # "-BMENU-",
                 inter.sub_task, inter.isolate, inter.delete,
                 inter.paste, inter.cut, inter.tree_view, }
 
@@ -139,8 +144,7 @@ class TaskAttack:
             return self._executeBasicOptionButtonMenuCommands(values=values, event=event, task=task)
 
         except KeyError as e:
-            print(
-                f"No Problem ERROR #34ehtrfh --> war kein basic option button command {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}")
+            print(f"No Problem ERROR #34ehtrfh --> war kein basic option button command {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}")
             self._executeCreatedFile(event=event, values=values)
 
     def onLoad(self, *args, **kwargs):
@@ -173,9 +177,9 @@ class TaskAttack:
         self.reset()
 
     def onAddProject(self, *args, **kwargs):
-        print(f"#89721kjn")
+        #print(f"#89721kjn")
         event, values = self.task_window_crator.inputWindow(kind=inter.project, )
-        print(F"#23442 event: {event}; vlues: {values}")
+        #print(F"#23442 event: {event}; vlues: {values}")
 
         if event in {inter.cancel, None}:
             return
@@ -190,28 +194,31 @@ class TaskAttack:
     def onEditTask(self, task, *args, **kwargs):
         # raise TypeError
         event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation())
-        print(F"#125456 event: {event}; vlues: {values}")
+        #print(F"#125456 event: {event}; vlues: {values}")
         if tools.eventIsNotNone(event):
             task.update(**values)
 
     def onNewSubTask(self, task, *args, **kwargs):
         event, values = self.task_window_crator.inputWindow(kind=inter.task, masters_ende=task.sEnde(),
                                                             masters_priority=task.sPriority())
-        print(F"#987453 event: {event}; vlues: {values}")
+        #print(F"#987453 event: {event}; vlues: {values}")
         if tools.eventIsNotNone(event):
             task.addSubTask(**values)
 
     def onIsolateTask(self, task, *args, **kwargs):
-        self.task_frames_creator.changeMenuListToIsolated()
+        self.tree_view = "partial"
+        # self.task_frames_creator.changeMenuListToIsolated()
         self.taskmanager.isolatedTaskView(task)
 
     def onTreeView(self, task, *args, **kwargs):
-        self.task_frames_creator.setBasichButtonMenuList()
+        self.tree_view = "complete"
+
+        # self.task_frames_creator.setBasichButtonMenuList()
         self.taskmanager.deisolateTaskView(task)
 
     def onDeleteTask(self, task, *args, **kwargs):
         if self.mygtb.YesNoPopup(title=inter.delete, text=inter.realy_delete):
-            print(f"#092u03 in delete on Task")
+            #print(f"#092u03 in delete on Task")
             self.last_deleted_task = task
             task.delete()
 
@@ -229,14 +236,6 @@ class TaskAttack:
 
     def onGlobalOptions(self, *args, **kwargs):
         self.opt.getSettingsFromUser()
-
-    def onTarget(self, task, window, *args, **kwargs):
-        actual_coordinates = task.sPosition()
-        if self.selected_frame_coordinates != actual_coordinates:
-            window[f'-MY-TASK-FRAME-{str(task.sPosition())}'].activateTarget()
-            if self.selected_frame_coordinates:
-                window[f'-MY-TASK-FRAME-{str(self.selected_frame_coordinates)}'].deActivateTarget()
-            self.selected_frame_coordinates = task.sPosition()
 
     @staticmethod
     def _getCoordinatesAsInts(coordinates):
@@ -302,20 +301,47 @@ class TaskAttack:
         self._setDataLossPreventionFlag(event)
 
         command, _, string_coordinates = event.partition("#7#")
+        print(f"#2092349 command: {command}")
         # todo: here as well get rid of this complex renewal and int coordinates return by transmit window every time
         if string_coordinates:
-                return self._executeCoordinateCommand(string_coordinates=string_coordinates, command=command,
+            return self._executeCoordinateCommand(string_coordinates=string_coordinates, command=command,
                                                   values=values, event=event, window=window)
         else:
-            # todo this time: get rid of this try except
             try:
                 action = self.sFunctionMapping()[command]
+                action()
+                return command in self.sRenewalNeedingFunctions(), None
             except:
-                print(f"#01898102 command: {command}")
-                return None, None
+                return self.onKeyCommand(key=command)
 
-            action()
-            return command in self.sRenewalNeedingFunctions(), None
+
+
+    def keyCommandMapping(self):
+        # todo this time complete key commands with all commands
+        #fixme bevor "t" implementiert wird erstmal die probleme lösen
+        #fixme after select taget icon and reloading window, the same target can not be selectet bzw. is selected but not shown
+        return {"n": "subta-", "e": "bearb-", "D":inter.delete, "c":inter.copy, #"t": inter.tree_view,
+                "s": inter.save,
+                "r":inter.reload, "P": inter.new_project}
+
+    def onTarget(self, task, window, *args, **kwargs):
+        actual_coordinates = task.sPosition()
+        if self.selected_frame_coordinates != actual_coordinates:
+            window[f'-MY-TASK-FRAME-{str(task.sPosition())}'].activateTarget()
+            if self.selected_frame_coordinates:
+                window[f'-MY-TASK-FRAME-{str(self.selected_frame_coordinates)}'].deActivateTarget()
+            self.selected_frame_coordinates = task.sPosition()
+        return None
+
+    def onKeyCommand(self, key, *args, **kwargs):
+        command = self.str_key_command_converter.pollCommand(key)
+        if command and self.selected_frame_coordinates:
+            task = self.getTaskFromMatrix(coordinates=self.selected_frame_coordinates)
+            action = self.sFunctionMapping()[command]
+            action(task=task)
+            return command in self.sRenewalNeedingFunctions(), self.selected_frame_coordinates
+        else:
+            return None, None
 
     def dataLossPrevention(self):
         """checks if there is an open unsaved file and asks for wish to save
@@ -345,7 +371,7 @@ class TaskAttack:
 
         for y_index, y in enumerate(orginal_display_matrix):
             for x_index, element in enumerate(y):
-                frame_here = gui_elements.TaskFrame(task=element)
+                frame_here = gui_elements.TaskFrame(task=element, view=self.tree_view)
                 base_layout[y_index][x_index] = frame_here
         return base_layout
 
@@ -377,8 +403,7 @@ class TaskAttack:
             project_table[0].append(gui_elements.TaskFrame(None))
             project_table.append([gui_elements.TaskFrame(None)])
         except AttributeError as e:
-            print(
-                f"{Fore.RED}ERROR #08029i233 --> {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
+            #print("{Fore.RED}ERROR #08029i233 --> {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
 
             pass
         return project_table
@@ -439,7 +464,7 @@ class TaskAttack:
         self.background_queue.put((self._autoSaveFileHandlingTC, ()))
 
     def _instantiateBasicFolderStructurTC(self, folders, *args, **kwargs):
-        print(f"#9028u30 in _instantiateFolderStructurTQ")
+        #print(f"#9028u30 in _instantiateFolderStructurTQ")
         for folder in folders:
             tools.path.ensurePathExists(path_here=folder)
 
@@ -458,7 +483,7 @@ class TaskAttack:
             if action == "###breakbreakbreak###":
                 break
             else:
-                print(f"#0293i action: {action}, args: {args}")
+                #print(f"#0293i action: {action}, args: {args}")
                 action(args)
 
     def mainLoop(self):
@@ -470,10 +495,10 @@ class TaskAttack:
                 self.main_window = self.mainWindow()
             self.progbar.stop()
             event, values = self.main_window.read()
+            print(f"#928739823 mainloop event; values: {event}; {values}")
             window_renewal_flag, int_coordinates = self.executeEvent(event=event, window=self.main_window,
                                                                      values=values)
-            print(
-                f"#ß02i3ß0 event: {event}; window must be renewed: {window_renewal_flag}, frame cords to update: {int_coordinates}")
+            print(f"#ß02i3ß0 event: {event}; window must be renewed: {window_renewal_flag}, frame cords to update: {int_coordinates}")
             if window_renewal_flag:
                 self.window_size = self.main_window.size  # remember breaks down sometimes, why?!?
                 self.window_location = self.main_window.current_location()
@@ -481,7 +506,7 @@ class TaskAttack:
                 self.main_window.close()
             else:
                 if int_coordinates:
-                    print(f"#902893 key to update: {f'-MY-TASK-FRAME-{str(int_coordinates)}'}")
+                    #print(f"#902893 key to update: {f'-MY-TASK-FRAME-{str(int_coordinates)}'}")
                     self.main_window[f"-MY-TASK-FRAME-{str(int_coordinates)}"].Update(self.main_window)
 
             # todo beautification this is to complex, give window as an parameter and evey function can decide itself
@@ -500,6 +525,8 @@ if __name__ == '__main__':
     tools.path.cwdBashFix()
     main_gui_task_atack = TaskAttack(base_file="base.tak")
 
+#fixme achtung in isolatet tree view sind die subtasks nicht mehr in seslf subtask und werden daher nicht mehr gespeichert
+
 # todo this still troubles once in a while
 #  invalid command name "140326498775872showtip"
 #      while executing
@@ -510,7 +537,7 @@ if __name__ == '__main__':
 
 # todo next add short keys --> before short keys there must be distinguished between update and reload
 
-# todo maybe there is a way for print()/Error > stdout > DebugPrinter
+# todo maybe there is a way for #print()/Error > stdout > DebugPrinter
 
 # todo complet documentation and code cleanup
 

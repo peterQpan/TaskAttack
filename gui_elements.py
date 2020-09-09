@@ -531,14 +531,15 @@ or should i do it from scratch?!?, i think i first do the task frame creator app
 
 class TaskFrame(sg.Frame):
 
-    def __init__(self, task: task.Task = None, size=31):
+    def __init__(self, task: task.Task = None, size=31, view="complete"):
 
+        self._button_menu_list = {"complete": inter.b_b_m_l, "partial":inter.c_b_m_l}[view]
         self.size = size
-        self.setBasichButtonMenuList()
+        # self.setBasichButtonMenuList()
 
         if task:
             self.task = task
-            print(f"#9923u0923 key for frame: {f'-MY-TASK-FRAME-{str(self.task.sPosition())}'}")
+            #print(f"#9923u0923 key for frame: {f'-MY-TASK-FRAME-{str(self.task.sPosition())}'}")
             self.key = F"-MY-TASK-FRAME-{str(self.task.sPosition())}"
             self.taskFrame()  # superMethod
         else:
@@ -598,18 +599,18 @@ class TaskFrame(sg.Frame):
         """
 
         return self._button_menu_list
-
-    def setBasichButtonMenuList(self):
-        """
-        fetches basic option button menu list of list from internationalisation module
-        """
-        self._button_menu_list = inter.b_b_m_l
-
-    def changeMenuListToIsolated(self):
-        """
-        fetches altered >tree view< option button menu list of list from internationalisation module
-        """
-        self._button_menu_list = inter.c_b_m_l
+    #
+    # def setBasichButtonMenuList(self):
+    #     """
+    #     fetches basic option button menu list of list from internationalisation module
+    #     """
+    #     self._button_menu_list = inter.b_b_m_l
+    #
+    # def changeMenuListToIsolated(self):
+    #     """
+    #     fetches altered >tree view< option button menu list of list from internationalisation module
+    #     """
+    #     self._button_menu_list = inter.c_b_m_l
 
     def _buttonLinePlaceHolder(self, background_color, padding_size):
         # origiinal x_size: self.sSize() - 15
