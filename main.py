@@ -228,6 +228,26 @@ class TaskAttack:
         self.opt.getSettingsFromUser()
         #todo return -1, -1 hereo or not, maybe an decission ?!?
 
+    def onTarget(self, task, window, *args, **kwargs):
+        actual_coordinates = task.sPosition()
+        if self.selected_frame_coordinates != actual_coordinates:
+            window[f'-MY-TASK-FRAME-{str(task.sPosition())}'].activateTarget()
+            if self.selected_frame_coordinates:
+                window[f'-MY-TASK-FRAME-{str(self.selected_frame_coordinates)}'].deActivateTarget()
+            self.selected_frame_coordinates = task.sPosition()
+        else:
+            window[f'-MY-TASK-FRAME-{str(task.sPosition())}'].activateTarget()
+        return -1, -1
+
+    def onKeyCommand(self, key, window, *args, **kwargs):
+        command = self.str_key_command_converter.pollCommand(key)
+        if command and self.selected_frame_coordinates:
+            task = self.getTaskFromMatrix(coordinates=self.selected_frame_coordinates)
+            action = self.sFunctionMapping()[command]
+            return action(task=task, window=window)
+        else:
+            return -1, -1
+
     @staticmethod
     def _getCoordinatesAsInts(coordinates):
         """strips button event down to button coordinates
@@ -289,7 +309,6 @@ class TaskAttack:
 
         command, _, string_coordinates = event.partition("#7#")
         print(f"#2092349 command: {command}")
-        # todo: here as well get rid of this complex renewal and int coordinates return by transmit window every time
         if string_coordinates:
             return self._executeCoordinateCommand(string_coordinates=string_coordinates, command=command,
                                                   values=values, event=event, window=window)
@@ -307,26 +326,6 @@ class TaskAttack:
                 "s": inter.save,
                 "r":inter.reload, "P": inter.new_project}
 
-    def onTarget(self, task, window, *args, **kwargs):
-        actual_coordinates = task.sPosition()
-        if self.selected_frame_coordinates != actual_coordinates:
-            window[f'-MY-TASK-FRAME-{str(task.sPosition())}'].activateTarget()
-            if self.selected_frame_coordinates:
-                window[f'-MY-TASK-FRAME-{str(self.selected_frame_coordinates)}'].deActivateTarget()
-            self.selected_frame_coordinates = task.sPosition()
-        else:
-            window[f'-MY-TASK-FRAME-{str(task.sPosition())}'].activateTarget()
-        return -1, -1
-
-    def onKeyCommand(self, key, window, *args, **kwargs):
-        command = self.str_key_command_converter.pollCommand(key)
-        if command and self.selected_frame_coordinates:
-            task = self.getTaskFromMatrix(coordinates=self.selected_frame_coordinates)
-            action = self.sFunctionMapping()[command]
-            return action(task=task, window=window)
-        else:
-            return -1, -1
-
     def dataLossPrevention(self):
         """checks if there is an open unsaved file and asks for wish to save
         """
@@ -335,6 +334,10 @@ class TaskAttack:
                 self.onSaveAt()
 
     def _deltionTimeStamp(self, autosave_amount):
+        """
+        :param autosave_amount: int for days
+        :return: timestamp for now time minus autosave_amount days
+        """
         now_time = nowDateTime()
         whished_time = now_time - timedelta(days=autosave_amount)
         timestamp = time.mktime(whished_time.timetuple())
@@ -387,8 +390,7 @@ class TaskAttack:
             project_table[0].append(gui_elements.TaskFrame(None))
             project_table.append([gui_elements.TaskFrame(None)])
         except AttributeError as e:
-            #print("{Fore.RED}ERROR #08029i233 --> {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
-
+            print("{Fore.RED}ERROR #08029i233 --> NoProblemError{e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
             pass
         return project_table
 
@@ -426,7 +428,7 @@ class TaskAttack:
         self.taskmanager.save(os.path.join(self.opt.sUsedAutosavePath(), f"autosave-{tools.nowDateTime()}.tak"))
 
     def _autoSaveFileHandlingTC(self, *args, **kwargs):
-        """deletes auto save files to users settings"""  # achtung
+        """deletes auto save files to users settings"""
         if self.opt.autosave_handling:
             autosave_path = self.opt.sUsedAutosavePath()
             all_auto_save_files = os.listdir(autosave_path)
@@ -455,6 +457,7 @@ class TaskAttack:
         self.background_queue.put((self._instantiateBasicFolderStructurTC, folders))
 
     def _startBackGroundThread(self):
+        """starts queue commanded background thread"""
         thread = Thread(target=self._backGroundThread, args=())
         thread.start()
         return thread
@@ -496,6 +499,7 @@ class TaskAttack:
         self.stop()
 
     def stop(self):
+        """everything that should be done if mainloop gets exited"""
         self.autoSave()
         self._stopBackGroundThread()
         self.progbar.kill()

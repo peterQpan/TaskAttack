@@ -1142,7 +1142,7 @@ class OptionWindow:
         if "-IEX729X" in event:
             if r"//" in values[event]:
                 window[event].Update(values[event].replace("//", "/"))
-        if event == "-RADIO_1-RADIO-":  # todo RadioNew clutters the code with his destinct own keys, needs a better inheritance for clearer code
+        if event == "-RADIO_1-RADIO-":
             self._setDisabledStatusToStandardDirectoryFrame(window=window, disabled=False)
             self._setDisabledStatusToUserDirectoryFrame(window=window, disabled=True)
 
