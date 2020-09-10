@@ -27,6 +27,7 @@ from tools import cwdBashFix, nowDateTime
 class TaskAttack:
     def __init__(self, base_file: str = None):
 
+        self.main_window = False
         self.opt = Option("user_setup.ats")
 
         self.tree_view = "complete"
@@ -470,9 +471,7 @@ class TaskAttack:
     def mainLoop(self):
         """loop which is needed for event handling
         """
-        self.main_window = False
         while True:
-
             if not self.main_window:
                 self.main_window = self.mainWindow()
             self.progbar.stop()
@@ -481,8 +480,7 @@ class TaskAttack:
                 break
 
             print(f"#M-928739823 mainloop event; values: {event}; {values}")
-            int_coordinates = self.executeEvent(event=event, window=self.main_window,
-                                                                     values=values)
+            int_coordinates = self.executeEvent(event=event, window=self.main_window, values=values)
             print(f"#M-009823 int_coordinates: {int_coordinates}")
             if int_coordinates and int_coordinates[0] == -1:
                 pass

@@ -257,7 +257,6 @@ class path:
             documents_dir = subprocess.check_output(["xdg-user-dir", "DOCUMENTS"], universal_newlines=True).strip()
         except Exception as e:
             print(f"{Fore.RED}ERROR #02893787ihnl -->  {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
-
             documents_dir = subprocess.check_output(["xdg-user-dir"], universal_newlines=True).strip()
         return documents_dir
 

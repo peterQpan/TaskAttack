@@ -343,14 +343,6 @@ class ResultFileCreator:
             task.addResultsFileAndDescription(save_file_path, description)
             break
 
-
-# todo think about task frame creator or task frames of its own
-#  maybe more simplicity since task frame creator can take care of it?!?
-# todo think about, which is better in performance??? because of update,
-#  instead of renewal update is a big improvement,
-#  and i dont have to keep track of all the sg-Elements... by frame inheritance
-#
-
 # class TaskFrameCreator:
 #     """
 #     Factory to create PySimpleGui Frames which represents either a Task or an empty space of the same size
@@ -521,12 +513,6 @@ class ResultFileCreator:
 #                         size=(300, 50))
 #
 
-"""in order to tackle this shortcut key thing i need my own task frames, i didnt do it i the first place because 
-pysimplegui documentation said if you starting with making your own windows class you probably got it all wrong, so 
-i tried to stick to the functional approach of py simple gui, but i think it would become very ugly at this point. 
-shall i do a class wich can be utalized from task frame creator, so i dont have to change any code, 
-or should i do it from scratch?!?, i think i first do the task frame creator approach, without any major code changes"""
-
 
 class TaskFrame(sg.Frame):
 
@@ -534,11 +520,9 @@ class TaskFrame(sg.Frame):
 
         self._button_menu_list = {"complete": inter.b_b_m_l, "partial":inter.c_b_m_l}[view]
         self.size = size
-        # self.setBasichButtonMenuList()
 
         if task:
             self.task = task
-            #print(f"#9923u0923 key for frame: {f'-MY-TASK-FRAME-{str(self.task.sPosition())}'}")
             self.key = F"-MY-TASK-FRAME-{str(self.task.sPosition())}"
             self.taskFrame()  # superMethod
         else:
@@ -550,12 +534,6 @@ class TaskFrame(sg.Frame):
         :type int
         """
         return self.size
-
-    # def setSize(self, size: int):
-    #     """
-    #     :param size: sets width of a frame / x-axis size
-    #     """
-    #     self.size = size
 
     @staticmethod
     def nAIt(wantet_value):
@@ -596,20 +574,7 @@ class TaskFrame(sg.Frame):
         """
         :return: list of list, sg.ButtonMenu.layout for option button menu
         """
-
         return self._button_menu_list
-    #
-    # def setBasichButtonMenuList(self):
-    #     """
-    #     fetches basic option button menu list of list from internationalisation module
-    #     """
-    #     self._button_menu_list = inter.b_b_m_l
-    #
-    # def changeMenuListToIsolated(self):
-    #     """
-    #     fetches altered >tree view< option button menu list of list from internationalisation module
-    #     """
-    #     self._button_menu_list = inter.c_b_m_l
 
     def _buttonLinePlaceHolder(self, background_color, padding_size):
         # origiinal x_size: self.sSize() - 15
@@ -1207,7 +1172,6 @@ class OptionWindow:
     def createReturnSettings(self, values):
         """createas settings dict usable for option back end class to update self.__dict__"""
 
-        print(f"#88888888888888888888888 radio value: {values['-AUS-1-0RADIO-']}")
         autosave_amount_type = inter.pieces if values["-AUS-1-1RADIO-"] else inter.days
         disabled_folder_usage = "ind" if values["-RADIO_1-RADIO-"] else "std"
         settings = {"main_folder": values["-PFL-IEX729X"], "standard_main_folder": values["-SFL-IEX729X"],
@@ -1347,8 +1311,6 @@ if __name__ == '__main__':
 #     progressbar.start()
 #     time.sleep(1.5)
 #     progressbar.kill()
-
-# TODO ASAP fork or support PYSIMPPLEGUI
 
 
 if __name__ == '__main__':

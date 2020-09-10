@@ -540,8 +540,6 @@ class Taskmanager:
 
         self.recognizeMatrixPositions()
         self.task_matrix = self.createTaskMatix()
-        #display_matrix = self.addMasterTaskPlaceholderStrings(self.task_matrix)
-        # display_matrix = self.task_matrix
         return self.task_matrix
 
     def allSubordinatedTasks(self):
@@ -585,7 +583,6 @@ class Taskmanager:
                     break
             except Exception as e:
                 print(f"{Fore.RED}ERROR #92898iu3# --> NoProblemError {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
-
 
     def _startFileExistenceAssuranceThread(self):
         thread_here = threading.Thread(target=self._fileExistenceAssuranceTC, args=())
