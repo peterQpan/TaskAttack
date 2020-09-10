@@ -197,7 +197,8 @@ class TaskAttack:
         event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation())
         if tools.eventIsNotNone(event):
             task.update(**values)
-        return task.sPosition()
+            return task.sPosition()
+        return -1, -1
 
     def onNewSubTask(self, task, *args, **kwargs):
         event, values = self.task_window_crator.inputWindow(kind=inter.task, masters_ende=task.sEnde(),
@@ -483,9 +484,10 @@ class TaskAttack:
     def mainLoop(self):
         """loop which is needed for event handling
         """
-        window_renewal_flag = True
+        self.main_window = False
         while True:
-            if window_renewal_flag:
+
+            if not self.main_window:
                 self.main_window = self.mainWindow()
             self.progbar.stop()
             event, values = self.main_window.read()
@@ -493,19 +495,23 @@ class TaskAttack:
             int_coordinates = self.executeEvent(event=event, window=self.main_window,
                                                                      values=values)
             print(f"#B-009823 int_coordinates: {int_coordinates}")
-            if int_coordinates and int_coordinates[0] != -1:
+            if int_coordinates and int_coordinates[0] == -1:
+                pass
+            elif int_coordinates:
                 self.main_window[f"-MY-TASK-FRAME-{str(int_coordinates)}"].Update(self.main_window)
             else:
                 self.window_size = self.main_window.size  # remember breaks down sometimes, why?!?
                 self.window_location = self.main_window.current_location()
                 self.progbar.start()
                 self.main_window.close()
+                self.main_window = False
 
 
             # todo beautification this is to complex, give window as an parameter and evey function can decide itself
             #  and have not to give back this much and cluttered information
 
             self.autoSave()
+            self._stopBackGroundThread()
 
     def __del__(self):
         self.progbar.kill()
