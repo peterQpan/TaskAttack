@@ -32,11 +32,10 @@ class TaskAttack:
         self.tree_view = "complete"
         self.unsaved_project = False
         self.last_deleted_task: Task = None
-        # self.auto_save_thread:Thread = None #now ther will be more worker threads in the back so this changes
         self._clipboard: Task = None
         self.selected_frame_coordinates = None
 
-        self._extern_threads = []
+        # self._extern_threads = []
         self.last_file_path = base_file if base_file else ""
 
         self.background_queue = queue.Queue()
@@ -271,7 +270,7 @@ class TaskAttack:
             self._stopBackGroundThread()
             self.dataLossPrevention()
             window.close()
-            sys.exit(0)
+        return True
 
     def _setDataLossPreventionFlag(self, event):
         """looks for user action and sets flag for not saved question, if new data is created"""
@@ -297,7 +296,6 @@ class TaskAttack:
         :param values: dict sg.values
         :returns tuple: 1st window_renewal_flag: boolean, 2nd either task coordinates, or none if no coordinate
         """
-        self._ifUserExit(event=event, window=window)
         self._setDataLossPreventionFlag(event)
 
         command, _, string_coordinates = event.partition("#7#")
@@ -491,10 +489,13 @@ class TaskAttack:
                 self.main_window = self.mainWindow()
             self.progbar.stop()
             event, values = self.main_window.read()
-            print(f"#928739823 mainloop event; values: {event}; {values}")
+            if self._ifUserExit(event=event, window=self.main_window):
+                break
+
+            print(f"#M-928739823 mainloop event; values: {event}; {values}")
             int_coordinates = self.executeEvent(event=event, window=self.main_window,
                                                                      values=values)
-            print(f"#B-009823 int_coordinates: {int_coordinates}")
+            print(f"#M-009823 int_coordinates: {int_coordinates}")
             if int_coordinates and int_coordinates[0] == -1:
                 pass
             elif int_coordinates:
@@ -505,17 +506,19 @@ class TaskAttack:
                 self.progbar.start()
                 self.main_window.close()
                 self.main_window = False
-
-
-            # todo beautification this is to complex, give window as an parameter and evey function can decide itself
-            #  and have not to give back this much and cluttered information
-
             self.autoSave()
-            self._stopBackGroundThread()
+        self.stop()
 
-    def __del__(self):
-        self.progbar.kill()
+
+    def stop(self):
+        self.autoSave()
         self._stopBackGroundThread()
+        self.progbar.kill()
+        self.taskmanager.stop()
+
+
+
+    # def __del__(self):
 
 # fixme after closing there is some zombi thread running
 

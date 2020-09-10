@@ -125,6 +125,7 @@ def openExternalFileThreads(file_path:str , threads:list):
     starts external corresponding programm for task result file
     :param threads: list to save thread in it to prevent garbage collection and enables later referencing
     """
+    warnings.warn("use openExternalFileSubPro", DeprecationWarning)
     thread = threading.Thread(target=os.system, args=(f"xdg-open '{file_path}'",))
     thread.start()
     threads.append(thread)

@@ -236,7 +236,6 @@ class MyGuiToolbox:
 class ResultFileCreator:
 
     def __init__(self):
-        # self._external_threads = []
         self._file_templates = {inter.writer: ("/templates/writer_template.odt", ".odt"),
                                 inter.spreadsheet: ("/templates/spreadsheet_template.ods", ".ods"),
                                 inter.presentation: ("/templates/presentation_template.odp", ".odp"),

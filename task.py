@@ -5,8 +5,11 @@ __email__ = "sebmueller.bt@gmail.com"
 import copy
 import os
 import pickle
+import queue
 import threading
 import time
+
+from colorama import Fore
 
 import tools
 from internationalisation import inter
@@ -374,12 +377,13 @@ class Task:
 class Taskmanager:
     def __init__(self):
 
-        self.renewal_thread = None
+        self.reset()
+
+        self.thread_queue = queue.Queue()
+        self.all_backend_threads = self._startAllBackendThreads()
 
         self.task_matrix = None
 
-        self.reset()
-        self.file_existence_thread = self.fileExistenceAssuranceThread()
 
     def sTaskMatrix(self):
         return self.task_matrix
@@ -390,7 +394,6 @@ class Taskmanager:
         self.sub_tasks = []
         self._side_packed_project = None
         self.task_matrix = None
-        self.alive = True
 
 
     def save(self, filename="dev-auto.atk"):
@@ -419,7 +422,7 @@ class Taskmanager:
                            taskmanager=self)
         self.sub_tasks.append(new_project)
         if not self.renewal_thread:
-            self.startDataDeletionForRenewalThread()
+            self._startTimeDeletionForRenewalThread()
 
     def deleteSubTask(self, task):
         if task is self._side_packed_project:
@@ -553,31 +556,51 @@ class Taskmanager:
                 all_tasks_under += own_subtask.allSubordinatedTasks()
             return all_tasks_under
 
+    def _startAllBackendThreads(self):
+        time_reset_thread = self._startTimeDeletionForRenewalThread()
+        file_existens_asurance_thread = self._startFileExistenceAssuranceThread()
+        return time_reset_thread, file_existens_asurance_thread
 
-    def startDataDeletionForRenewalThread(self):
+
+    def _startTimeDeletionForRenewalThread(self):
         """starts a thread that resets task-time-mapping, so actuality is ensured"""
         def renewal(subtasks):
             while True:
-                time.sleep(7200)
+                try:
+                    if self.thread_queue.get(timeout=600) == "###breakbreakbreak###":
+                        break
+                except Exception as e:
+                    print(
+                        f"{Fore.RED}ERROR #928ihbink8u3# --> NoProblemError {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
                 [subtask.recursiveConditionalTimedeltaReset() for subtask in subtasks]
-
-        self.renewal_thread = threading.Thread(target=renewal, args=(self.sub_tasks,), daemon=True)
+        self.renewal_thread = threading.Thread(target=renewal, args=(self.sub_tasks,))
         self.renewal_thread.start()
 
-    def startFileExistenceAssurance(self):
-        while self.alive:
+    def _fileExistenceAssuranceTC(self):
+        while True:
             absolut_all_tasks = self.allSubordinatedTasks()
             [absolut_all_task.checkResultFileExistens() for absolut_all_task in absolut_all_tasks]
-            time.sleep(30)
+            try:
+                if self.thread_queue.get(timeout=30) == "###breakbreakbreak###":
+                    break
+            except Exception as e:
+                print(f"{Fore.RED}ERROR #92898iu3# --> NoProblemError {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
 
 
-    def fileExistenceAssuranceThread(self):
-        thread_here = threading.Thread(target=self.startFileExistenceAssurance, args=())
+    def _startFileExistenceAssuranceThread(self):
+        thread_here = threading.Thread(target=self._fileExistenceAssuranceTC, args=())
         thread_here.start()
         return thread_here
 
+    def _stopBackendThreads(self):
+        [self.thread_queue.put("###breakbreakbreak###") for _ in range(20)]
+        print(f"#02329884 put to queue 10 times")
+
+    def stop(self):
+        self._stopBackendThreads()
+
     def __del__(self):
-        self.alive = False
+        self.stop()
 
 if __name__ == '__main__':
     one_task = Task(name="test_task")
