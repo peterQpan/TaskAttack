@@ -253,8 +253,7 @@ class TaskAttack:
         command = values[event]
         _, _, file_path = command.rpartition(" <-> ")
         if os.path.isfile(file_path):
-            tools.openExternalFileSubPro(file_path=file_path  # , threads=self._extern_threads
-                                         )
+            tools.openExternalFileSubPro(file_path=file_path)
 
     def _executeBasicOptionButtonMenuCommands(self, values, event, task):
         """executes the basic commands of the option Button menue
@@ -309,10 +308,10 @@ class TaskAttack:
         else:
             try:
                 action = self.sFunctionMapping()[command]
-                action()
+                action(window=window)
                 return command in self.sRenewalNeedingFunctions(), None
             except:
-                return self.onKeyCommand(key=command)
+                return self.onKeyCommand(key=command, window=window)
 
 
 
@@ -335,12 +334,12 @@ class TaskAttack:
 
         return None
 
-    def onKeyCommand(self, key, *args, **kwargs):
+    def onKeyCommand(self, key, window, *args, **kwargs):
         command = self.str_key_command_converter.pollCommand(key)
         if command and self.selected_frame_coordinates:
             task = self.getTaskFromMatrix(coordinates=self.selected_frame_coordinates)
             action = self.sFunctionMapping()[command]
-            action(task=task)
+            action(task=task, window=window)
             return command in self.sRenewalNeedingFunctions(), self.selected_frame_coordinates
         else:
             return None, None
