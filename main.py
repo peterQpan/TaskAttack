@@ -120,18 +120,6 @@ class TaskAttack:
                 self.onCreateResult, inter.gimp: self.onCreateResult, inter.svg: self.onCreateResult,
         }
 
-    # def sRenewalNeedingFunctions(self):
-    #     """
-    #     all functions that needs an new window to display changes
-    #     :return:
-    #     """
-    #     #todo next get rid of this mapping makes everything sooo complex, renewalflag should be returned by
-    #     # every funtion itself, so it can be returned along the way
-    #     return {inter.new_project, inter.reload, inter.new_project_sheet, inter.open, inter.restore_task,
-    #             inter.settings, "subta-", "compl-", # "-BMENU-",
-    #             inter.sub_task, inter.isolate, inter.delete,
-    #             inter.paste, inter.cut, inter.tree_view, }
-
     def onCreateResult(self, task, event, values, command, *args, **kwargs):
         self.result_file_creator.newResultFile(task=task, kind_of_porogramm=command,
                                                result_path=self.opt.sUsedResultFolder())
@@ -509,18 +497,11 @@ class TaskAttack:
             self.autoSave()
         self.stop()
 
-
     def stop(self):
         self.autoSave()
         self._stopBackGroundThread()
         self.progbar.kill()
         self.taskmanager.stop()
-
-
-
-    # def __del__(self):
-
-# fixme after closing there is some zombi thread running
 
 
 if __name__ == '__main__':
@@ -539,8 +520,6 @@ if __name__ == '__main__':
 #  error message its indicates that window gets closed before all ending-related-work is done
 
 
-# todo next add short keys --> before short keys there must be distinguished between update and reload
-
 # todo maybe there is a way for #print()/Error > stdout > DebugPrinter
 
 # todo complet documentation and code cleanup
@@ -556,6 +535,4 @@ if __name__ == '__main__':
 # todo dev scroll position beibehalten --> sg.Frame.set_vscroll_position()?!?
 
 # todo window displays itself over result programm
-
-# todo after close, some thread or else runs on, the ide red quarter did not disappear
 
