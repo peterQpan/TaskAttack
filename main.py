@@ -121,21 +121,22 @@ class TaskAttack:
                 self.onCreateResult, inter.gimp: self.onCreateResult, inter.svg: self.onCreateResult,
         }
 
-    def sRenewalNeedingFunctions(self):
-        """
-        all functions that needs an new window to display changes
-        :return:
-        """
-        #todo next get rid of this mapping makes everything sooo complex, renewalflag should be returned by
-        # every funtion itself, so it can be returned along the way
-        return {inter.new_project, inter.reload, inter.new_project_sheet, inter.open, inter.restore_task,
-                inter.settings, "subta-", "compl-", # "-BMENU-",
-                inter.sub_task, inter.isolate, inter.delete,
-                inter.paste, inter.cut, inter.tree_view, }
+    # def sRenewalNeedingFunctions(self):
+    #     """
+    #     all functions that needs an new window to display changes
+    #     :return:
+    #     """
+    #     #todo next get rid of this mapping makes everything sooo complex, renewalflag should be returned by
+    #     # every funtion itself, so it can be returned along the way
+    #     return {inter.new_project, inter.reload, inter.new_project_sheet, inter.open, inter.restore_task,
+    #             inter.settings, "subta-", "compl-", # "-BMENU-",
+    #             inter.sub_task, inter.isolate, inter.delete,
+    #             inter.paste, inter.cut, inter.tree_view, }
 
     def onCreateResult(self, task, event, values, command, *args, **kwargs):
         self.result_file_creator.newResultFile(task=task, kind_of_porogramm=command,
                                                result_path=self.opt.sUsedResultFolder())
+        return -1, -1
 
     def onOptionButtonMenu(self, task, event, values, *args, **kwargs):
         """Method for Button menu command mapping
@@ -145,7 +146,8 @@ class TaskAttack:
 
         except KeyError as e:
             print(f"No Problem ERROR #34ehtrfh --> war kein basic option button command {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}")
-            self._executeCreatedFile(event=event, values=values)
+            self._openExternalFile(event=event, values=values)
+            return -1, -1
 
     def onLoad(self, *args, **kwargs):
         self.dataLossPrevention()
@@ -163,6 +165,7 @@ class TaskAttack:
             file_path = tools.path.ensureFilePathExtension(file_path)
             self.last_file_path = file_path
             self.taskmanager.save(file_path)
+        return -1, -1
 
     def onSave(self, *args, **kwargs):
         self.unsaved_project = False
@@ -170,6 +173,7 @@ class TaskAttack:
             self.taskmanager.save(self.last_file_path)
         else:
             self.onSaveAt()
+        return -1, -1
 
     def onNewFile(self, *args, **kwargs):
         self.dataLossPrevention()
@@ -177,9 +181,7 @@ class TaskAttack:
         self.reset()
 
     def onAddProject(self, *args, **kwargs):
-        #print(f"#89721kjn")
         event, values = self.task_window_crator.inputWindow(kind=inter.project, )
-        #print(F"#23442 event: {event}; vlues: {values}")
 
         if event in {inter.cancel, None}:
             return
@@ -192,18 +194,18 @@ class TaskAttack:
             self.last_deleted_task.recover()
 
     def onEditTask(self, task, *args, **kwargs):
-        # raise TypeError
         event, values = self.task_window_crator.inputWindow(**task.sDataRepresentation())
-        #print(F"#125456 event: {event}; vlues: {values}")
         if tools.eventIsNotNone(event):
             task.update(**values)
+        return task.sPosition()
 
     def onNewSubTask(self, task, *args, **kwargs):
         event, values = self.task_window_crator.inputWindow(kind=inter.task, masters_ende=task.sEnde(),
                                                             masters_priority=task.sPriority())
-        #print(F"#987453 event: {event}; vlues: {values}")
         if tools.eventIsNotNone(event):
             task.addSubTask(**values)
+
+    #todo next isolate task view <-> tree view solve the problems
 
     def onIsolateTask(self, task, *args, **kwargs):
         self.tree_view = "partial"
@@ -212,13 +214,11 @@ class TaskAttack:
 
     def onTreeView(self, task, *args, **kwargs):
         self.tree_view = "complete"
-
         # self.task_frames_creator.setBasichButtonMenuList()
         self.taskmanager.deisolateTaskView(task)
 
     def onDeleteTask(self, task, *args, **kwargs):
         if self.mygtb.YesNoPopup(title=inter.delete, text=inter.realy_delete):
-            #print(f"#092u03 in delete on Task")
             self.last_deleted_task = task
             task.delete()
 
@@ -228,6 +228,7 @@ class TaskAttack:
 
     def onCopyTask(self, task, *args, **kwargs):
         self._clipboard = task
+        return -1, -1
 
     def onInsertTask(self, task, *args, **kwargs):
         hard_copy = copy.deepcopy(self._clipboard)
@@ -236,6 +237,7 @@ class TaskAttack:
 
     def onGlobalOptions(self, *args, **kwargs):
         self.opt.getSettingsFromUser()
+        #todo return -1, -1 hereo or not, maybe an decission ?!?
 
     @staticmethod
     def _getCoordinatesAsInts(coordinates):
@@ -248,7 +250,7 @@ class TaskAttack:
         x, y = [int(xr) for xr in coordinates.split()]
         return x, y
 
-    def _executeCreatedFile(self, event, values):
+    def _openExternalFile(self, event, values):
         """Opens already existing task-result-file in system corresponding program like libre office or else """
         command = values[event]
         _, _, file_path = command.rpartition(" <-> ")
@@ -260,8 +262,7 @@ class TaskAttack:
         :return if executed command is one thats needs renewal of window"""
         command = values[event]
         action = self.sFunctionMapping()[command]
-        action(task=task, values=values, command=command, event=event)
-        return command in self.sRenewalNeedingFunctions()
+        return action(task=task, values=values, command=command, event=event)
 
     def _ifUserExit(self, event, window):
         """checks for and executes Exit if asked for"""
@@ -286,8 +287,7 @@ class TaskAttack:
         int_coordinates = self._getCoordinatesAsInts(string_coordinates)
         task = self.getTaskFromMatrix(coordinates=int_coordinates)
         action = self.sFunctionMapping()[command]
-        return action(task=task, values=values, event=event,
-                      command=command, window=window) or command in self.sRenewalNeedingFunctions(), int_coordinates
+        return action(task=task, values=values, event=event, command=command, window=window)
 
     def executeEvent(self, event, window, values, *args, **kwargs):
         """takes event, values and window and executes corresponding action from command-mapping
@@ -308,12 +308,9 @@ class TaskAttack:
         else:
             try:
                 action = self.sFunctionMapping()[command]
-                action(window=window)
-                return command in self.sRenewalNeedingFunctions(), None
+                return action(window=window)
             except:
                 return self.onKeyCommand(key=command, window=window)
-
-
 
     def keyCommandMapping(self):
         # todo this time complete key commands with all commands
@@ -331,18 +328,16 @@ class TaskAttack:
             self.selected_frame_coordinates = task.sPosition()
         else:
             window[f'-MY-TASK-FRAME-{str(task.sPosition())}'].activateTarget()
-
-        return None
+        return -1, -1
 
     def onKeyCommand(self, key, window, *args, **kwargs):
         command = self.str_key_command_converter.pollCommand(key)
         if command and self.selected_frame_coordinates:
             task = self.getTaskFromMatrix(coordinates=self.selected_frame_coordinates)
             action = self.sFunctionMapping()[command]
-            action(task=task, window=window)
-            return command in self.sRenewalNeedingFunctions(), self.selected_frame_coordinates
+            return action(task=task, window=window)
         else:
-            return None, None
+            return -1, -1
 
     def dataLossPrevention(self):
         """checks if there is an open unsaved file and asks for wish to save
@@ -465,7 +460,6 @@ class TaskAttack:
         self.background_queue.put((self._autoSaveFileHandlingTC, ()))
 
     def _instantiateBasicFolderStructurTC(self, folders, *args, **kwargs):
-        #print(f"#9028u30 in _instantiateFolderStructurTQ")
         for folder in folders:
             tools.path.ensurePathExists(path_here=folder)
 
@@ -484,7 +478,6 @@ class TaskAttack:
             if action == "###breakbreakbreak###":
                 break
             else:
-                #print(f"#0293i action: {action}, args: {args}")
                 action(args)
 
     def mainLoop(self):
@@ -497,18 +490,17 @@ class TaskAttack:
             self.progbar.stop()
             event, values = self.main_window.read()
             print(f"#928739823 mainloop event; values: {event}; {values}")
-            window_renewal_flag, int_coordinates = self.executeEvent(event=event, window=self.main_window,
+            int_coordinates = self.executeEvent(event=event, window=self.main_window,
                                                                      values=values)
-            print(f"#ß02i3ß0 event: {event}; window must be renewed: {window_renewal_flag}, frame cords to update: {int_coordinates}")
-            if window_renewal_flag:
+            print(f"#B-009823 int_coordinates: {int_coordinates}")
+            if int_coordinates and int_coordinates[0] != -1:
+                self.main_window[f"-MY-TASK-FRAME-{str(int_coordinates)}"].Update(self.main_window)
+            else:
                 self.window_size = self.main_window.size  # remember breaks down sometimes, why?!?
                 self.window_location = self.main_window.current_location()
                 self.progbar.start()
                 self.main_window.close()
-            else:
-                if int_coordinates:
-                    #print(f"#902893 key to update: {f'-MY-TASK-FRAME-{str(int_coordinates)}'}")
-                    self.main_window[f"-MY-TASK-FRAME-{str(int_coordinates)}"].Update(self.main_window)
+
 
             # todo beautification this is to complex, give window as an parameter and evey function can decide itself
             #  and have not to give back this much and cluttered information
