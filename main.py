@@ -225,8 +225,9 @@ class TaskAttack:
         task.insertClipbordTask(clipbord_task=hard_copy)
 
     def onGlobalOptions(self, *args, **kwargs):
+        print(f"#092398 options: ")
         self.opt.getSettingsFromUser()
-        #todo return -1, -1 hereo or not, maybe an decission ?!?
+
 
     def onTarget(self, task, window, *args, **kwargs):
         actual_coordinates = task.sPosition()
@@ -279,7 +280,7 @@ class TaskAttack:
             self._stopBackGroundThread()
             self.dataLossPrevention()
             window.close()
-        return True
+            return True
 
     def _setDataLossPreventionFlag(self, event):
         """looks for user action and sets flag for not saved question, if new data is created"""
@@ -479,10 +480,13 @@ class TaskAttack:
                 self.main_window = self.mainWindow()
             self.progbar.stop()
             event, values = self.main_window.read()
+
+            print(f"#M-928739823 mainloop event: {event}; values:{values}")
+
+
             if self._ifUserExit(event=event, window=self.main_window):
                 break
 
-            print(f"#M-928739823 mainloop event; values: {event}; {values}")
             int_coordinates = self.executeEvent(event=event, window=self.main_window, values=values)
             print(f"#M-009823 int_coordinates: {int_coordinates}")
             if int_coordinates and int_coordinates[0] == -1:
