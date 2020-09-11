@@ -518,7 +518,7 @@ class TaskFrame(sg.Frame):
 
     def __init__(self, task: task.Task = None, size=31, view="complete"):
 
-        self._button_menu_list = {"complete": inter.b_b_m_l, "partial":inter.c_b_m_l}[view]
+        # self._button_menu_list = {"complete": inter.b_b_m_l, "partial":inter.c_b_m_l}[view]
         self.size = size
 
         if task:
@@ -570,18 +570,18 @@ class TaskFrame(sg.Frame):
         return sg.Text(f"{inter.completed}: {task.sCompleted():6.2f}", tooltip=tooltip_text,
                        background_color=background_color, key=f"COMPL-TEXT{task.sPosition()}")
 
-    def sOptionButtonMenuList(self):
-        """
-        :return: list of list, sg.ButtonMenu.layout for option button menu
-        """
-        return self._button_menu_list
+    # def sOptionButtonMenuList(self):
+    #     """
+    #     :return: list of list, sg.ButtonMenu.layout for option button menu
+    #     """
+    #     return self._button_menu_list
 
     def _buttonLinePlaceHolder(self, background_color, padding_size):
         # origiinal x_size: self.sSize() - 15
         return sg.Text(text="", size=(padding_size, 1), background_color=background_color)
 
     def _createButtonMenuWithResultFileEntrys(self):
-        button_list = deepcopy(self.sOptionButtonMenuList())
+        button_list = deepcopy(inter.basic_button_menu)
         button_list[1][5] = []
         results = self.task.sResults()
 
@@ -613,7 +613,7 @@ class TaskFrame(sg.Frame):
 
         else:
             placeholder = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 20)
-            option_button = sg.ButtonMenu(button_text=inter.options, menu_def=self.sOptionButtonMenuList(),
+            option_button = sg.ButtonMenu(button_text=inter.options, menu_def=inter.basic_button_menu,
                                           key=f'-BMENU-#7#{self.task.sPosition()}')
             return [self.target_image, placeholder, option_button]
 

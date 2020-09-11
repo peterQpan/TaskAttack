@@ -234,7 +234,7 @@ class Internationalisation:
                 [self.help, self.about])
 
     @property
-    def b_b_m_l(self):
+    def basic_button_menu(self):
         """
         fetches menu entries from chosen language for basic-button-menu-list
         :return: list of list sg.ButtonMenu.layout
@@ -242,19 +242,30 @@ class Internationalisation:
         return ['Unused', [self.sub_task, self.edit,
                            self.compose_results, self.chreate_result_menu,
                            self.results, [],
-                           self.isolate, self.delete, self.cut, self.paste, self.copy]]
+                           self.isolate, self.tree_view, self.delete, self.cut, self.paste, self.copy]]
 
-    @property
-    def c_b_m_l(self):
-        """
-        fetches menu entries from chosen language for canged-button-menu-list
-        :return: list of list sg.ButtonMenu.layout
-        """
-        return ['Unused', [self.sub_task, self.edit,
-                           self.compose_results, self.chreate_result_menu,
-                           self.results, ["file1", "file2"],
-                           self.tree_view, self.delete, self.cut, self.paste, self.copy]]
-
+    # @property
+    # def b_b_m_l(self):
+    #     """
+    #     fetches menu entries from chosen language for basic-button-menu-list
+    #     :return: list of list sg.ButtonMenu.layout
+    #     """
+    #     return ['Unused', [self.sub_task, self.edit,
+    #                        self.compose_results, self.chreate_result_menu,
+    #                        self.results, [],
+    #                        self.isolate, self.delete, self.cut, self.paste, self.copy]]
+    #
+    # @property
+    # def c_b_m_l(self):
+    #     """
+    #     fetches menu entries from chosen language for canged-button-menu-list
+    #     :return: list of list sg.ButtonMenu.layout
+    #     """
+    #     return ['Unused', [self.sub_task, self.edit,
+    #                        self.compose_results, self.chreate_result_menu,
+    #                        self.results, [],
+    #                        self.tree_view, self.delete, self.cut, self.paste, self.copy]]
+    #
     @property
     def duration_types(self):
         return (self.days, self.pieces)

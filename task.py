@@ -391,7 +391,8 @@ class Taskmanager:
     def reset(self):
         """task to perform if task manager has to reset i.e. new or load
         """
-        self.sub_tasks = []
+        self.orginal_sub_tasks = []
+        self.sub_tasks = self.orginal_sub_tasks
         self._side_packed_project = None
         self.task_matrix = None
 
@@ -401,7 +402,7 @@ class Taskmanager:
             os.mkdir("autosave")
 
         with open(filename, "wb") as fh:
-            for projekt in self.sub_tasks:
+            for projekt in self.orginal_sub_tasks:
                 pickle.dump(projekt, fh)
 
     def load(self, file_path="dev-auto.atk"):
@@ -411,7 +412,7 @@ class Taskmanager:
                 try:
                     project = pickle.load(fh)
                     project.setTaskManager(self)
-                    self.sub_tasks.append(project)
+                    self.orginal_sub_tasks.append(project)
                 except EOFError:
                     break
 
@@ -420,7 +421,13 @@ class Taskmanager:
         creates a new project"""
         new_project = Task(name=name, description=description, start=start, end=end, priority=priority,
                            taskmanager=self)
+        self.deisolateTaskView()
         self.sub_tasks.append(new_project)
+
+        #todo remove isolated - tree view- menu destiction
+
+
+        #todo bring following 2 lines out of here?!?
         if not self.renewal_thread:
             self._startTimeDeletionForRenewalThread()
 
@@ -431,23 +438,36 @@ class Taskmanager:
         self.sub_tasks.remove(task)
 
 
+    # def isolatedTaskView(self, task):
+    #     #fixme das button menu unterscheidet zwischen isolate und deisolate, schortcuts aber nicht, wenn ich also strg+t drücke, bekomme ich isolierten task,
+    #     """
+    #     isolate one task ond gives him the hole sheet space to look and work on
+    #     :param task:
+    #     """
+    #     # self._side_packed_project = self.sub_tasks
+    #     # task.setTaskManager(self)
+    #     self.sub_tasks = [task]
+
     def isolatedTaskView(self, task):
         #fixme das button menu unterscheidet zwischen isolate und deisolate, schortcuts aber nicht, wenn ich also strg+t drücke, bekomme ich isolierten task,
         """
         isolate one task ond gives him the hole sheet space to look and work on
         :param task:
         """
-        self._side_packed_project = self.sub_tasks
-        task.setTaskManager(self)
-        self.sub_tasks = [task]
+        if len(self.sub_tasks) == 0 and self.sub_tasks[0] is task:
+            self.sub_tasks = self.orginal_sub_tasks
+            #todo add project ORGINAL_SUB.TASKS.append(new project)
+        else:
+            # self._side_packed_project = self.sub_tasks
+            # task.setTaskManager(self)
+            self.sub_tasks = [task]
 
 
     def deisolateTaskView(self, *args, **kwargs):
         """
         brings isolated view back to complete tree view of all the tasks"""
         # self.sub_tasks[0].taskmanager = None
-        self.sub_tasks = self._side_packed_project
-        self._side_packed_project = None
+        self.sub_tasks = self.orginal_sub_tasks
 
 
     def subTaskDepth(self):

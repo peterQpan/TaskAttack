@@ -400,8 +400,9 @@ class TaskAttack:
         :return: either table_dummy if no project available, or propper project table
         """
         project_table = self.createProjectsLayout()
-        flat = list(itertools.chain.from_iterable(project_table))
-        if not flat:
+        # print(f"#9889298 project_table: {project_table}")
+        # flat = list(itertools.chain.from_iterable(project_table))
+        if not project_table[0]:
             project_table = [self.sTableDummy()]
         else:
             project_table = self.projectMatrixOneFieldBigger(project_table)
