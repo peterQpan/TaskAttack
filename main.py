@@ -194,16 +194,10 @@ class TaskAttack:
         if tools.eventIsNotNone(event):
             task.addSubTask(**values)
 
-    #todo next isolate task view <-> tree view solve the problems
-
     def onIsolateTask(self, task, *args, **kwargs):
-        self.tree_view = "partial"
-        # self.task_frames_creator.changeMenuListToIsolated()
         self.taskmanager.isolatedTaskView(task)
 
     def onTreeView(self, task, *args, **kwargs):
-        self.tree_view = "complete"
-        # self.task_frames_creator.setBasichButtonMenuList()
         self.taskmanager.deisolateTaskView(task)
 
     def onDeleteTask(self, task, *args, **kwargs):
