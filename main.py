@@ -195,7 +195,9 @@ class TaskAttack:
             task.addSubTask(**values)
 
     def onIsolateTask(self, task, *args, **kwargs):
+        print(f"#093280 on isolate Task task: {task}")
         self.taskmanager.isolatedTaskView(task)
+        self.selected_frame_coordinates = None
 
     def onTreeView(self, task, *args, **kwargs):
         self.taskmanager.deisolateTaskView(task)
@@ -236,10 +238,15 @@ class TaskAttack:
 
     def onKeyCommand(self, key, window, *args, **kwargs):
         command = self.str_key_command_converter.pollCommand(key)
+        print(f"#092387892 onKeyCommand: {command}; self.selected_frame_coods: {self.selected_frame_coordinates}")
         if command and self.selected_frame_coordinates:
             task = self.getTaskFromMatrix(coordinates=self.selected_frame_coordinates)
             action = self.sFunctionMapping()[command]
             return action(task=task, window=window)
+        #todo is that beautiful?!?
+        elif command == inter.isolate:
+            return self.sFunctionMapping()[command](task=None)
+
         else:
             return -1, -1
 
@@ -303,7 +310,7 @@ class TaskAttack:
         self._setDataLossPreventionFlag(event)
 
         command, _, string_coordinates = event.partition("#7#")
-        print(f"#2092349 command: {command}")
+        print(f"#2092349 command {command}; string coordinates: {string_coordinates}")
         if string_coordinates:
             return self._executeCoordinateCommand(string_coordinates=string_coordinates, command=command,
                                                   values=values, event=event, window=window)
@@ -315,9 +322,9 @@ class TaskAttack:
                 return self.onKeyCommand(key=command, window=window)
 
     def keyCommandMapping(self):
-        # todo this time complete key commands with all commands
+        # todo this time double press on strg+t crashes
         #fixme bevor "t" implementiert wird erstmal die probleme lösen
-        return {"n": "subta-", "e": "bearb-", "D":inter.delete, "c":inter.copy, #"t": inter.tree_view,
+        return {"n": "subta-", "e": "bearb-", "D":inter.delete, "c":inter.copy, "t": inter.isolate,
                 "s": inter.save,
                 "r":inter.reload, "P": inter.new_project}
 

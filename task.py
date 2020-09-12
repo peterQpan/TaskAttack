@@ -382,7 +382,7 @@ class Taskmanager:
         self.thread_queue = queue.Queue()
         self.all_backend_threads = self._startAllBackendThreads()
 
-        self.task_matrix = None
+        self.task_matrix = self.displayMatrix()
 
 
     def sTaskMatrix(self):
@@ -454,8 +454,9 @@ class Taskmanager:
         isolate one task ond gives him the hole sheet space to look and work on
         :param task:
         """
-        if len(self.sub_tasks) == 0 and self.sub_tasks[0] is task:
-            self.sub_tasks = self.orginal_sub_tasks
+        print(f"#90980238098 comparing subtasks and task: subtasks: {self.sub_tasks}, task: {task}")
+        if task is None:
+            self.deisolateTaskView()
             #todo add project ORGINAL_SUB.TASKS.append(new project)
         else:
             # self._side_packed_project = self.sub_tasks
@@ -525,6 +526,7 @@ class Taskmanager:
         """commands subtasks to recognize their position in the display matrix"""
         span_here = 0
         for projekt in self.sub_tasks:
+            print(f"#9209832 project in subtasks: {projekt}")
             projekt: Task
             projekt.recognizeMatrixPosition(depth=0, span=span_here)
             span_here += projekt.rowExpansion()
@@ -557,6 +559,8 @@ class Taskmanager:
         """
         if not self.sub_tasks:
             return [[]]
+
+        print(f"#029832 subtasks in display matix: {self.sub_tasks}")
 
         self.recognizeMatrixPositions()
         self.task_matrix = self.createTaskMatix()
