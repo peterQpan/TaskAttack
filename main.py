@@ -322,8 +322,6 @@ class TaskAttack:
                 return self.onKeyCommand(key=command, window=window)
 
     def keyCommandMapping(self):
-        # todo this time double press on strg+t crashes
-        #fixme bevor "t" implementiert wird erstmal die probleme lösen
         return {"n": "subta-", "e": "bearb-", "D":inter.delete, "c":inter.copy, "t": inter.isolate,
                 "s": inter.save,
                 "r":inter.reload, "P": inter.new_project}
@@ -360,7 +358,8 @@ class TaskAttack:
 
         for y_index, y in enumerate(orginal_display_matrix):
             for x_index, element in enumerate(y):
-                frame_here = gui_elements.TaskFrame(task=element, view=self.tree_view)
+                frame_here = gui_elements.TaskFrame(task=element, #view=self.tree_view
+                                                    )
                 base_layout[y_index][x_index] = frame_here
         return base_layout
 
@@ -401,8 +400,6 @@ class TaskAttack:
         :return: either table_dummy if no project available, or propper project table
         """
         project_table = self.createProjectsLayout()
-        # print(f"#9889298 project_table: {project_table}")
-        # flat = list(itertools.chain.from_iterable(project_table))
         if not project_table[0]:
             project_table = [self.sTableDummy()]
         else:
