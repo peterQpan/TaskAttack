@@ -5,8 +5,11 @@ __email__ = "sebmueller.bt@gmail.com"
 import copy
 import os
 import pickle
+import queue
 import threading
 import time
+
+from colorama import Fore
 
 import tools
 from internationalisation import inter
@@ -374,12 +377,13 @@ class Task:
 class Taskmanager:
     def __init__(self):
 
-        self.renewal_thread = None
-
-        self.task_matrix = None
-
         self.reset()
-        self.file_existence_thread = self.fileExistenceAssuranceThread()
+
+        self.thread_queue = queue.Queue()
+        self.all_backend_threads = self._startAllBackendThreads()
+
+        self.task_matrix = self.displayMatrix()
+
 
     def sTaskMatrix(self):
         return self.task_matrix
@@ -387,10 +391,10 @@ class Taskmanager:
     def reset(self):
         """task to perform if task manager has to reset i.e. new or load
         """
-        self.sub_tasks = []
+        self.orginal_sub_tasks = []
+        self.sub_tasks = self.orginal_sub_tasks
         self._side_packed_project = None
         self.task_matrix = None
-        self.alive = True
 
 
     def save(self, filename="dev-auto.atk"):
@@ -398,7 +402,7 @@ class Taskmanager:
             os.mkdir("autosave")
 
         with open(filename, "wb") as fh:
-            for projekt in self.sub_tasks:
+            for projekt in self.orginal_sub_tasks:
                 pickle.dump(projekt, fh)
 
     def load(self, file_path="dev-auto.atk"):
@@ -408,7 +412,7 @@ class Taskmanager:
                 try:
                     project = pickle.load(fh)
                     project.setTaskManager(self)
-                    self.sub_tasks.append(project)
+                    self.orginal_sub_tasks.append(project)
                 except EOFError:
                     break
 
@@ -417,9 +421,15 @@ class Taskmanager:
         creates a new project"""
         new_project = Task(name=name, description=description, start=start, end=end, priority=priority,
                            taskmanager=self)
+        self.deisolateTaskView()
         self.sub_tasks.append(new_project)
+
+        #todo remove isolated - tree view- menu destiction
+
+
+        #todo bring following 2 lines out of here?!?
         if not self.renewal_thread:
-            self.startDataDeletionForRenewalThread()
+            self._startTimeDeletionForRenewalThread()
 
     def deleteSubTask(self, task):
         if task is self._side_packed_project:
@@ -428,22 +438,37 @@ class Taskmanager:
         self.sub_tasks.remove(task)
 
 
+    # def isolatedTaskView(self, task):
+    #     #fixme das button menu unterscheidet zwischen isolate und deisolate, schortcuts aber nicht, wenn ich also strg+t drücke, bekomme ich isolierten task,
+    #     """
+    #     isolate one task ond gives him the hole sheet space to look and work on
+    #     :param task:
+    #     """
+    #     # self._side_packed_project = self.sub_tasks
+    #     # task.setTaskManager(self)
+    #     self.sub_tasks = [task]
+
     def isolatedTaskView(self, task):
+        #fixme das button menu unterscheidet zwischen isolate und deisolate, schortcuts aber nicht, wenn ich also strg+t drücke, bekomme ich isolierten task,
         """
         isolate one task ond gives him the hole sheet space to look and work on
         :param task:
         """
-        self._side_packed_project = self.sub_tasks
-        task.setTaskManager(self)
-        self.sub_tasks = [task]
+        print(f"#90980238098 comparing subtasks and task: subtasks: {self.sub_tasks}, task: {task}")
+        if task is None:
+            self.deisolateTaskView()
+            #todo add project ORGINAL_SUB.TASKS.append(new project)
+        else:
+            # self._side_packed_project = self.sub_tasks
+            # task.setTaskManager(self)
+            self.sub_tasks = [task]
 
 
     def deisolateTaskView(self, *args, **kwargs):
         """
         brings isolated view back to complete tree view of all the tasks"""
-        self.sub_tasks[0].taskmanager = None
-        self.sub_tasks = self._side_packed_project
-        self._side_packed_project = None
+        # self.sub_tasks[0].taskmanager = None
+        self.sub_tasks = self.orginal_sub_tasks
 
 
     def subTaskDepth(self):
@@ -501,6 +526,7 @@ class Taskmanager:
         """commands subtasks to recognize their position in the display matrix"""
         span_here = 0
         for projekt in self.sub_tasks:
+            print(f"#9209832 project in subtasks: {projekt}")
             projekt: Task
             projekt.recognizeMatrixPosition(depth=0, span=span_here)
             span_here += projekt.rowExpansion()
@@ -534,10 +560,10 @@ class Taskmanager:
         if not self.sub_tasks:
             return [[]]
 
+        print(f"#029832 subtasks in display matix: {self.sub_tasks}")
+
         self.recognizeMatrixPositions()
         self.task_matrix = self.createTaskMatix()
-        #display_matrix = self.addMasterTaskPlaceholderStrings(self.task_matrix)
-        # display_matrix = self.task_matrix
         return self.task_matrix
 
     def allSubordinatedTasks(self):
@@ -552,31 +578,50 @@ class Taskmanager:
                 all_tasks_under += own_subtask.allSubordinatedTasks()
             return all_tasks_under
 
+    def _startAllBackendThreads(self):
+        time_reset_thread = self._startTimeDeletionForRenewalThread()
+        file_existens_asurance_thread = self._startFileExistenceAssuranceThread()
+        return time_reset_thread, file_existens_asurance_thread
 
-    def startDataDeletionForRenewalThread(self):
+
+    def _startTimeDeletionForRenewalThread(self):
         """starts a thread that resets task-time-mapping, so actuality is ensured"""
         def renewal(subtasks):
             while True:
-                time.sleep(7200)
+                try:
+                    if self.thread_queue.get(timeout=600) == "###breakbreakbreak###":
+                        break
+                except Exception as e:
+                    print(
+                        f"{Fore.RED}ERROR #928ihbink8u3# --> NoProblemError {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
                 [subtask.recursiveConditionalTimedeltaReset() for subtask in subtasks]
-
-        self.renewal_thread = threading.Thread(target=renewal, args=(self.sub_tasks,), daemon=True)
+        self.renewal_thread = threading.Thread(target=renewal, args=(self.sub_tasks,))
         self.renewal_thread.start()
 
-    def startFileExistenceAssurance(self):
-        while self.alive:
+    def _fileExistenceAssuranceTC(self):
+        while True:
             absolut_all_tasks = self.allSubordinatedTasks()
             [absolut_all_task.checkResultFileExistens() for absolut_all_task in absolut_all_tasks]
-            time.sleep(30)
+            try:
+                if self.thread_queue.get(timeout=30) == "###breakbreakbreak###":
+                    break
+            except Exception as e:
+                print(f"{Fore.RED}ERROR #92898iu3# --> NoProblemError {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
 
-
-    def fileExistenceAssuranceThread(self):
-        thread_here = threading.Thread(target=self.startFileExistenceAssurance, args=())
+    def _startFileExistenceAssuranceThread(self):
+        thread_here = threading.Thread(target=self._fileExistenceAssuranceTC, args=())
         thread_here.start()
         return thread_here
 
+    def _stopBackendThreads(self):
+        [self.thread_queue.put("###breakbreakbreak###") for _ in range(20)]
+        print(f"#02329884 put to queue 10 times")
+
+    def stop(self):
+        self._stopBackendThreads()
+
     def __del__(self):
-        self.alive = False
+        self.stop()
 
 if __name__ == '__main__':
     one_task = Task(name="test_task")

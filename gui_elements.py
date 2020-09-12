@@ -236,7 +236,6 @@ class MyGuiToolbox:
 class ResultFileCreator:
 
     def __init__(self):
-        # self._external_threads = []
         self._file_templates = {inter.writer: ("/templates/writer_template.odt", ".odt"),
                                 inter.spreadsheet: ("/templates/spreadsheet_template.ods", ".ods"),
                                 inter.presentation: ("/templates/presentation_template.odp", ".odp"),
@@ -344,200 +343,186 @@ class ResultFileCreator:
             task.addResultsFileAndDescription(save_file_path, description)
             break
 
-
-# todo think about task frame creator or task frames of its own
-#  maybe more simplicity since task frame creator can take care of it?!?
-# todo think about, which is better in performance??? because of update,
-#  instead of renewal update is a big improvement,
-#  and i dont have to keep track of all the sg-Elements... by frame inheritance
-
-class TaskFrameCreator:
-    """
-    Factory to create PySimpleGui Frames which represents either a Task or an empty space of the same size
-    """
-
-    def __init__(self, size=30):
-        warnings.warn("use TaskFrame directly", DeprecationWarning)
-        self.setBasichButtonMenuList()
-        self.size = size
-
-    def sSize(self):
-        """
-        :return: int:
-        """
-        return self.size
-
-    def setSize(self, size: int):
-        """
-        :param size: sets width of a frame / x-axis size
-        """
-        self.size = size
-
-    def _basicTaskFrame(self, frame_name: str, name_line: list, priority, completed, option_button_line: list,
-                        relief=sg.RELIEF_RAISED, tooltip_text: str = "", frame_color: str = None):
-        """task frame creation
-        :param name: simplegu element name line
-        :param priority: simplegui priority line
-        :param completed: simplegui completed line
-        :param edit: edit button
-        :param add: add subtask button 
-        :return: short task representation in a frame
-        """
-        frame = sg.Frame(layout=[name_line,
-                                 [priority, completed],
-                                 option_button_line],
-                         title=frame_name[-(self.sSize() - 3):], relief=relief, size=(self.sSize(), 5),
-                         tooltip=tooltip_text, background_color=frame_color)
-        return frame
-
-    @staticmethod
-    def nAIt(wantet_value):
-        return "N.A." if not wantet_value else wantet_value
-
-    @staticmethod
-    def _toolTipText(task: task.Task):
-        """
-        :return: full plain textual representation of an task.Task() suitable as tooltip_text
-        """
-        tt = ""
-        tt += f"   {task.hierarchyTreePositionString()}\n\n"
-        tt += f"   {task.sName()}\n\n"
-        tt += f"   {inter.start}: {task.sStart()}   {inter.end}:v{TaskFrameCreator.nAIt(task.sEnde())}   {inter.priority}: {task.sPriority()}   \n"
-        tt += f"   {inter.rem_days}:..................................... {TaskFrameCreator.nAIt(task.sRemainingDays())}   \n"
-        tt += f"   {inter.project_part_percentage}:............... {task.sPercentage()}%   \n"
-        tt += f"   {inter.sub_task_amount}:............................... {len(task.sSubTasks()) if task.sSubTasks() else '0'}   \n"
-        tt += f"   {inter.percent_compled}:............................. {task.sCompleted():5.1f}%   \n\n"
-        tt += "    \n   ".join(textwrap.wrap(task.sDescription(), width=90))
-
-        return tt
-
-    @staticmethod
-    def _isCompletedElement(task: task.Task, tooltip_text, background_color: str):
-        """
-        builds up task completed line either an percentage, or an checkbox corresponding to kind of task
-        :param background_color: hexstring like "#ff0000"
-        :return: in frame layout usable completed line
-        """
-        default = True if task.sCompleted() else False
-        if type(task.sCompleted()) == int:
-            return sg.Checkbox(text=inter.completed, key=f"compl-#7#{str(task.sPosition())}", default=default,
-                               enable_events=True, tooltip=tooltip_text, background_color=background_color)
-        return sg.Text(f"{inter.completed}: {task.sCompleted():6.2f}", tooltip=tooltip_text,
-                       background_color=background_color)
-
-    def sOptionButtonMenuList(self):
-        """
-        :return: list of list, sg.ButtonMenu.layout for option button menu
-        """
-
-        return self._button_menu_list
-
-    def setBasichButtonMenuList(self):
-        """
-        fetches basic option button menu list of list from internationalisation module
-        """
-        self._button_menu_list = inter.b_b_m_l
-
-    def changeMenuListToIsolated(self):
-        """
-        fetches altered >tree view< option button menu list of list from internationalisation module
-        """
-        self._button_menu_list = inter.c_b_m_l
-
-    def _buttonLinePlaceHolder(self, background_color, padding_size):
-        # origiinal x_size: self.sSize() - 15
-        return sg.Text(text="", size=(padding_size, 1), background_color=background_color)
-
-    def _createButtonMenuWithResultFileEntrys(self, task):
-        button_list = deepcopy(self.sOptionButtonMenuList())
-        button_list[1][5] = []
-        results = task.sResults()
-
-        if results:
-            for file_path, short_description in results:
-                if short_description:
-                    line = f"{short_description} <-> {file_path}"
-                else:
-                    line = f"{file_path}"
-                button_list[1][5].append(line)
-            return button_list
-
-    def _buttonMenuLine(self, task, background_color):
-        """
-        :return: option menu button for every task frame
-        """
-        result_file_button_menu = self._createButtonMenuWithResultFileEntrys(task)
-
-        # return sg.ButtonMenu(inter.options, original_button_list, key=f'-BMENU-#7#{task.sPosition()}',
-        #                      border_width=2, )
-
-        if result_file_button_menu:
-            placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 20)
-            image = sg.Image(filename="templates/file.png")
-            option_button = sg.ButtonMenu(button_text=inter.options, menu_def=result_file_button_menu,
-                                          key=f'-BMENU-#7#{task.sPosition()}')
-
-            return [placeholer, image, option_button]
-
-        else:
-            placeholder = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 15)
-            option_button = sg.ButtonMenu(button_text=inter.options, menu_def=self.sOptionButtonMenuList(),
-                                          key=f'-BMENU-#7#{task.sPosition()}')
-            return [placeholder, option_button]
-
-    def taskFrame(self, task: task.Task):
-        """
-        :return: sg.Frame which represents the short Tree notation of an Task inclusive a full tooltip text
-        """
-        tooltip_text = self._toolTipText(task)
-        background_color = task.taskDeadlineColor()
-
-        name_line = self._nameLine(task=task, tooltip_text=tooltip_text, background_color=background_color)
-        priority_sg_object = sg.Text(text=f"{inter.short_pr}:.{task.sPriority():3d}", tooltip=tooltip_text,
-                                     background_color=background_color)
-        completed_sg_object = self._isCompletedElement(task, tooltip_text=tooltip_text,
-                                                       background_color=background_color)
-
-        frame_name = task.hierarchyTreePositionString()
-
-        button_menu_line = self._buttonMenuLine(task, background_color=background_color)
-
-        frame = self._basicTaskFrame(frame_name=frame_name, name_line=name_line, priority=priority_sg_object,
-                                     completed=completed_sg_object,
-                                     option_button_line=button_menu_line,
-                                     tooltip_text=tooltip_text, frame_color=background_color)
-        return frame
-
-    def _nameLine(self, task, tooltip_text, background_color):
-        name_line = [sg.Text(text=task.sName(), size=(self.sSize() - 5, 1), tooltip=tooltip_text,
-                             background_color=background_color)]
-        return name_line
-
-    def emptyTaskFrame(self):
-        """
-            :return: empty sg.Frame in same size than a task frame
-            """
-        return sg.Frame(layout=[[sg.Text(text="", size=(self.sSize() - 5, 5))]], title=" ", relief=sg.RELIEF_FLAT,
-                        size=(300, 50))
-
-
-"""in order to tackle this shortcut key thing i need my own task frames, i didnt do it i the first place because 
-pysimplegui documentation said if you starting with making your own windows class you probably got it all wrong, so 
-i tried to stick to the functional approach of py simple gui, but i think it would become very ugly at this point. 
-shall i do a class wich can be utalized from task frame creator, so i dont have to change any code, 
-or should i do it from scratch?!?, i think i first do the task frame creator approach, without any major code changes"""
+# class TaskFrameCreator:
+#     """
+#     Factory to create PySimpleGui Frames which represents either a Task or an empty space of the same size
+#     """
+#
+#     def __init__(self, size=30):
+#         warnings.warn("use TaskFrame directly", DeprecationWarning)
+#         self.setBasichButtonMenuList()
+#         self.size = size
+#
+#     def sSize(self):
+#         """
+#         :return: int:
+#         """
+#         return self.size
+#
+#     def setSize(self, size: int):
+#         """
+#         :param size: sets width of a frame / x-axis size
+#         """
+#         self.size = size
+#
+#     def _basicTaskFrame(self, frame_name: str, name_line: list, priority, completed, option_button_line: list,
+#                         relief=sg.RELIEF_RAISED, tooltip_text: str = "", frame_color: str = None):
+#         """task frame creation
+#         :param name: simplegu element name line
+#         :param priority: simplegui priority line
+#         :param completed: simplegui completed line
+#         :param edit: edit button
+#         :param add: add subtask button
+#         :return: short task representation in a frame
+#         """
+#         frame = sg.Frame(layout=[name_line,
+#                                  [priority, completed],
+#                                  option_button_line],
+#                          title=frame_name[-(self.sSize() - 3):], relief=relief, size=(self.sSize(), 5),
+#                          tooltip=tooltip_text, background_color=frame_color)
+#         return frame
+#
+#     @staticmethod
+#     def nAIt(wantet_value):
+#         return "N.A." if not wantet_value else wantet_value
+#
+#     @staticmethod
+#     def _toolTipText(task: task.Task):
+#         """
+#         :return: full plain textual representation of an task.Task() suitable as tooltip_text
+#         """
+#         tt = ""
+#         tt += f"   {task.hierarchyTreePositionString()}\n\n"
+#         tt += f"   {task.sName()}\n\n"
+#         tt += f"   {inter.start}: {task.sStart()}   {inter.end}:v{TaskFrameCreator.nAIt(task.sEnde())}   {inter.priority}: {task.sPriority()}   \n"
+#         tt += f"   {inter.rem_days}:..................................... {TaskFrameCreator.nAIt(task.sRemainingDays())}   \n"
+#         tt += f"   {inter.project_part_percentage}:............... {task.sPercentage()}%   \n"
+#         tt += f"   {inter.sub_task_amount}:............................... {len(task.sSubTasks()) if task.sSubTasks() else '0'}   \n"
+#         tt += f"   {inter.percent_compled}:............................. {task.sCompleted():5.1f}%   \n\n"
+#         tt += "    \n   ".join(textwrap.wrap(task.sDescription(), width=90))
+#
+#         return tt
+#
+#     @staticmethod
+#     def _isCompletedElement(task: task.Task, tooltip_text, background_color: str):
+#         """
+#         builds up task completed line either an percentage, or an checkbox corresponding to kind of task
+#         :param background_color: hexstring like "#ff0000"
+#         :return: in frame layout usable completed line
+#         """
+#         default = True if task.sCompleted() else False
+#         if type(task.sCompleted()) == int:
+#             return sg.Checkbox(text=inter.completed, key=f"compl-#7#{str(task.sPosition())}", default=default,
+#                                enable_events=True, tooltip=tooltip_text, background_color=background_color)
+#         return sg.Text(f"{inter.completed}: {task.sCompleted():6.2f}", tooltip=tooltip_text,
+#                        background_color=background_color)
+#
+#     def sOptionButtonMenuList(self):
+#         """
+#         :return: list of list, sg.ButtonMenu.layout for option button menu
+#         """
+#
+#         return self._button_menu_list
+#
+#     def setBasichButtonMenuList(self):
+#         """
+#         fetches basic option button menu list of list from internationalisation module
+#         """
+#         self._button_menu_list = inter.b_b_m_l
+#
+#     def changeMenuListToIsolated(self):
+#         """
+#         fetches altered >tree view< option button menu list of list from internationalisation module
+#         """
+#         self._button_menu_list = inter.c_b_m_l
+#
+#     def _buttonLinePlaceHolder(self, background_color, padding_size):
+#         # origiinal x_size: self.sSize() - 15
+#         return sg.Text(text="", size=(padding_size, 1), background_color=background_color)
+#
+#     def _createButtonMenuWithResultFileEntrys(self, task):
+#         button_list = deepcopy(self.sOptionButtonMenuList())
+#         button_list[1][5] = []
+#         results = task.sResults()
+#
+#         if results:
+#             for file_path, short_description in results:
+#                 if short_description:
+#                     line = f"{short_description} <-> {file_path}"
+#                 else:
+#                     line = f"{file_path}"
+#                 button_list[1][5].append(line)
+#             return button_list
+#
+#     def _buttonMenuLine(self, task, background_color):
+#         """
+#         :return: option menu button for every task frame
+#         """
+#         result_file_button_menu = self._createButtonMenuWithResultFileEntrys(task)
+#
+#         # return sg.ButtonMenu(inter.options, original_button_list, key=f'-BMENU-#7#{task.sPosition()}',
+#         #                      border_width=2, )
+#
+#         if result_file_button_menu:
+#             placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 20)
+#             image = sg.Image(filename="templates/file.png")
+#             option_button = sg.ButtonMenu(button_text=inter.options, menu_def=result_file_button_menu,
+#                                           key=f'-BMENU-#7#{task.sPosition()}')
+#
+#             return [placeholer, image, option_button]
+#
+#         else:
+#             placeholder = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 15)
+#             option_button = sg.ButtonMenu(button_text=inter.options, menu_def=self.sOptionButtonMenuList(),
+#                                           key=f'-BMENU-#7#{task.sPosition()}')
+#             return [placeholder, option_button]
+#
+#     def taskFrame(self, task: task.Task):
+#         """
+#         :return: sg.Frame which represents the short Tree notation of an Task inclusive a full tooltip text
+#         """
+#         tooltip_text = self._toolTipText(task)
+#         background_color = task.taskDeadlineColor()
+#
+#         name_line = self._nameLine(task=task, tooltip_text=tooltip_text, background_color=background_color)
+#         priority_sg_object = sg.Text(text=f"{inter.short_pr}:.{task.sPriority():3d}", tooltip=tooltip_text,
+#                                      background_color=background_color)
+#         completed_sg_object = self._isCompletedElement(task, tooltip_text=tooltip_text,
+#                                                        background_color=background_color)
+#
+#         frame_name = task.hierarchyTreePositionString()
+#
+#         button_menu_line = self._buttonMenuLine(task, background_color=background_color)
+#
+#         frame = self._basicTaskFrame(frame_name=frame_name, name_line=name_line, priority=priority_sg_object,
+#                                      completed=completed_sg_object,
+#                                      option_button_line=button_menu_line,
+#                                      tooltip_text=tooltip_text, frame_color=background_color)
+#         return frame
+#
+#     def _nameLine(self, task, tooltip_text, background_color):
+#         name_line = [sg.Text(text=task.sName(), size=(self.sSize() - 5, 1), tooltip=tooltip_text,
+#                              background_color=background_color)]
+#         return name_line
+#
+#     def emptyTaskFrame(self):
+#         """
+#             :return: empty sg.Frame in same size than a task frame
+#             """
+#         return sg.Frame(layout=[[sg.Text(text="", size=(self.sSize() - 5, 5))]], title=" ", relief=sg.RELIEF_FLAT,
+#                         size=(300, 50))
+#
 
 
 class TaskFrame(sg.Frame):
 
-    def __init__(self, task: task.Task = None, size=30):
+    def __init__(self, task: task.Task = None, size=31, view="complete"):
 
+        # self._button_menu_list = {"complete": inter.b_b_m_l, "partial":inter.c_b_m_l}[view]
         self.size = size
-        self.setBasichButtonMenuList()
 
         if task:
             self.task = task
-            print(f"#9923u0923 key for frame: {f'-MY-TASK-FRAME-{str(self.task.sPosition())}'}")
             self.key = F"-MY-TASK-FRAME-{str(self.task.sPosition())}"
             self.taskFrame()  # superMethod
         else:
@@ -550,12 +535,6 @@ class TaskFrame(sg.Frame):
         """
         return self.size
 
-    # def setSize(self, size: int):
-    #     """
-    #     :param size: sets width of a frame / x-axis size
-    #     """
-    #     self.size = size
-
     @staticmethod
     def nAIt(wantet_value):
         return "N.A." if not wantet_value else wantet_value
@@ -567,8 +546,8 @@ class TaskFrame(sg.Frame):
         tt = ""
         tt += f"   {self.task.hierarchyTreePositionString()}\n\n"
         tt += f"   {self.task.sName()}\n\n"
-        tt += f"   {inter.start}: {self.task.sStart()}   {inter.end}:v{TaskFrameCreator.nAIt(self.task.sEnde())}   {inter.priority}: {self.task.sPriority()}   \n"
-        tt += f"   {inter.rem_days}:..................................... {TaskFrameCreator.nAIt(self.task.sRemainingDays())}   \n"
+        tt += f"   {inter.start}: {self.task.sStart()}   {inter.end}:v{self.nAIt(self.task.sEnde())}   {inter.priority}: {self.task.sPriority()}   \n"
+        tt += f"   {inter.rem_days}:..................................... {self.nAIt(self.task.sRemainingDays())}   \n"
         tt += f"   {inter.project_part_percentage}:............... {self.task.sPercentage()}%   \n"
         tt += f"   {inter.sub_task_amount}:............................... {len(self.task.sSubTasks()) if self.task.sSubTasks() else '0'}   \n"
         tt += f"   {inter.percent_compled}:............................. {self.task.sCompleted():5.1f}%   \n\n"
@@ -591,31 +570,18 @@ class TaskFrame(sg.Frame):
         return sg.Text(f"{inter.completed}: {task.sCompleted():6.2f}", tooltip=tooltip_text,
                        background_color=background_color, key=f"COMPL-TEXT{task.sPosition()}")
 
-    def sOptionButtonMenuList(self):
-        """
-        :return: list of list, sg.ButtonMenu.layout for option button menu
-        """
-
-        return self._button_menu_list
-
-    def setBasichButtonMenuList(self):
-        """
-        fetches basic option button menu list of list from internationalisation module
-        """
-        self._button_menu_list = inter.b_b_m_l
-
-    def changeMenuListToIsolated(self):
-        """
-        fetches altered >tree view< option button menu list of list from internationalisation module
-        """
-        self._button_menu_list = inter.c_b_m_l
+    # def sOptionButtonMenuList(self):
+    #     """
+    #     :return: list of list, sg.ButtonMenu.layout for option button menu
+    #     """
+    #     return self._button_menu_list
 
     def _buttonLinePlaceHolder(self, background_color, padding_size):
         # origiinal x_size: self.sSize() - 15
         return sg.Text(text="", size=(padding_size, 1), background_color=background_color)
 
     def _createButtonMenuWithResultFileEntrys(self):
-        button_list = deepcopy(self.sOptionButtonMenuList())
+        button_list = deepcopy(inter.basic_button_menu)
         button_list[1][5] = []
         results = self.task.sResults()
 
@@ -628,25 +594,28 @@ class TaskFrame(sg.Frame):
                 button_list[1][5].append(line)
             return button_list
 
+    #todo???? key function(sting) --> stirng{self.task.sPosition}
+
     def _buttonMenuLine(self, background_color):
         """
         :return: option menu button for every task frame
         """
         result_file_button_menu_list = self._createButtonMenuWithResultFileEntrys()
+        self.target_image = sg.Image(filename="templates/crosshair_black.png", enable_events=True, key=f"-TARGET-#7#{self.task.sPosition()}")
 
         if result_file_button_menu_list:
-            placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 20)
+            placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 25)
             image = sg.Image(filename="templates/file.png")
             option_button = sg.ButtonMenu(button_text=inter.options, menu_def=result_file_button_menu_list,
                                           key=f'-BMENU-#7#{self.task.sPosition()}')
 
-            return [placeholer, image, option_button]
+            return [self.target_image, placeholer, image, option_button]
 
         else:
-            placeholder = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 15)
-            option_button = sg.ButtonMenu(button_text=inter.options, menu_def=self.sOptionButtonMenuList(),
+            placeholder = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 20)
+            option_button = sg.ButtonMenu(button_text=inter.options, menu_def=inter.basic_button_menu,
                                           key=f'-BMENU-#7#{self.task.sPosition()}')
-            return [placeholder, option_button]
+            return [self.target_image, placeholder, option_button]
 
     def _nameLine(self, tooltip_text, background_color):
         """Key: f"{self.key}NAME-L-"
@@ -672,7 +641,7 @@ class TaskFrame(sg.Frame):
                                                 priority_completed_line,
                                                 option_button_line],
                                         title=frame_name[-(self.sSize() - 3):], relief=relief, size=(self.sSize(), 5),
-                                        tooltip=tooltip_text, background_color=frame_color, key=self.key)
+                                        tooltip=tooltip_text, background_color=frame_color, key=self.key, )
 
     def taskFrame(self):
         """
@@ -750,6 +719,12 @@ class TaskFrame(sg.Frame):
         completed_sg_object = self._isCompletedElement(self.task, tooltip_text=tooltip_text,
                                                        background_color=background_color)
         return [priority_sg_object, completed_sg_object]
+
+    def activateTarget(self):
+        self.target_image.Update(filename="templates/crosshair_white.png", size=(26,26))
+
+    def deActivateTarget(self):
+        self.target_image.Update(filename="templates/crosshair_black.png", size=(26,26))
 
 
 class TaskInputWindowCreator:
@@ -1167,7 +1142,7 @@ class OptionWindow:
         if "-IEX729X" in event:
             if r"//" in values[event]:
                 window[event].Update(values[event].replace("//", "/"))
-        if event == "-RADIO_1-RADIO-":  # todo RadioNew clutters the code with his destinct own keys, needs a better inheritance for clearer code
+        if event == "-RADIO_1-RADIO-":
             self._setDisabledStatusToStandardDirectoryFrame(window=window, disabled=False)
             self._setDisabledStatusToUserDirectoryFrame(window=window, disabled=True)
 
@@ -1197,7 +1172,6 @@ class OptionWindow:
     def createReturnSettings(self, values):
         """createas settings dict usable for option back end class to update self.__dict__"""
 
-        print(f"#88888888888888888888888 radio value: {values['-AUS-1-0RADIO-']}")
         autosave_amount_type = inter.pieces if values["-AUS-1-1RADIO-"] else inter.days
         disabled_folder_usage = "ind" if values["-RADIO_1-RADIO-"] else "std"
         settings = {"main_folder": values["-PFL-IEX729X"], "standard_main_folder": values["-SFL-IEX729X"],
@@ -1337,8 +1311,6 @@ if __name__ == '__main__':
 #     progressbar.start()
 #     time.sleep(1.5)
 #     progressbar.kill()
-
-# TODO ASAP fork or support PYSIMPPLEGUI
 
 
 if __name__ == '__main__':

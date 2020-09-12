@@ -9,6 +9,7 @@ import sys
 import threading
 import time
 import warnings
+from typing import Any, Tuple
 
 from pip._vendor.colorama import Fore
 
@@ -124,6 +125,7 @@ def openExternalFileThreads(file_path:str , threads:list):
     starts external corresponding programm for task result file
     :param threads: list to save thread in it to prevent garbage collection and enables later referencing
     """
+    warnings.warn("use openExternalFileSubPro", DeprecationWarning)
     thread = threading.Thread(target=os.system, args=(f"xdg-open '{file_path}'",))
     thread.start()
     threads.append(thread)
@@ -255,7 +257,6 @@ class path:
             documents_dir = subprocess.check_output(["xdg-user-dir", "DOCUMENTS"], universal_newlines=True).strip()
         except Exception as e:
             print(f"{Fore.RED}ERROR #02893787ihnl -->  {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
-
             documents_dir = subprocess.check_output(["xdg-user-dir"], universal_newlines=True).strip()
         return documents_dir
 
@@ -280,4 +281,19 @@ class path:
         main_file_path = __file__
         main_path = os.path.split(main_file_path)
         os.chdir(main_path[0])
+
+class strgCommandConverter:
+
+    def __init__(self, function_mapping:dict):
+        self.last_button = None
+        self.function_mapping = function_mapping
+
+    def pollCommand(self, key):
+        assert ":" in key, ("is no key commmand you forgot something")
+        real_command, _, _ = key.partition(":")
+        if real_command.startswith("Control") and self.last_button:
+            print(f"#0389209 comand returnd: {self.function_mapping.get(self.last_button, None)}")
+            return self.function_mapping.get(self.last_button, None)
+        else:
+            self.last_button = real_command
 
