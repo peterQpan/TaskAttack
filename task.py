@@ -14,9 +14,10 @@ from colorama import Fore
 import tools
 from internationalisation import inter
 from tools import nowDateTime
+from upgrade import Persistencer
 
 
-class Task:
+class OldTask:
 
     def __init__(self, name:str, description:str=None, start=None, end=None, priority=21, master=None,
                  taskmanager:"Taskmanager"=None):
@@ -348,7 +349,6 @@ class Task:
 
     def recover(self):
         """adds task back in masters sub-task-container, needed for reverse a task-deletion"""
-        self.master: Task
         self.master.recoverSubtask(task=self)
 
     def recoverSubtask(self, task):
@@ -372,6 +372,14 @@ class Task:
     def checkResultFileExistens(self):
         if self._results:
             self._results = [result for result in self._results if os.path.exists(result[0])]
+
+class Task(OldTask, Persistencer):
+
+    def __init__(self, name: str, description: str = None, start=None, end=None, priority=21, master=None,
+                 taskmanager: "Taskmanager" = None):
+
+        self.links = []
+        super().__init__(name, description, start, end, priority, master, taskmanager)
 
 
 class Taskmanager:
@@ -403,14 +411,14 @@ class Taskmanager:
 
         with open(filename, "wb") as fh:
             for projekt in self.orginal_sub_tasks:
-                pickle.dump(projekt, fh)
+                projekt.save(fh=fh)
 
     def load(self, file_path="dev-auto.atk"):
         self.reset()
         with open(file_path, "rb") as fh:
             while True:
                 try:
-                    project = pickle.load(fh)
+                    project = Task.load(fh=fh)
                     project.setTaskManager(self)
                     self.orginal_sub_tasks.append(project)
                 except EOFError:
@@ -518,7 +526,6 @@ class Taskmanager:
         """
         base_matrix = self.baseMatrix()
         for task in self.sub_tasks:
-            task: Task
             task.takePosition(base_matrix)
         return base_matrix
 
@@ -527,7 +534,6 @@ class Taskmanager:
         span_here = 0
         for projekt in self.sub_tasks:
             print(f"#9209832 project in subtasks: {projekt}")
-            projekt: Task
             projekt.recognizeMatrixPosition(depth=0, span=span_here)
             span_here += projekt.rowExpansion()
 

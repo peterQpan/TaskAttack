@@ -7,6 +7,8 @@ import pickle
 import subprocess
 from locale import getdefaultlocale
 
+from colorama import Fore
+
 from gui_elements import OptionWindow
 from internationalisation import inter
 
@@ -96,7 +98,9 @@ class Option:
         """gets "user/documents" folder and os.joins it with "TaskAttack" """
         try:
             dir_h =  subprocess.check_output(["xdg-user-dir", "DOCUMENTS"], universal_newlines=True).strip()
-        except:
+        except Exception as e:
+            print(f"{Fore.RED}ERROR #980982039 --> ?!? {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
+
             dir_h = subprocess.check_output(["xdg-user-dir"], universal_newlines=True).strip()
         return os.path.join(dir_h, "TaskAttack")
 

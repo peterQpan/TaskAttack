@@ -87,7 +87,9 @@ class ColorTransistor:
             return predefined_colors
         try:
             return self.mapping[task.sTimePercentage()]
-        except KeyError:
+        except KeyError as e:
+            print(f"{Fore.RED}ERROR #9823098 --> ?!? # {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
+
             return self.transition(task=task)
 
 def nowDateTime():
