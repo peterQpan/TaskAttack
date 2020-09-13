@@ -108,7 +108,7 @@ class TaskAttack:
 
             # Locals:
             "bearb-": self.onEditTask, "subta-": self.onNewSubTask, "compl-": self.onSetTaskAsCompleted,
-            "-BMENU-": self.onOptionButtonMenu, "-TARGET-": self.onTarget,
+            "-BMENU-": self.onOptionButtonMenu, "-TARGET-": self.onTarget, inter.add_link: self.onAddWebLink,
 
             # ButtonCommands:
             inter.sub_task: self.onNewSubTask, inter.isolate: self.onIsolateTask, inter.edit: self.onEditTask,
@@ -121,10 +121,18 @@ class TaskAttack:
                 self.onCreateResult, inter.gimp: self.onCreateResult, inter.svg: self.onCreateResult,
         }
 
+    def onAddWebLink(self, task, event, values, command, *args, **kwargs):
+        link, description = self.mygtb.destinctTextWithDescriptionPopup(text_name=inter.web_link, suggestet_text="",
+                                                    description_name=inter.description, suggested_description="")
+        print(f"#M-9872983 link:description: {link} : {description}")
+        if link:
+            task.addLink((link, description))
+        #todo this time link and description got fetched and added to task, next is implementig the globus, and a button menu for the globus, tage into account that fi-icon will be the same next!!!!
+
+
     def onCreateResult(self, task, event, values, command, *args, **kwargs):
         self.result_file_creator.newResultFile(task=task, kind_of_porogramm=command,
                                                result_path=self.opt.sUsedResultFolder())
-        return -1, -1
 
     def onOptionButtonMenu(self, task, event, values, *args, **kwargs):
         """Method for Button menu command mapping
@@ -203,7 +211,7 @@ class TaskAttack:
         self.taskmanager.deisolateTaskView(task)
 
     def onDeleteTask(self, task, *args, **kwargs):
-        if self.mygtb.YesNoPopup(title=inter.delete, text=inter.realy_delete):
+        if self.mygtb.yesNoPopup(title=inter.delete, text=inter.realy_delete):
             self.last_deleted_task = task
             task.delete()
 
@@ -330,7 +338,7 @@ class TaskAttack:
         """checks if there is an open unsaved file and asks for wish to save
         """
         if self.unsaved_project:
-            if self.mygtb.YesNoPopup(title=inter.open_project, text=f"{inter.save}?"):
+            if self.mygtb.yesNoPopup(title=inter.open_project, text=f"{inter.save}?"):
                 self.onSaveAt()
 
     def _deltionTimeStamp(self, autosave_amount):

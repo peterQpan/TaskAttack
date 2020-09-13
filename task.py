@@ -381,6 +381,14 @@ class Task(OldTask, Persistencer):
         self.links = []
         super().__init__(name, description, start, end, priority, master, taskmanager)
 
+    def sWebLinks(self):
+        return self.links
+
+    def addLink(self, link):
+        self.links.append(link)
+
+
+
 
 class Taskmanager:
     def __init__(self):

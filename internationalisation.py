@@ -87,6 +87,11 @@ class Internationalisation:
 
 
         # texts
+        self.web_link = "Web-Link"
+        self.web_links = "Web-Links"
+
+        self.enter_weblink = "Weblink eingeben"
+
         self.projects = "Projekte"
         self.realy_delete = "Wirklich löschen"
         self.open_project = "Offenes Projekt"
@@ -178,6 +183,9 @@ class Internationalisation:
         self.svg = "Vektor-Manipulation"
 
         # texts
+        self.web_link = "Web-Link"
+        self.web_links = "Web-Links"
+        self.enter_weblink = "Enter Weblink"
         self.projects = "Projects"
         self.realy_delete = "Realy delete"
         self.open_project = "Open project"
@@ -243,7 +251,7 @@ class Internationalisation:
         return ['Unused', [self.sub_task, self.edit,
                            self.compose_results, self.result_programms_list,
                            self.results, [],
-                           self.add_link, [],
+                           self.add_link, self.web_links, [],
                            self.isolate, self.tree_view, self.delete, self.cut, self.paste, self.copy]]
 
     # @property
