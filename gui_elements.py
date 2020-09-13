@@ -5,6 +5,7 @@ __email__ = "sebmueller.bt@gmail.com"
 import datetime
 import multiprocessing
 import os
+import re
 import shutil
 import textwrap
 import time
@@ -225,33 +226,57 @@ class MyGuiToolbox:
         return False
 
 
+    @staticmethod
+    def webLinkDescriptionEnsurance(event, values, window):
+        if event == '-SHORT_DESCRIPTIOM-':
+            if len(values['-SHORT_DESCRIPTIOM-']) > 30:
+                window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-1])
+            elif values['-SHORT_DESCRIPTIOM-'][-3:] == "<->":
+                window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-3])
+        elif event == '-TEXT-INPUT-':
+            print(f"#554545 event is text input: {event}")
+            match = re.fullmatch(pattern=tools.webLinkRePattern(), string=window['-TEXT-INPUT-'].get())
+            if match:
+                print(f"#77777 match: {match}")
+                window['-TEXT-INPUT-'].Update(text_color="#000000")
+            else:
+                window['-TEXT-INPUT-'].Update(text_color="#ff0000")
+
+    @staticmethod
+    def fileDescriptionEnsurance(event, values, window, *args, **kwargs):
+        """
+        takes care that short description dont gets longer than 30 figures
+        and that not the file_name <-> short desciption seperator gets used by the user
+        """
+        if len(values['-SHORT_DESCRIPTIOM-']) > 30:
+            window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-1])
+        elif values['-SHORT_DESCRIPTIOM-'][-3:] == "<->":
+            window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-3])
 
 
-    def destinctTextWithDescriptionPopup(self, text_name: str, suggestet_text:str, description_name: str,
-                                         suggested_description: str ):
+
+    @staticmethod
+    def destinctTextWithDescriptionPopup(text_name: str, suggestet_text:str, description_name: str,
+                                         suggested_description: str, ensuranc_function, *args, **kwargs):
         file_name_line = [sg.Text(text_name, size=(15, 1)),
-                          sg.Input(default_text=suggestet_text, size=(50, 1), key='-TEXT-INPUT-', focus=True)]
+                          sg.Input(default_text=suggestet_text, size=(50, 1), key='-TEXT-INPUT-', focus=True,
+                                   enable_events=True)]
         description_line = [sg.Text(text=description_name, size=(15, 1)),
-                            sg.Input(default_text=suggestet_text, size=(50, 1), enable_events=True,
+                            sg.Input(default_text=suggested_description, size=(50, 1), enable_events=True,
                                      key='-SHORT_DESCRIPTIOM-'), sg.Ok()]
         layout =  [file_name_line, description_line]
 
         window = sg.Window(title=inter.enter_weblink, layout=layout)
         while True:
             event, values = window.read()
-            print(F"#099823 event: {event}; vlues: {values}")
             if event in (sg.WIN_CLOSED, None):
                 return False, False
-            elif event == '-SHORT_DESCRIPTIOM-':
-                if len(values['-SHORT_DESCRIPTIOM-']) > 30:
-                    window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-1])
-                elif values['-SHORT_DESCRIPTIOM-'][-3:] == "<->":
-                    window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-3])
-            elif event == "Ok":  # could be else but for fast later additions withoutt trouble i will be very precise
-                window.close()
+            elif event == "Ok":
                 main_output, short_description = window['-TEXT-INPUT-'].get(), window['-SHORT_DESCRIPTIOM-'].get()
-                print(f"#M-200213ß23 main_output, short_description: {main_output}, {short_description}")
+                window.close()
                 return main_output, short_description
+            else:
+                ensuranc_function(event=event, values=values, window=window)
 
     # user_defined_keys
     # next above: ("-PFL", "-RFL", "-AsFL")
@@ -261,7 +286,6 @@ class MyGuiToolbox:
     # next above: ("-SFL")
     # under-keys: ("-DE", "-IEX729X", "-FB")
 
-    # todo this time make a insurance, that weblink is feasable, maybe make a ad from clipboard button
 
     # todo this time implement the opening in webbrowser if link is clicked
 
@@ -296,38 +320,38 @@ class ResultFileCreator:
                             sg.Ok()]
         return [file_name_line, description_line]
 
-    @staticmethod
-    def _correctInputEnforcement(window, values):
-        """
-        takes care that short description dont gets longer than 30 figures
-        and that not the file_name <-> short desciption seperator gets used by the user
-        """
-        if len(values['-SHORT_DESCRIPTIOM-']) > 30:
-            window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-1])
-        elif values['-SHORT_DESCRIPTIOM-'][-3:] == "<->":
-            window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-3])
-
-    def _newResultFilePopup(self, suggested_file_name: str, result_path: str,
-                            kind_of_program: str, file_ext: str = ".ods"):
-        """
-        gets file_name and short file description for new task result file
-        :return: filename, short_description
-        """
-        assert len(file_ext) == 4
-        layout = self._newLayout(file_name=suggested_file_name, file_ext=file_ext, kind_of_program=kind_of_program,
-                                 result_path=result_path)
-        window = sg.Window(title=inter.createResultFileTitle(kind_of_program=kind_of_program), layout=layout)
-        while True:
-            event, values = window.read()
-            print(F"#099823 event: {event}; vlues: {values}")
-            if event in (sg.WIN_CLOSED, None):
-                return False, False
-            elif event == '-SHORT_DESCRIPTIOM-':
-                self._correctInputEnforcement(window=window, values=values)
-            elif event == "Ok":  # could be else but for fast later additions withoutt trouble i will be very precise
-                file_name, short_description = self._fetchResultFileParameters(
-                    values=values, file_ext=file_ext, window=window)
-                return file_name, short_description
+    # @staticmethod
+    # def _correctInputEnforcement(window, values):
+    #     """
+    #     takes care that short description dont gets longer than 30 figures
+    #     and that not the file_name <-> short desciption seperator gets used by the user
+    #     """
+    #     if len(values['-SHORT_DESCRIPTIOM-']) > 30:
+    #         window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-1])
+    #     elif values['-SHORT_DESCRIPTIOM-'][-3:] == "<->":
+    #         window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-3])
+    #
+    # def _newResultFilePopup(self, suggested_file_name: str, result_path: str,
+    #                         kind_of_program: str, file_ext: str = ".ods"):
+    #     """
+    #     gets file_name and short file description for new task result file
+    #     :return: filename, short_description
+    #     """
+    #     assert len(file_ext) == 4
+    #     layout = self._newLayout(file_name=suggested_file_name, file_ext=file_ext, kind_of_program=kind_of_program,
+    #                              result_path=result_path)
+    #     window = sg.Window(title=inter.createResultFileTitle(kind_of_program=kind_of_program), layout=layout)
+    #     while True:
+    #         event, values = window.read()
+    #         print(F"#099823 event: {event}; vlues: {values}")
+    #         if event in (sg.WIN_CLOSED, None):
+    #             return False, False
+    #         elif event == '-SHORT_DESCRIPTIOM-':
+    #             self._correctInputEnforcement(window=window, values=values)
+    #         elif event == "Ok":  # could be else but for fast later additions withoutt trouble i will be very precise
+    #             file_name, short_description = self._fetchResultFileParameters(
+    #                 values=values, file_ext=file_ext, window=window)
+    #             return file_name, short_description
 
     def _createAndOpenResultFile(self, kind_of_porogramm, file_path):
         template_file_path = self._file_templates[kind_of_porogramm][0]
@@ -352,9 +376,12 @@ class ResultFileCreator:
         suggested_path, suggested_file_name = task.suggestetFileName(result_path)
 
         while True:
-            user_file_path, description = self._newResultFilePopup(
-                suggested_file_name=suggested_file_name, result_path=result_path,
-                kind_of_program=kind_of_porogramm, file_ext=self._file_templates[kind_of_porogramm][1], )
+            user_file_path, description = MyGuiToolbox.destinctTextWithDescriptionPopup(
+                    text_name=inter.file_name, suggestet_text=suggested_file_name, description_name=inter.description,
+                    suggested_description="", ensuranc_function=MyGuiToolbox.fileDescriptionEnsurance)
+            # user_file_path, description = self._newResultFilePopup(
+            #     suggested_file_name=suggested_file_name, result_path=result_path,
+            #     kind_of_program=kind_of_porogramm, file_ext=self._file_templates[kind_of_porogramm][1], )
 
             if user_file_path is False and description is False:
                 break

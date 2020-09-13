@@ -122,8 +122,9 @@ class TaskAttack:
         }
 
     def onAddWebLink(self, task, event, values, command, *args, **kwargs):
-        link, description = self.mygtb.destinctTextWithDescriptionPopup(text_name=inter.web_link, suggestet_text="",
-                                                    description_name=inter.description, suggested_description="")
+        link, description = self.mygtb.destinctTextWithDescriptionPopup(
+                    text_name=inter.web_link, suggestet_text="", description_name=inter.description,
+            suggested_description="", ensuranc_function=self.mygtb.webLinkDescriptionEnsurance)
         print(f"#M-9872983 link:description: {link} : {description}")
         if link:
             task.addLink((link, description))
