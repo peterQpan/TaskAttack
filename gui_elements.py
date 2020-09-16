@@ -539,30 +539,32 @@ class TaskFrame(sg.Frame):
         globe_menu_button = sg.ButtonMenu(image_filename="templates/globus.png", button_text="",
                                    menu_def=["unused", button_menu_list[1][8]], key="-Globus-") if link_flag else None
 
+        padding_place = 20 + (file_flag + link_flag) * 5
+        placeholder = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - padding_place)
 
         #todo modularize this
         if file_menu_button and globe_menu_button:
-            placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 30)
+            # placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 30)
             option_button = sg.ButtonMenu(button_text=inter.options, menu_def=button_menu_list,
                                           key=f'-BMENU-#7#{self.task.sPosition()}')
 
-            return [target_image, placeholer, globe_menu_button, file_menu_button, option_button]
+            return [target_image, placeholder, globe_menu_button, file_menu_button, option_button]
         elif file_menu_button:
 
-            placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 25)
+            # placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 25)
             option_button = sg.ButtonMenu(button_text=inter.options, menu_def=button_menu_list,
                                           key=f'-BMENU-#7#{self.task.sPosition()}')
 
-            return [target_image, placeholer, file_menu_button, option_button]
+            return [target_image, placeholder, file_menu_button, option_button]
         elif globe_menu_button:
 
-            placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 25)
+            # placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 25)
             option_button = sg.ButtonMenu(button_text=inter.options, menu_def=button_menu_list,
                                           key=f'-BMENU-#7#{self.task.sPosition()}')
 
-            return [target_image, placeholer, globe_menu_button, option_button]
+            return [target_image, placeholder, globe_menu_button, option_button]
         else:
-            placeholder = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 20)
+            # placeholder = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 20)
             option_button = sg.ButtonMenu(button_text=inter.options, menu_def=inter.basic_button_menu,
                                           key=f'-BMENU-#7#{self.task.sPosition()}')
             return [target_image, placeholder, option_button]
@@ -618,7 +620,7 @@ class TaskFrame(sg.Frame):
         """
         super(TaskFrame, self).__init__(layout=[[sg.Text(text="", size=(self.sSize() - 5, 5))]], title=" ",
                                         relief=sg.RELIEF_FLAT,
-                                        size=(300, self.size + 20))
+                                        size=(300, self.sSize() + 20))
 
     def _completeUpdate(self, window, key, value, background_color, tooltip_text):
         """makes a complete update of an sg.element text, bg_color AND tooltip_text"""
