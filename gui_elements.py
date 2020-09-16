@@ -529,7 +529,7 @@ class TaskFrame(sg.Frame):
         button_menu_list, link_flag = self._createButtonMenuListWithWebLinkEntrys(button_menu_list)
 
 
-        target_image = sg.Image(filename="templates/crosshair_black.png", enable_events=True, key=f"-TARGET-#7#{self.task.sPosition()}")
+        self.target_image = sg.Image(filename="templates/crosshair_black.png", enable_events=True, key=f"-TARGET-#7#{self.task.sPosition()}")
 
         # file_image = sg.Image(filename="templates/file.png") if file_flag else None
         file_menu_button = sg.ButtonMenu(image_filename="templates/file.png", button_text="",
@@ -550,26 +550,26 @@ class TaskFrame(sg.Frame):
             # option_button = sg.ButtonMenu(button_text=inter.options, menu_def=button_menu_list,
             #                               key=f'-BMENU-#7#{self.task.sPosition()}')
 
-            return [target_image, placeholder, globe_menu_button, file_menu_button, option_button]
+            return [self.target_image, placeholder, globe_menu_button, file_menu_button, option_button]
         elif file_menu_button:
 
             # placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 25)
             # option_button = sg.ButtonMenu(button_text=inter.options, menu_def=button_menu_list,
             #                               key=f'-BMENU-#7#{self.task.sPosition()}')
 
-            return [target_image, placeholder, file_menu_button, option_button]
+            return [self.target_image, placeholder, file_menu_button, option_button]
         elif globe_menu_button:
 
             # placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 25)
             # option_button = sg.ButtonMenu(button_text=inter.options, menu_def=button_menu_list,
             #                               key=f'-BMENU-#7#{self.task.sPosition()}')
 
-            return [target_image, placeholder, globe_menu_button, option_button]
+            return [self.target_image, placeholder, globe_menu_button, option_button]
         else:
             # placeholder = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 20)
             # option_button = sg.ButtonMenu(button_text=inter.options, menu_def=inter.basic_button_menu,
             #                               key=f'-BMENU-#7#{self.task.sPosition()}')
-            return [target_image, placeholder, option_button]
+            return [self.target_image, placeholder, option_button]
 
     def _nameLine(self, tooltip_text, background_color):
         """Key: f"{self.key}NAME-L-"
