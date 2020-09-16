@@ -25,7 +25,6 @@ from internationalisation import inter
 
 
 class RadioNew(sg.Frame):
-    # todo ready to use but try to optimize by using
     """
     New because its Text isuneatable
     Radio Button Element - Used in a group of other Radio Elements to provide user with ability to select only
@@ -289,8 +288,6 @@ class MyGuiToolbox:
 
     # todo this time implement the opening in webbrowser if link is clicked
 
-    # todo this time make globus a button menu, that gives the posibility to acess the links directly
-
 
 class ResultFileCreator:
 
@@ -544,7 +541,7 @@ class TaskFrame(sg.Frame):
         option_button = sg.ButtonMenu(button_text=inter.options, menu_def=button_menu_list,
                                       key=f'-BMENU-#7#{self.task.sPosition()}')
 
-        #todo modularize this
+        #todo clean this up 2020-09-18
         if file_menu_button and globe_menu_button:
             # placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 30)
             # option_button = sg.ButtonMenu(button_text=inter.options, menu_def=button_menu_list,
@@ -652,8 +649,6 @@ class TaskFrame(sg.Frame):
                 background_color=background_color, tooltip_text=tooltip_text)
 
     def Update(self, window, value=None, visible=None):
-        # todo think is it really smart to refer to elements by using sg.window[key] instead of make all elements
-        #  part of self and update them by self.element.Update ??
         """overriding of method wich enables the direct window[key] access
         and passes it along to the containing elements"""
         tooltip_text = self._toolTipText()
