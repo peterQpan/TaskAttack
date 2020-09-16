@@ -475,33 +475,49 @@ class TaskFrame(sg.Frame):
         # origiinal x_size: self.sSize() - 15
         return sg.Text(text="", size=(padding_size, 1), background_color=background_color)
 
+    def _makeListEntrysFromDoubleList(self, target_list, resource_list):
+        for file_path, short_description in resource_list:
+            if short_description:
+                line = f"{short_description} <-> {file_path}"
+            else:
+                line = f"{file_path}"
+            target_list.append(line)
 
-    def _createButtonMenuWithResultFileEntrys(self, button_menu_list):
+    def _createButtonMenuListWithResultFileEntrys(self, button_menu_list):
         results = self.task.sResults()
 
         if results:
-            for file_path, short_description in results:
-                if short_description:
-                    line = f"{short_description} <-> {file_path}"
-                else:
-                    line = f"{file_path}"
-                button_menu_list[1][5].append(line)
+            self._makeListEntrysFromDoubleList(button_menu_list[1][5], results)
+
+            # for file_path, short_description in results:
+            #     if short_description:
+            #         line = f"{short_description} <-> {file_path}"
+            #     else:
+            #         line = f"{file_path}"
+            #     button_menu_list[1][5].append(line)
             return button_menu_list, True
         else:
             return button_menu_list, False
 
-    def _createButtonMenuWithWebLinkEntrys(self, button_menu_list):
+    def _createButtonMenuListWithWebLinkEntrys(self, button_menu_list):
         web_links = self.task.sWebLinks()
         if web_links:
-            for web_link, short_description in web_links:
-                if short_description:
-                    line = f"{short_description} <-> {web_link}"
-                else:
-                    line = f"{web_link}"
-                button_menu_list[1][8].append(line)
+            self._makeListEntrysFromDoubleList(button_menu_list[1][8], web_links)
+            # for web_link, short_description in web_links:
+            #     if short_description:
+            #         line = f"{short_description} <-> {web_link}"
+            #     else:
+            #         line = f"{web_link}"
+            #     button_menu_list[1][8].append(line)
             return button_menu_list, True
         else:
             return button_menu_list, False
+
+    def _imageButtonMenu(self, menu_list, image_file_path, key):
+        if menu_list:
+            button_menu = sg.ButtonMenu(image_filename=image_file_path, button_text="", menu_def=["unused", menu_list],
+                                        key=key)
+
 
     def _buttonMenuLine(self, background_color):
         """
@@ -509,34 +525,42 @@ class TaskFrame(sg.Frame):
         """
         button_menu_list = deepcopy(inter.basic_button_menu)
 
-        button_menu_list, file_flag = self._createButtonMenuWithResultFileEntrys(button_menu_list)
-        button_menu_list, link_flag = self._createButtonMenuWithWebLinkEntrys(button_menu_list)
+        button_menu_list, file_flag = self._createButtonMenuListWithResultFileEntrys(button_menu_list)
+        button_menu_list, link_flag = self._createButtonMenuListWithWebLinkEntrys(button_menu_list)
+
 
         target_image = sg.Image(filename="templates/crosshair_black.png", enable_events=True, key=f"-TARGET-#7#{self.task.sPosition()}")
-        file_image = sg.Image(filename="templates/file.png") if file_flag else None
-        globe_image = sg.Image(filename="templates/globus.png") if link_flag else None
+
+        # file_image = sg.Image(filename="templates/file.png") if file_flag else None
+        file_menu_button = sg.ButtonMenu(image_filename="templates/file.png", button_text="",
+                                   menu_def=["unused", button_menu_list[1][5]], key="-FILES-") if file_flag else None
+
+        # globe_image = sg.Image(filename="templates/globus.png") if link_flag else None
+        globe_menu_button = sg.ButtonMenu(image_filename="templates/globus.png", button_text="",
+                                   menu_def=["unused", button_menu_list[1][8]], key="-Globus-") if link_flag else None
+
 
         #todo modularize this
-        if file_image and globe_image:
+        if file_menu_button and globe_menu_button:
             placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 30)
             option_button = sg.ButtonMenu(button_text=inter.options, menu_def=button_menu_list,
                                           key=f'-BMENU-#7#{self.task.sPosition()}')
 
-            return [target_image, placeholer, globe_image, file_image, option_button]
-        elif file_image:
+            return [target_image, placeholer, globe_menu_button, file_menu_button, option_button]
+        elif file_menu_button:
 
             placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 25)
             option_button = sg.ButtonMenu(button_text=inter.options, menu_def=button_menu_list,
                                           key=f'-BMENU-#7#{self.task.sPosition()}')
 
-            return [target_image, placeholer, file_image, option_button]
-        elif globe_image:
+            return [target_image, placeholer, file_menu_button, option_button]
+        elif globe_menu_button:
 
             placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 25)
             option_button = sg.ButtonMenu(button_text=inter.options, menu_def=button_menu_list,
                                           key=f'-BMENU-#7#{self.task.sPosition()}')
 
-            return [target_image, placeholer, globe_image, option_button]
+            return [target_image, placeholer, globe_menu_button, option_button]
         else:
             placeholder = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 20)
             option_button = sg.ButtonMenu(button_text=inter.options, menu_def=inter.basic_button_menu,
