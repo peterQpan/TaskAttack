@@ -234,9 +234,8 @@ class MyGuiToolbox:
                 window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-3])
         elif event == '-TEXT-INPUT-':
             print(f"#554545 event is text input: {event}")
-            match = re.fullmatch(pattern=tools.webLinkRePattern(), string=window['-TEXT-INPUT-'].get())
+            match = tools.isUrl(url_string=window['-TEXT-INPUT-'].get())
             if match:
-                print(f"#77777 match: {match}")
                 window['-TEXT-INPUT-'].Update(text_color="#000000")
             else:
                 window['-TEXT-INPUT-'].Update(text_color="#ff0000")

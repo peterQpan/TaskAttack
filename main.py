@@ -147,12 +147,29 @@ class TaskAttack:
         #  distinction between them, i think the distinct function is the easier solution
 
     def onOpenFile(self, event, values, *args, **kwargs):
-        self._openExternalFile(event=event, values=values)
+        self._openFileOrUrl(event=event, values=values)
         return -1, -1
 
     def onCreateResult(self, task, event, values, command, *args, **kwargs):
         self.result_file_creator.newResultFile(task=task, kind_of_porogramm=command,
                                                result_path=self.opt.sUsedResultFolder())
+
+    # def _openExternalFile(self, fi):
+    #     """Opens already existing task-result-file in system corresponding program like libre office or else """
+    #     command = values[event]
+    #     _, _, file_path = command.rpartition(" <-> ")
+    #     if os.path.isfile(file_path):
+    #         tools.openExternalFileSubPro(file_path=file_path)
+
+
+    def _openFileOrUrl(self, event, values):
+        command = values[event]
+        _, _, path_or_url = command.rpartition(" <-> ")
+        if tools.isUrl(path_or_url):
+            webbrowser.open(path_or_url)
+        else:
+            tools.openExternalFileSubPro(file_path=path_or_url)
+
 
     def onOptionButtonMenu(self, task, event, values, *args, **kwargs):
         """Method for Button menu command mapping
@@ -163,7 +180,8 @@ class TaskAttack:
         except KeyError as e:
             print(f"event: {event}, command {values[event]}, values: {values}")
             print(f"No Problem ERROR #34ehtrfh --> war kein basic option button command {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}")
-            self._openExternalFile(event=event, values=values)
+            return self._openFileOrUrl(event=event, values=values)
+            # self._openExternalFile(event=event, values=values)
             return -1, -1
 
     def onLoad(self, *args, **kwargs):
@@ -290,12 +308,6 @@ class TaskAttack:
         x, y = [int(xr) for xr in coordinates.split()]
         return x, y
 
-    def _openExternalFile(self, event, values):
-        """Opens already existing task-result-file in system corresponding program like libre office or else """
-        command = values[event]
-        _, _, file_path = command.rpartition(" <-> ")
-        if os.path.isfile(file_path):
-            tools.openExternalFileSubPro(file_path=file_path)
 
     def _executeBasicOptionButtonMenuCommands(self, values, event, task):
         """executes the basic commands of the option Button menue

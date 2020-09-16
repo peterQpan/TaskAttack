@@ -4,6 +4,7 @@ __email__ = "sebmueller.bt@gmail.com"
 
 import datetime
 import os
+import re
 import subprocess
 import sys
 import threading
@@ -184,6 +185,9 @@ def separateExistingFromDemandedPaths(file_path, folders=()):
 def chreateRootDestinguishedPaths(user_path, base_path):
     warnings.warn("use tools.path", DeprecationWarning)
     return path.chreateRootDestinguishedPaths(user_path=user_path, base_path=base_path)
+
+def isUrl(url_string):
+    return re.fullmatch(pattern=webLinkRePattern(), string=url_string)
 
 
 class path:
