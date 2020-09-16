@@ -529,12 +529,15 @@ class TaskFrame(sg.Frame):
         self.target_image = sg.Image(filename="templates/crosshair_black.png", enable_events=True, key=f"-TARGET-#7#{self.task.sPosition()}")
 
         # file_image = sg.Image(filename="templates/file.png") if file_flag else None
-        file_menu_button = sg.ButtonMenu(image_filename="templates/file.png", button_text="",
-                                   menu_def=["unused", button_menu_list[1][5]], key="-FILES-") if file_flag else None
+        file_menu_button = sg.ButtonMenu(
+            image_filename="templates/file.png", button_text="", menu_def=["unused", button_menu_list[1][5]],
+            key=f"-FILES-#7#{self.task.sPosition()}") if file_flag else None
 
         # globe_image = sg.Image(filename="templates/globus.png") if link_flag else None
-        globe_menu_button = sg.ButtonMenu(image_filename="templates/globus.png", button_text="",
-                                   menu_def=["unused", button_menu_list[1][8]], key="-Globus-") if link_flag else None
+        globe_menu_button = sg.ButtonMenu(
+            image_filename="templates/globus.png", button_text="", menu_def=["unused", button_menu_list[1][8]],
+            key=f"-Globus-#7#{self.task.sPosition()}") if link_flag else None
+
 
         padding_place = 20 + (file_flag + link_flag) * 5
         placeholder = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - padding_place)
