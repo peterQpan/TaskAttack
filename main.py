@@ -110,6 +110,9 @@ class TaskAttack:
             "bearb-": self.onEditTask, "subta-": self.onNewSubTask, "compl-": self.onSetTaskAsCompleted,
             "-BMENU-": self.onOptionButtonMenu, "-TARGET-": self.onTarget, inter.add_link: self.onAddWebLink,
 
+            #make this an onFunction
+            "-FILES-": self.onOpenFile, #"-GLOBE-": self.onGlobe,
+
             # ButtonCommands:
             inter.sub_task: self.onNewSubTask, inter.isolate: self.onIsolateTask, inter.edit: self.onEditTask,
             inter.delete: self.onDeleteTask, inter.paste: self.onInsertTask, inter.cut: self.onCutTask,
@@ -121,6 +124,7 @@ class TaskAttack:
                 self.onCreateResult, inter.gimp: self.onCreateResult, inter.svg: self.onCreateResult,
         }
 
+
     def onAddWebLink(self, task, event, values, command, *args, **kwargs):
         link, description = self.mygtb.destinctTextWithDescriptionPopup(
                     text_name=inter.web_link, suggestet_text="", description_name=inter.description,
@@ -130,6 +134,9 @@ class TaskAttack:
             task.addLink((link, description))
         #todo this time link and description got fetched and added to task, next is implementig the globus, and a button menu for the globus, tage into account that fi-icon will be the same next!!!!
 
+    def onOpenFile(self, event, values, *args, **kwargs):
+        self._openExternalFile(event=event, values=values)
+        return -1, -1
 
     def onCreateResult(self, task, event, values, command, *args, **kwargs):
         self.result_file_creator.newResultFile(task=task, kind_of_porogramm=command,
