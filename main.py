@@ -9,6 +9,7 @@ import queue
 import sys
 import time
 import warnings
+import webbrowser
 from datetime import timedelta
 from threading import Thread
 
@@ -111,7 +112,7 @@ class TaskAttack:
             "-BMENU-": self.onOptionButtonMenu, "-TARGET-": self.onTarget, inter.add_link: self.onAddWebLink,
 
             #make this an onFunction
-            "-FILES-": self.onOpenFile, #"-GLOBE-": self.onGlobe,
+            "-FILES-": self.onOpenFile, "-GLOBE-": self.onGlobe,
 
             # ButtonCommands:
             inter.sub_task: self.onNewSubTask, inter.isolate: self.onIsolateTask, inter.edit: self.onEditTask,
@@ -124,6 +125,14 @@ class TaskAttack:
                 self.onCreateResult, inter.gimp: self.onCreateResult, inter.svg: self.onCreateResult,
         }
 
+    def onGlobe(self, event, values, *args, **kwargs):
+        command = values[event]
+        _, _, web_link = command.rpartition(" <-> ")
+        webbrowser.open(web_link)
+        return -1, -1
+
+
+
 
     def onAddWebLink(self, task, event, values, command, *args, **kwargs):
         link, description = self.mygtb.destinctTextWithDescriptionPopup(
@@ -132,7 +141,10 @@ class TaskAttack:
         print(f"#M-9872983 link:description: {link} : {description}")
         if link:
             task.addLink((link, description))
-        #todo this time link and description got fetched and added to task, next is implementig the globus, and a button menu for the globus, tage into account that fi-icon will be the same next!!!!
+
+        # fixme web link cant get opened from button menu, because there is no distinction between link and file path,
+        #  either i remove the open link and open file entry entirely from button menu or i have to implement a
+        #  distinction between them, i think the distinct function is the easier solution
 
     def onOpenFile(self, event, values, *args, **kwargs):
         self._openExternalFile(event=event, values=values)
@@ -149,6 +161,7 @@ class TaskAttack:
             return self._executeBasicOptionButtonMenuCommands(values=values, event=event, task=task)
 
         except KeyError as e:
+            print(f"event: {event}, command {values[event]}, values: {values}")
             print(f"No Problem ERROR #34ehtrfh --> war kein basic option button command {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}")
             self._openExternalFile(event=event, values=values)
             return -1, -1

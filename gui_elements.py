@@ -536,7 +536,7 @@ class TaskFrame(sg.Frame):
         # globe_image = sg.Image(filename="templates/globus.png") if link_flag else None
         globe_menu_button = sg.ButtonMenu(
             image_filename="templates/globus.png", button_text="", menu_def=["unused", button_menu_list[1][8]],
-            key=f"-Globus-#7#{self.task.sPosition()}") if link_flag else None
+            key=f"-GLOBE-#7#{self.task.sPosition()}") if link_flag else None
 
 
         padding_place = 20 + (file_flag + link_flag) * 5
