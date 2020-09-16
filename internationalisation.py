@@ -69,7 +69,7 @@ class Internationalisation:
         self.sub_task = 'Unteraufgabe'
         self.compose_results = "Verfasse Ergebnisse"
         self.results = "Ergebnisse"
-
+        self.add_link = "Web-Link hinzufügen"
         self.isolate = "Isolieren"
         self.delete = "Löschen"
         self.paste = "Einfügen"
@@ -87,6 +87,11 @@ class Internationalisation:
 
 
         # texts
+        self.web_link = "Web-Link"
+        self.web_links = "Web-Links"
+
+        self.enter_weblink = "Weblink eingeben"
+
         self.projects = "Projekte"
         self.realy_delete = "Wirklich löschen"
         self.open_project = "Offenes Projekt"
@@ -161,6 +166,7 @@ class Internationalisation:
         self.sub_task = 'Subtask'
         self.compose_results = "Compose result"
         self.results = "Results"
+        self.add_link = "Add Web-Link"
         self.isolate = "Isolate"
         self.delete = "Delete"
         self.paste = "Paste"
@@ -177,6 +183,9 @@ class Internationalisation:
         self.svg = "Vektor-Manipulation"
 
         # texts
+        self.web_link = "Web-Link"
+        self.web_links = "Web-Links"
+        self.enter_weblink = "Enter Weblink"
         self.projects = "Projects"
         self.realy_delete = "Realy delete"
         self.open_project = "Open project"
@@ -222,7 +231,7 @@ class Internationalisation:
             raise NotImplementedError("Language not completely implemented")
 
     @property
-    def chreate_result_menu(self):
+    def result_programms_list(self):
         return [self.writer, self.spreadsheet, self.presentation, self.database, self.drawing, self.gimp, self.svg]
 
     @property
@@ -240,8 +249,9 @@ class Internationalisation:
         :return: list of list sg.ButtonMenu.layout
         """
         return ['Unused', [self.sub_task, self.edit,
-                           self.compose_results, self.chreate_result_menu,
+                           self.compose_results, self.result_programms_list,
                            self.results, [],
+                           self.add_link, self.web_links, [],
                            self.isolate, self.tree_view, self.delete, self.cut, self.paste, self.copy]]
 
     # @property

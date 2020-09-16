@@ -12,27 +12,21 @@ class Persistencer:
     Abstract upgrade class for Task, for unpickeling old save data with
     inadequate/insufficient attributes (able to do upgrades recursively)"""
     sub_tasks: list  # inherited then by task.Task()
-    class_version = 1.0 # class attribute to make versioning global starts at 1 zero is without Upgradeable"""
+    class_version = 0.1    # class attribute to make versioning global starts at 1 zero is without Upgradeable,
+                           #  have to be continuously raised with actual version number# """
 
     def __init__(self):
         self.version = self.__class__.class_version
 
-    def save(self, file_name="test_update.bin"):
-        with open(file_name, "wb") as fh:
-            pickle.dump(self, fh)
-
-    @staticmethod
-    def _recursivUpgrade(out):
-        if out.sub_tasks:
-            [sub_task._upgrade() for sub_task in out.sub_tasks]
+    def save(self, fh):
+        pickle.dump(self, fh)
 
     def _upgrade(self):
         print(f"upgrade from version {self.version}")
-        if self.version < 1.0:
-            self.version = 1.0
-        #     self.in_version_1_0_added_atribute = "what ever"
-        #     self.in_version_1_0_added_atribute2 = "what ever"
-        #     print('upgrade to version 1.0')
+        if self.version < 0.1:
+            print("blau")
+            self.version = 0.1
+            self.links = []
         # if self.version < 2.0:
         #     self.version = 2.0
         #     self.in_version_2_0_added_atribute = "what ever"
@@ -44,29 +38,34 @@ class Persistencer:
         #     self.in_version_3_0_added_atribute2 = "what ever"
         #     print('upgrade to version 3.0')
 
+        self._recursive_update(self)
+
     @staticmethod
-    def _properLoad(file_name):
-        with open(file_name, "rb") as fh:
-            out = pickle.load(fh)
+    def _properLoad(fh):
+        out = pickle.load(fh)
         out.version = out.__dict__.get("version", 0.0)
         return out
 
     @staticmethod
-    def load(file_name="test_update.bin"):
-        out = Persistencer._properLoad(file_name)
+    def _recursive_update(out):
+        for sub_task in out.sub_tasks:
+            sub_task.version = sub_task.__dict__.get("version", 0.0)
+            sub_task._upgrade()
+
+    @staticmethod
+    def load(fh):
+        out = Persistencer._properLoad(fh)
         if out.version != out.class_version:
             out._upgrade()
-            out._recursivUpgrade(out)
+        print(f"#M-90932ß9ß0 loaded {type(out)}: {out.__dict__}")
         return out
 
 
 class RenameUnpickler(pickle.Unpickler):
     def find_class(self, module, name):
-        print(f"in finc_class, module: {module}, name: {name}")
         renamed_module = module
         if "taskatack" in module:
             renamed_module = module[10:]
-            print(f"valued True, {renamed_module}")
         return super().find_class(renamed_module, name)
 
 

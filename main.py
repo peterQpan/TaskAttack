@@ -9,6 +9,7 @@ import queue
 import sys
 import time
 import warnings
+import webbrowser
 from datetime import timedelta
 from threading import Thread
 
@@ -108,7 +109,10 @@ class TaskAttack:
 
             # Locals:
             "bearb-": self.onEditTask, "subta-": self.onNewSubTask, "compl-": self.onSetTaskAsCompleted,
-            "-BMENU-": self.onOptionButtonMenu, "-TARGET-": self.onTarget,
+            "-BMENU-": self.onOptionButtonMenu, "-TARGET-": self.onTarget, inter.add_link: self.onAddWebLink,
+
+            #make this an onFunction
+            "-FILES-": self.onOpenFile, "-GLOBE-": self.onGlobe,
 
             # ButtonCommands:
             inter.sub_task: self.onNewSubTask, inter.isolate: self.onIsolateTask, inter.edit: self.onEditTask,
@@ -121,10 +125,51 @@ class TaskAttack:
                 self.onCreateResult, inter.gimp: self.onCreateResult, inter.svg: self.onCreateResult,
         }
 
+    def onGlobe(self, event, values, *args, **kwargs):
+        command = values[event]
+        _, _, web_link = command.rpartition(" <-> ")
+        webbrowser.open(web_link)
+        return -1, -1
+
+
+
+
+    def onAddWebLink(self, task, event, values, command, *args, **kwargs):
+        link, description = self.mygtb.destinctTextWithDescriptionPopup(
+                    text_name=inter.web_link, suggestet_text="", description_name=inter.description,
+            suggested_description="", ensuranc_function=self.mygtb.webLinkDescriptionEnsurance)
+        print(f"#M-9872983 link:description: {link} : {description}")
+        if link:
+            task.addLink((link, description))
+
+        # fixme web link cant get opened from button menu, because there is no distinction between link and file path,
+        #  either i remove the open link and open file entry entirely from button menu or i have to implement a
+        #  distinction between them, i think the distinct function is the easier solution
+
+    def onOpenFile(self, event, values, *args, **kwargs):
+        self._openFileOrUrl(event=event, values=values)
+        return -1, -1
+
     def onCreateResult(self, task, event, values, command, *args, **kwargs):
         self.result_file_creator.newResultFile(task=task, kind_of_porogramm=command,
                                                result_path=self.opt.sUsedResultFolder())
-        return -1, -1
+
+    # def _openExternalFile(self, fi):
+    #     """Opens already existing task-result-file in system corresponding program like libre office or else """
+    #     command = values[event]
+    #     _, _, file_path = command.rpartition(" <-> ")
+    #     if os.path.isfile(file_path):
+    #         tools.openExternalFileSubPro(file_path=file_path)
+
+
+    def _openFileOrUrl(self, event, values):
+        command = values[event]
+        _, _, path_or_url = command.rpartition(" <-> ")
+        if tools.isUrl(path_or_url):
+            webbrowser.open(path_or_url)
+        else:
+            tools.openExternalFileSubPro(file_path=path_or_url)
+
 
     def onOptionButtonMenu(self, task, event, values, *args, **kwargs):
         """Method for Button menu command mapping
@@ -133,8 +178,10 @@ class TaskAttack:
             return self._executeBasicOptionButtonMenuCommands(values=values, event=event, task=task)
 
         except KeyError as e:
+            print(f"event: {event}, command {values[event]}, values: {values}")
             print(f"No Problem ERROR #34ehtrfh --> war kein basic option button command {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}")
-            self._openExternalFile(event=event, values=values)
+            return self._openFileOrUrl(event=event, values=values)
+            # self._openExternalFile(event=event, values=values)
             return -1, -1
 
     def onLoad(self, *args, **kwargs):
@@ -203,7 +250,7 @@ class TaskAttack:
         self.taskmanager.deisolateTaskView(task)
 
     def onDeleteTask(self, task, *args, **kwargs):
-        if self.mygtb.YesNoPopup(title=inter.delete, text=inter.realy_delete):
+        if self.mygtb.yesNoPopup(title=inter.delete, text=inter.realy_delete):
             self.last_deleted_task = task
             task.delete()
 
@@ -261,12 +308,6 @@ class TaskAttack:
         x, y = [int(xr) for xr in coordinates.split()]
         return x, y
 
-    def _openExternalFile(self, event, values):
-        """Opens already existing task-result-file in system corresponding program like libre office or else """
-        command = values[event]
-        _, _, file_path = command.rpartition(" <-> ")
-        if os.path.isfile(file_path):
-            tools.openExternalFileSubPro(file_path=file_path)
 
     def _executeBasicOptionButtonMenuCommands(self, values, event, task):
         """executes the basic commands of the option Button menue
@@ -322,8 +363,6 @@ class TaskAttack:
                 return self.onKeyCommand(key=command, window=window)
 
     def keyCommandMapping(self):
-        # todo this time double press on strg+t crashes
-        #fixme bevor "t" implementiert wird erstmal die probleme lösen
         return {"n": "subta-", "e": "bearb-", "D":inter.delete, "c":inter.copy, "t": inter.isolate,
                 "s": inter.save,
                 "r":inter.reload, "P": inter.new_project}
@@ -332,7 +371,7 @@ class TaskAttack:
         """checks if there is an open unsaved file and asks for wish to save
         """
         if self.unsaved_project:
-            if self.mygtb.YesNoPopup(title=inter.open_project, text=f"{inter.save}?"):
+            if self.mygtb.yesNoPopup(title=inter.open_project, text=f"{inter.save}?"):
                 self.onSaveAt()
 
     def _deltionTimeStamp(self, autosave_amount):
@@ -360,7 +399,8 @@ class TaskAttack:
 
         for y_index, y in enumerate(orginal_display_matrix):
             for x_index, element in enumerate(y):
-                frame_here = gui_elements.TaskFrame(task=element, view=self.tree_view)
+                frame_here = gui_elements.TaskFrame(task=element, #view=self.tree_view
+                                                    )
                 base_layout[y_index][x_index] = frame_here
         return base_layout
 
@@ -401,8 +441,6 @@ class TaskAttack:
         :return: either table_dummy if no project available, or propper project table
         """
         project_table = self.createProjectsLayout()
-        # print(f"#9889298 project_table: {project_table}")
-        # flat = list(itertools.chain.from_iterable(project_table))
         if not project_table[0]:
             project_table = [self.sTableDummy()]
         else:

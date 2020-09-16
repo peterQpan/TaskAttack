@@ -5,6 +5,7 @@ __email__ = "sebmueller.bt@gmail.com"
 import datetime
 import multiprocessing
 import os
+import re
 import shutil
 import textwrap
 import time
@@ -24,7 +25,6 @@ from internationalisation import inter
 
 
 class RadioNew(sg.Frame):
-    # todo ready to use but try to optimize by using
     """
     New because its Text isuneatable
     Radio Button Element - Used in a group of other Radio Elements to provide user with ability to select only
@@ -190,8 +190,8 @@ class RadioRow(sg.Frame):
 class MyGuiToolbox:
 
     @staticmethod
-    def _okCancelLine(ok_button=inter.yes, cancel_button=inter.no,
-                      key_ok="-OK-", key_cancel="-CANCEL-", left_padding=0):
+    def okCancelLine(ok_button=inter.yes, cancel_button=inter.no,
+                     key_ok="-OK-", key_cancel="-CANCEL-", left_padding=0):
 
         ok_button = sg.Button(button_text=ok_button, key=key_ok)
         cancel_button = sg.Button(button_text=cancel_button, key=key_cancel)
@@ -201,7 +201,7 @@ class MyGuiToolbox:
         return [cancel_button, ok_button]
 
     @staticmethod
-    def YesNoPopup(title: str, text: str, ok_button=inter.yes, cancel_button=inter.no, size=(250, 70), keep_on_top=True,
+    def yesNoPopup(title: str, text: str, ok_button=inter.yes, cancel_button=inter.no, size=(250, 70), keep_on_top=True,
                    key_ok="-OK-", key_cancel="-CANCEL-", *args, **kwargs):
         """
         popup window to do ok-chancel/yes-now and similar questions
@@ -214,8 +214,8 @@ class MyGuiToolbox:
         :return: True or False corresponding to users button click
         """
         layout = [[sg.Text(text=text, auto_size_text=True)],
-                  MyGuiToolbox._okCancelLine(ok_button=ok_button, cancel_button=cancel_button,
-                                             key_ok=key_ok, key_cancel=key_cancel)]
+                  MyGuiToolbox.okCancelLine(ok_button=ok_button, cancel_button=cancel_button,
+                                            key_ok=key_ok, key_cancel=key_cancel)]
         window = sg.Window(title=title, layout=layout, auto_size_buttons=True, keep_on_top=keep_on_top, size=size)
         event, values = window.read()
 
@@ -223,6 +223,58 @@ class MyGuiToolbox:
         if event == key_ok:
             return True
         return False
+
+
+    @staticmethod
+    def webLinkDescriptionEnsurance(event, values, window):
+        if event == '-SHORT_DESCRIPTIOM-':
+            if len(values['-SHORT_DESCRIPTIOM-']) > 30:
+                window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-1])
+            elif values['-SHORT_DESCRIPTIOM-'][-3:] == "<->":
+                window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-3])
+        elif event == '-TEXT-INPUT-':
+            print(f"#554545 event is text input: {event}")
+            match = tools.isUrl(url_string=window['-TEXT-INPUT-'].get())
+            if match:
+                window['-TEXT-INPUT-'].Update(text_color="#000000")
+            else:
+                window['-TEXT-INPUT-'].Update(text_color="#ff0000")
+
+    @staticmethod
+    def fileDescriptionEnsurance(event, values, window, *args, **kwargs):
+        """
+        takes care that short description dont gets longer than 30 figures
+        and that not the file_name <-> short desciption seperator gets used by the user
+        """
+        if len(values['-SHORT_DESCRIPTIOM-']) > 30:
+            window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-1])
+        elif values['-SHORT_DESCRIPTIOM-'][-3:] == "<->":
+            window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-3])
+
+
+
+    @staticmethod
+    def destinctTextWithDescriptionPopup(text_name: str, suggestet_text:str, description_name: str,
+                                         suggested_description: str, ensuranc_function, *args, **kwargs):
+        file_name_line = [sg.Text(text_name, size=(15, 1)),
+                          sg.Input(default_text=suggestet_text, size=(50, 1), key='-TEXT-INPUT-', focus=True,
+                                   enable_events=True)]
+        description_line = [sg.Text(text=description_name, size=(15, 1)),
+                            sg.Input(default_text=suggested_description, size=(50, 1), enable_events=True,
+                                     key='-SHORT_DESCRIPTIOM-'), sg.Ok()]
+        layout =  [file_name_line, description_line]
+
+        window = sg.Window(title=inter.enter_weblink, layout=layout)
+        while True:
+            event, values = window.read()
+            if event in (sg.WIN_CLOSED, None):
+                return False, False
+            elif event == "Ok":
+                main_output, short_description = window['-TEXT-INPUT-'].get(), window['-SHORT_DESCRIPTIOM-'].get()
+                window.close()
+                return main_output, short_description
+            else:
+                ensuranc_function(event=event, values=values, window=window)
 
     # user_defined_keys
     # next above: ("-PFL", "-RFL", "-AsFL")
@@ -233,7 +285,12 @@ class MyGuiToolbox:
     # under-keys: ("-DE", "-IEX729X", "-FB")
 
 
+    # todo this time implement the opening in webbrowser if link is clicked
+
+
 class ResultFileCreator:
+
+
 
     def __init__(self):
         self._file_templates = {inter.writer: ("/templates/writer_template.odt", ".odt"),
@@ -259,38 +316,38 @@ class ResultFileCreator:
                             sg.Ok()]
         return [file_name_line, description_line]
 
-    @staticmethod
-    def _correctInputEnforcement(window, values):
-        """
-        takes care that short description dont gets longer than 30 figures
-        and that not the file_name <-> short desciption seperator gets used by the user
-        """
-        if len(values['-SHORT_DESCRIPTIOM-']) > 30:
-            window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-1])
-        elif values['-SHORT_DESCRIPTIOM-'][-3:] == "<->":
-            window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-3])
-
-    def _newResultFilePopup(self, suggested_file_name: str, result_path: str,
-                            kind_of_program: str, file_ext: str = ".ods"):
-        """
-        gets file_name and short file description for new task result file
-        :return: filename, short_description
-        """
-        assert len(file_ext) == 4
-        layout = self._newLayout(file_name=suggested_file_name, file_ext=file_ext, kind_of_program=kind_of_program,
-                                 result_path=result_path)
-        window = sg.Window(title=inter.createResultFileTitle(kind_of_program=kind_of_program), layout=layout)
-        while True:
-            event, values = window.read()
-            print(F"#099823 event: {event}; vlues: {values}")
-            if event in (sg.WIN_CLOSED, None):
-                return False, False
-            elif event == '-SHORT_DESCRIPTIOM-':
-                self._correctInputEnforcement(window=window, values=values)
-            elif event == "Ok":  # could be else but for fast later additions withoutt trouble i will be very precise
-                file_name, short_description = self._fetchResultFileParameters(
-                    values=values, file_ext=file_ext, window=window)
-                return file_name, short_description
+    # @staticmethod
+    # def _correctInputEnforcement(window, values):
+    #     """
+    #     takes care that short description dont gets longer than 30 figures
+    #     and that not the file_name <-> short desciption seperator gets used by the user
+    #     """
+    #     if len(values['-SHORT_DESCRIPTIOM-']) > 30:
+    #         window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-1])
+    #     elif values['-SHORT_DESCRIPTIOM-'][-3:] == "<->":
+    #         window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-3])
+    #
+    # def _newResultFilePopup(self, suggested_file_name: str, result_path: str,
+    #                         kind_of_program: str, file_ext: str = ".ods"):
+    #     """
+    #     gets file_name and short file description for new task result file
+    #     :return: filename, short_description
+    #     """
+    #     assert len(file_ext) == 4
+    #     layout = self._newLayout(file_name=suggested_file_name, file_ext=file_ext, kind_of_program=kind_of_program,
+    #                              result_path=result_path)
+    #     window = sg.Window(title=inter.createResultFileTitle(kind_of_program=kind_of_program), layout=layout)
+    #     while True:
+    #         event, values = window.read()
+    #         print(F"#099823 event: {event}; vlues: {values}")
+    #         if event in (sg.WIN_CLOSED, None):
+    #             return False, False
+    #         elif event == '-SHORT_DESCRIPTIOM-':
+    #             self._correctInputEnforcement(window=window, values=values)
+    #         elif event == "Ok":  # could be else but for fast later additions withoutt trouble i will be very precise
+    #             file_name, short_description = self._fetchResultFileParameters(
+    #                 values=values, file_ext=file_ext, window=window)
+    #             return file_name, short_description
 
     def _createAndOpenResultFile(self, kind_of_porogramm, file_path):
         template_file_path = self._file_templates[kind_of_porogramm][0]
@@ -315,9 +372,12 @@ class ResultFileCreator:
         suggested_path, suggested_file_name = task.suggestetFileName(result_path)
 
         while True:
-            user_file_path, description = self._newResultFilePopup(
-                suggested_file_name=suggested_file_name, result_path=result_path,
-                kind_of_program=kind_of_porogramm, file_ext=self._file_templates[kind_of_porogramm][1], )
+            user_file_path, description = MyGuiToolbox.destinctTextWithDescriptionPopup(
+                    text_name=inter.file_name, suggestet_text=suggested_file_name, description_name=inter.description,
+                    suggested_description="", ensuranc_function=MyGuiToolbox.fileDescriptionEnsurance)
+            # user_file_path, description = self._newResultFilePopup(
+            #     suggested_file_name=suggested_file_name, result_path=result_path,
+            #     kind_of_program=kind_of_porogramm, file_ext=self._file_templates[kind_of_porogramm][1], )
 
             if user_file_path is False and description is False:
                 break
@@ -335,7 +395,7 @@ class ResultFileCreator:
                 save_file_path = os.path.join(save_path, user_file_name)
 
             if os.path.isfile(save_file_path):
-                if not MyGuiToolbox.YesNoPopup(title=inter.save_at, size=(None, None),
+                if not MyGuiToolbox.yesNoPopup(title=inter.save_at, size=(None, None),
                                                text=f"{save_file_path}{inter.already_exists_override}"):
                     continue
 
@@ -343,175 +403,6 @@ class ResultFileCreator:
             task.addResultsFileAndDescription(save_file_path, description)
             break
 
-# class TaskFrameCreator:
-#     """
-#     Factory to create PySimpleGui Frames which represents either a Task or an empty space of the same size
-#     """
-#
-#     def __init__(self, size=30):
-#         warnings.warn("use TaskFrame directly", DeprecationWarning)
-#         self.setBasichButtonMenuList()
-#         self.size = size
-#
-#     def sSize(self):
-#         """
-#         :return: int:
-#         """
-#         return self.size
-#
-#     def setSize(self, size: int):
-#         """
-#         :param size: sets width of a frame / x-axis size
-#         """
-#         self.size = size
-#
-#     def _basicTaskFrame(self, frame_name: str, name_line: list, priority, completed, option_button_line: list,
-#                         relief=sg.RELIEF_RAISED, tooltip_text: str = "", frame_color: str = None):
-#         """task frame creation
-#         :param name: simplegu element name line
-#         :param priority: simplegui priority line
-#         :param completed: simplegui completed line
-#         :param edit: edit button
-#         :param add: add subtask button
-#         :return: short task representation in a frame
-#         """
-#         frame = sg.Frame(layout=[name_line,
-#                                  [priority, completed],
-#                                  option_button_line],
-#                          title=frame_name[-(self.sSize() - 3):], relief=relief, size=(self.sSize(), 5),
-#                          tooltip=tooltip_text, background_color=frame_color)
-#         return frame
-#
-#     @staticmethod
-#     def nAIt(wantet_value):
-#         return "N.A." if not wantet_value else wantet_value
-#
-#     @staticmethod
-#     def _toolTipText(task: task.Task):
-#         """
-#         :return: full plain textual representation of an task.Task() suitable as tooltip_text
-#         """
-#         tt = ""
-#         tt += f"   {task.hierarchyTreePositionString()}\n\n"
-#         tt += f"   {task.sName()}\n\n"
-#         tt += f"   {inter.start}: {task.sStart()}   {inter.end}:v{TaskFrameCreator.nAIt(task.sEnde())}   {inter.priority}: {task.sPriority()}   \n"
-#         tt += f"   {inter.rem_days}:..................................... {TaskFrameCreator.nAIt(task.sRemainingDays())}   \n"
-#         tt += f"   {inter.project_part_percentage}:............... {task.sPercentage()}%   \n"
-#         tt += f"   {inter.sub_task_amount}:............................... {len(task.sSubTasks()) if task.sSubTasks() else '0'}   \n"
-#         tt += f"   {inter.percent_compled}:............................. {task.sCompleted():5.1f}%   \n\n"
-#         tt += "    \n   ".join(textwrap.wrap(task.sDescription(), width=90))
-#
-#         return tt
-#
-#     @staticmethod
-#     def _isCompletedElement(task: task.Task, tooltip_text, background_color: str):
-#         """
-#         builds up task completed line either an percentage, or an checkbox corresponding to kind of task
-#         :param background_color: hexstring like "#ff0000"
-#         :return: in frame layout usable completed line
-#         """
-#         default = True if task.sCompleted() else False
-#         if type(task.sCompleted()) == int:
-#             return sg.Checkbox(text=inter.completed, key=f"compl-#7#{str(task.sPosition())}", default=default,
-#                                enable_events=True, tooltip=tooltip_text, background_color=background_color)
-#         return sg.Text(f"{inter.completed}: {task.sCompleted():6.2f}", tooltip=tooltip_text,
-#                        background_color=background_color)
-#
-#     def sOptionButtonMenuList(self):
-#         """
-#         :return: list of list, sg.ButtonMenu.layout for option button menu
-#         """
-#
-#         return self._button_menu_list
-#
-#     def setBasichButtonMenuList(self):
-#         """
-#         fetches basic option button menu list of list from internationalisation module
-#         """
-#         self._button_menu_list = inter.b_b_m_l
-#
-#     def changeMenuListToIsolated(self):
-#         """
-#         fetches altered >tree view< option button menu list of list from internationalisation module
-#         """
-#         self._button_menu_list = inter.c_b_m_l
-#
-#     def _buttonLinePlaceHolder(self, background_color, padding_size):
-#         # origiinal x_size: self.sSize() - 15
-#         return sg.Text(text="", size=(padding_size, 1), background_color=background_color)
-#
-#     def _createButtonMenuWithResultFileEntrys(self, task):
-#         button_list = deepcopy(self.sOptionButtonMenuList())
-#         button_list[1][5] = []
-#         results = task.sResults()
-#
-#         if results:
-#             for file_path, short_description in results:
-#                 if short_description:
-#                     line = f"{short_description} <-> {file_path}"
-#                 else:
-#                     line = f"{file_path}"
-#                 button_list[1][5].append(line)
-#             return button_list
-#
-#     def _buttonMenuLine(self, task, background_color):
-#         """
-#         :return: option menu button for every task frame
-#         """
-#         result_file_button_menu = self._createButtonMenuWithResultFileEntrys(task)
-#
-#         # return sg.ButtonMenu(inter.options, original_button_list, key=f'-BMENU-#7#{task.sPosition()}',
-#         #                      border_width=2, )
-#
-#         if result_file_button_menu:
-#             placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 20)
-#             image = sg.Image(filename="templates/file.png")
-#             option_button = sg.ButtonMenu(button_text=inter.options, menu_def=result_file_button_menu,
-#                                           key=f'-BMENU-#7#{task.sPosition()}')
-#
-#             return [placeholer, image, option_button]
-#
-#         else:
-#             placeholder = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 15)
-#             option_button = sg.ButtonMenu(button_text=inter.options, menu_def=self.sOptionButtonMenuList(),
-#                                           key=f'-BMENU-#7#{task.sPosition()}')
-#             return [placeholder, option_button]
-#
-#     def taskFrame(self, task: task.Task):
-#         """
-#         :return: sg.Frame which represents the short Tree notation of an Task inclusive a full tooltip text
-#         """
-#         tooltip_text = self._toolTipText(task)
-#         background_color = task.taskDeadlineColor()
-#
-#         name_line = self._nameLine(task=task, tooltip_text=tooltip_text, background_color=background_color)
-#         priority_sg_object = sg.Text(text=f"{inter.short_pr}:.{task.sPriority():3d}", tooltip=tooltip_text,
-#                                      background_color=background_color)
-#         completed_sg_object = self._isCompletedElement(task, tooltip_text=tooltip_text,
-#                                                        background_color=background_color)
-#
-#         frame_name = task.hierarchyTreePositionString()
-#
-#         button_menu_line = self._buttonMenuLine(task, background_color=background_color)
-#
-#         frame = self._basicTaskFrame(frame_name=frame_name, name_line=name_line, priority=priority_sg_object,
-#                                      completed=completed_sg_object,
-#                                      option_button_line=button_menu_line,
-#                                      tooltip_text=tooltip_text, frame_color=background_color)
-#         return frame
-#
-#     def _nameLine(self, task, tooltip_text, background_color):
-#         name_line = [sg.Text(text=task.sName(), size=(self.sSize() - 5, 1), tooltip=tooltip_text,
-#                              background_color=background_color)]
-#         return name_line
-#
-#     def emptyTaskFrame(self):
-#         """
-#             :return: empty sg.Frame in same size than a task frame
-#             """
-#         return sg.Frame(layout=[[sg.Text(text="", size=(self.sSize() - 5, 5))]], title=" ", relief=sg.RELIEF_FLAT,
-#                         size=(300, 50))
-#
 
 
 class TaskFrame(sg.Frame):
@@ -580,41 +471,103 @@ class TaskFrame(sg.Frame):
         # origiinal x_size: self.sSize() - 15
         return sg.Text(text="", size=(padding_size, 1), background_color=background_color)
 
-    def _createButtonMenuWithResultFileEntrys(self):
-        button_list = deepcopy(inter.basic_button_menu)
-        button_list[1][5] = []
+    def _makeListEntrysFromDoubleList(self, target_list, resource_list):
+        for file_path, short_description in resource_list:
+            if short_description:
+                line = f"{short_description} <-> {file_path}"
+            else:
+                line = f"{file_path}"
+            target_list.append(line)
+
+    def _createButtonMenuListWithResultFileEntrys(self, button_menu_list):
         results = self.task.sResults()
 
         if results:
-            for file_path, short_description in results:
-                if short_description:
-                    line = f"{short_description} <-> {file_path}"
-                else:
-                    line = f"{file_path}"
-                button_list[1][5].append(line)
-            return button_list
+            self._makeListEntrysFromDoubleList(button_menu_list[1][5], results)
 
-    #todo???? key function(sting) --> stirng{self.task.sPosition}
+            # for file_path, short_description in results:
+            #     if short_description:
+            #         line = f"{short_description} <-> {file_path}"
+            #     else:
+            #         line = f"{file_path}"
+            #     button_menu_list[1][5].append(line)
+            return button_menu_list, True
+        else:
+            return button_menu_list, False
+
+    def _createButtonMenuListWithWebLinkEntrys(self, button_menu_list):
+        web_links = self.task.sWebLinks()
+        if web_links:
+            self._makeListEntrysFromDoubleList(button_menu_list[1][8], web_links)
+            # for web_link, short_description in web_links:
+            #     if short_description:
+            #         line = f"{short_description} <-> {web_link}"
+            #     else:
+            #         line = f"{web_link}"
+            #     button_menu_list[1][8].append(line)
+            return button_menu_list, True
+        else:
+            return button_menu_list, False
+
+    def _imageButtonMenu(self, menu_list, image_file_path, key):
+        if menu_list:
+            button_menu = sg.ButtonMenu(image_filename=image_file_path, button_text="", menu_def=["unused", menu_list],
+                                        key=key)
+
 
     def _buttonMenuLine(self, background_color):
         """
         :return: option menu button for every task frame
         """
-        result_file_button_menu_list = self._createButtonMenuWithResultFileEntrys()
+        button_menu_list = deepcopy(inter.basic_button_menu)
+
+        button_menu_list, file_flag = self._createButtonMenuListWithResultFileEntrys(button_menu_list)
+        button_menu_list, link_flag = self._createButtonMenuListWithWebLinkEntrys(button_menu_list)
+
+
         self.target_image = sg.Image(filename="templates/crosshair_black.png", enable_events=True, key=f"-TARGET-#7#{self.task.sPosition()}")
 
-        if result_file_button_menu_list:
-            placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 25)
-            image = sg.Image(filename="templates/file.png")
-            option_button = sg.ButtonMenu(button_text=inter.options, menu_def=result_file_button_menu_list,
-                                          key=f'-BMENU-#7#{self.task.sPosition()}')
+        # file_image = sg.Image(filename="templates/file.png") if file_flag else None
+        file_menu_button = sg.ButtonMenu(
+            image_filename="templates/file.png", button_text="", menu_def=["unused", button_menu_list[1][5]],
+            key=f"-FILES-#7#{self.task.sPosition()}") if file_flag else None
 
-            return [self.target_image, placeholer, image, option_button]
+        # globe_image = sg.Image(filename="templates/globus.png") if link_flag else None
+        globe_menu_button = sg.ButtonMenu(
+            image_filename="templates/globus.png", button_text="", menu_def=["unused", button_menu_list[1][8]],
+            key=f"-GLOBE-#7#{self.task.sPosition()}") if link_flag else None
 
+
+        padding_place = 20 + (file_flag + link_flag) * 5
+        placeholder = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - padding_place)
+        option_button = sg.ButtonMenu(button_text=inter.options, menu_def=button_menu_list,
+                                      key=f'-BMENU-#7#{self.task.sPosition()}')
+
+        #todo clean this up 2020-09-18
+        if file_menu_button and globe_menu_button:
+            # placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 30)
+            # option_button = sg.ButtonMenu(button_text=inter.options, menu_def=button_menu_list,
+            #                               key=f'-BMENU-#7#{self.task.sPosition()}')
+
+            return [self.target_image, placeholder, globe_menu_button, file_menu_button, option_button]
+        elif file_menu_button:
+
+            # placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 25)
+            # option_button = sg.ButtonMenu(button_text=inter.options, menu_def=button_menu_list,
+            #                               key=f'-BMENU-#7#{self.task.sPosition()}')
+
+            return [self.target_image, placeholder, file_menu_button, option_button]
+        elif globe_menu_button:
+
+            # placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 25)
+            # option_button = sg.ButtonMenu(button_text=inter.options, menu_def=button_menu_list,
+            #                               key=f'-BMENU-#7#{self.task.sPosition()}')
+
+            return [self.target_image, placeholder, globe_menu_button, option_button]
         else:
-            placeholder = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 20)
-            option_button = sg.ButtonMenu(button_text=inter.options, menu_def=inter.basic_button_menu,
-                                          key=f'-BMENU-#7#{self.task.sPosition()}')
+            # placeholder = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 20)
+            # option_button = sg.ButtonMenu(button_text=inter.options, menu_def=inter.basic_button_menu,
+            #                               key=f'-BMENU-#7#{self.task.sPosition()}')
             return [self.target_image, placeholder, option_button]
 
     def _nameLine(self, tooltip_text, background_color):
@@ -668,7 +621,7 @@ class TaskFrame(sg.Frame):
         """
         super(TaskFrame, self).__init__(layout=[[sg.Text(text="", size=(self.sSize() - 5, 5))]], title=" ",
                                         relief=sg.RELIEF_FLAT,
-                                        size=(300, self.size + 20))
+                                        size=(300, self.sSize() + 20))
 
     def _completeUpdate(self, window, key, value, background_color, tooltip_text):
         """makes a complete update of an sg.element text, bg_color AND tooltip_text"""
@@ -698,8 +651,6 @@ class TaskFrame(sg.Frame):
                 background_color=background_color, tooltip_text=tooltip_text)
 
     def Update(self, window, value=None, visible=None):
-        # todo think is it really smart to refer to elements by using sg.window[key] instead of make all elements
-        #  part of self and update them by self.element.Update ??
         """overriding of method wich enables the direct window[key] access
         and passes it along to the containing elements"""
         tooltip_text = self._toolTipText()
@@ -728,6 +679,8 @@ class TaskFrame(sg.Frame):
 
 
 class TaskInputWindowCreator:
+
+    # todo think should this not too a class of its own instead of an factory?!?
     """factory for task input windows on work on task input windows"""
 
     @staticmethod
@@ -1101,8 +1054,8 @@ class OptionWindow:
                 self._FolderStuchturLayoutLine(directorys=directorys, wich_disabled=disabled_folder_usage),
                 self._autoSaveFileHandlingRulesFrame(
                     duration_type=autosave_amount_type, duration=autosave_amount, autosave_handeling=autosave_handling),
-                MyGuiToolbox()._okCancelLine(ok_button=inter.ok, cancel_button=inter.cancel,
-                                             left_padding=inter.left_pading_amounts["deutsch"])]
+                MyGuiToolbox().okCancelLine(ok_button=inter.ok, cancel_button=inter.cancel,
+                                            left_padding=inter.left_pading_amounts["deutsch"])]
 
     def setLanguageAnew(self, values, event, window):
         """
