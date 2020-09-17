@@ -10,11 +10,11 @@ import sys
 import threading
 import time
 import warnings
-from typing import Any, Tuple
 
 from pip._vendor.colorama import Fore
 
 from internationalisation import inter
+
 
 def webLinkRePattern():
     #todo find a better re for link matching
@@ -107,7 +107,7 @@ def eventIsNotNone(event):
     :param event: sg.window.read()[0]
     :return: true if not close or Abrechen>>>inter.cancel it is dynamic
     """
-    if event and event != inter.cancel:
+    if event and event != inter.cancel: #or event != sg.WIN_CLOSED
         return True
     return False
 
@@ -151,14 +151,14 @@ def venvAbsPath(file_path:str):
     cwd = os.getcwd()
     return cwd + file_path
 
-def ensureFilePathExtension(file_path, target_extension: str = ".tak"):
-    """
-    checks file path for ".ext" and adds it if necessary
-    :param file_path: "file_path_string"
-    :return: "some "file_path_string.tak"
-    """
-    warnings.warn("use tools.path", DeprecationWarning)
-    return path.ensureFilePathExtension(file_path=file_path, target_extension=target_extension)
+# def ensureFilePathExtension(file_path, target_extension: str = ".tak"):
+#     """
+#     checks file path for ".ext" and adds it if necessary
+#     :param file_path: "file_path_string"
+#     :return: "some "file_path_string.tak"
+#     """
+#     warnings.warn("use tools.path", DeprecationWarning)
+#     return path.ensureFilePathExtension(file_path=file_path, target_extension=target_extension)
 
 def cwdBashFix():
     """
@@ -170,21 +170,21 @@ def cwdBashFix():
     main_path = os.path.split(main_file_path)
     os.chdir(main_path[0])
 
-def createPathWithExistsCheck(path_here: "must be abspath"):
-    warnings.warn("use tools.path", DeprecationWarning)
-    path.ensurePathExists(path_here=path_here)
-    
-def createPathFromFilePathWithExistsCheck(file_path):
-    warnings.warn("use tools.path", DeprecationWarning)
-    path.createPathFromFilePathWithExistsCheck(file_path=file_path)
-
-def separateExistingFromDemandedPaths(file_path, folders=()):
-    warnings.warn("use tools.path", DeprecationWarning)
-    return path.separateExistingFromDemandedPaths(path_here=file_path)
-
-def chreateRootDestinguishedPaths(user_path, base_path):
-    warnings.warn("use tools.path", DeprecationWarning)
-    return path.chreateRootDestinguishedPaths(user_path=user_path, base_path=base_path)
+# def createPathWithExistsCheck(path_here: "must be abspath"):
+#     warnings.warn("use tools.path", DeprecationWarning)
+#     path.ensurePathExists(path_here=path_here)
+#
+# def createPathFromFilePathWithExistsCheck(file_path):
+#     warnings.warn("use tools.path", DeprecationWarning)
+#     path.createPathFromFilePathWithExistsCheck(file_path=file_path)
+#
+# def separateExistingFromDemandedPaths(file_path, folders=()):
+#     warnings.warn("use tools.path", DeprecationWarning)
+#     return path.separateExistingFromDemandedPaths(path_here=file_path)
+#
+# def chreateRootDestinguishedPaths(user_path, base_path):
+#     warnings.warn("use tools.path", DeprecationWarning)
+#     return path.chreateRootDestinguishedPaths(user_path=user_path, base_path=base_path)
 
 def isUrl(url_string):
     return re.fullmatch(pattern=webLinkRePattern(), string=url_string)

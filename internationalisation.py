@@ -29,198 +29,163 @@ class Internationalisation:
 
     def _setGerman(self):
         # Buttons
-        self.yes = "Ja"
-        self.no = "Nein"
-        self.start = "Start"
-        self.end = "Ende"
-        self.options = "Optionen"
-        self.ok = "Übernehmen"
-        self.cancel = "Abbrechen"
         self.browse = "Browse"
-
+        self.cancel = "Abbrechen"
+        self.end = "Ende"
+        self.no = "Nein"
+        self.ok = "Übernehmen"
+        self.options = "Optionen"
         self.own_folder_setup = "Eigene Ordner Strucktur"
         self.standard_folder_setup = "Standard Ordner"
-
-
-
+        self.start = "Start"
+        self.yes = "Ja"
 
         # Menu entries
+        self.about = "Über..."
+        self.add_link = "Web-Link hinzufügen"
+        self.compose_results = "Verfasse Ergebnisse"
+        self.copy = "Kopieren"
+        self.cut = "Ausschneiden"
+        self.database = "Datenbank"
+        self.delete = "Löschen"
+        self.drawing = "Office-Zeichnung"
+        self.edit = "Bearbeiten"
+        self.exit = "Beenden"
         self.file = "Datei"
+        self.gimp = "Pixel-Grafik"
+        self.help = "Hilfe"
+        self.isolate = "Isolieren"
+        self.new_project = "Neues Projekt"
         self.new_project_sheet = "Neue Projekt Tabelle"
         self.open = "Öffnen"
+        self.paste = "Einfügen"
+        self.presentation = "Präsentation"
+        self.project = "Projekt"
+        self.reload = "Neu laden"
+        self.restore_task = "Aufgabe widerherstellen"
+        self.results = "Ergebnisse"
         self.save = "Speichern"
         self.save_at = "Speichern in"
-        self.exit = "Beenden"
-
-        self.project = "Projekt"
-        self.new_project = "Neues Projekt"
-
-        self.edit = "Bearbeiten"
-        self.restore_task = "Aufgabe widerherstellen"
-
         self.settings = "Einstellungen"
-
-
-        self.window = "Fenster"
-        self.reload = "Neu laden"
-        self.help = "Hilfe"
-        self.about = "Über..."
-
-        self.sub_task = 'Unteraufgabe'
-        self.compose_results = "Verfasse Ergebnisse"
-        self.results = "Ergebnisse"
-        self.add_link = "Web-Link hinzufügen"
-        self.isolate = "Isolieren"
-        self.delete = "Löschen"
-        self.paste = "Einfügen"
-        self.cut = "Ausschneiden"
-        self.copy = "Kopieren"
-        self.tree_view = "Gesammtansicht"
-
-        self.writer = "Text"
         self.spreadsheet = "Tabellenkalkulation"
-        self.presentation = "Präsentation"
-        self.database = "Datenbank"
-        self.drawing = "Office-Zeichnung"
-        self.gimp = "Pixel-Grafik"
+        self.sub_task = 'Unteraufgabe'
         self.svg = "Vektor-Grafik"
-
+        self.tree_view = "Gesammtansicht"
+        self.window = "Fenster"
+        self.writer = "Text"
 
         # texts
+        self.already_exists_override = "\nbesteht bereits!!!\nÜberschreiben?"
+        self.app_name = "TaskAttack Projekt und Taskmanager"
+        self.auto_save_folder =  "Autospeichern"
+        self.autosave_deletion = "Autospeicherdateien löschen bis auf"
+        self.completed = "Vollendet"
+        self.days = "Tage"
+        self.description = "Beschreibung"
+        self.enter_weblink = "Weblink eingeben"
+        self.file_name = "Dateiname"
+        self.high = "high"
+        self.language = "Sprache"
+        self.low = "low"
+        self.no_autosave_deletion = "Kein Löschen der Autospeicherdateien"
+        self.not_later_than_master = "Nicht später als Master-Task"
+        self.open_project = "Offenes Projekt"
+        self.percent_compled = "Vollendet in Prozent"
+        self.pieces = "Stück"
+        self.priority = "Priorität"
+        self.project_folder = "Projekt Ordner"
+        self.project_part_percentage = "Prozentualer Anteil am gesamt Projekt"
+        self.projects = "Projekte"
+        self.really_less_important_than_master = "Wirklich unwichtiger als Master-Task?!?"
+        self.realy_delete = "Wirklich löschen"
+        self.rem_days = "Verbleibende Tage"
+        self.results_folder = "Ergebnisse"
+        self.short_description = "Kurzbeschreibung"
+        self.short_pr = "PR"
+        self.sub_task_amount = "Anzahl Unteraufgaben"
+        self.task = "Aufgabe"
         self.web_link = "Web-Link"
         self.web_links = "Web-Links"
-
-        self.enter_weblink = "Weblink eingeben"
-
-        self.projects = "Projekte"
-        self.realy_delete = "Wirklich löschen"
-        self.open_project = "Offenes Projekt"
-        self.priority = "Priorität"
-        self.low = "low"
-        self.high = "high"
-
-        self.short_pr = "PR"
-        self.rem_days = "Verbleibende Tage"
-        self.project_part_percentage = "Prozentualer Anteil am gesamt Projekt"
-        self.sub_task_amount = "Anzahl Unteraufgaben"
-        self.percent_compled = "Vollendet in Prozent"
-        self.completed = "Vollendet"
-        self.not_later_than_master = "Nicht später als Master-Task"
-        self.really_less_important_than_master = "Wirklich unwichtiger als Master-Task?!?"
-
-        self.description = "Beschreibung"
-        self.task = "Aufgabe"
-        self.app_name = "TaskAttack Projekt und Taskmanager"
-        self.file_name = "Dateiname"
-        self.short_description = "Kurzbeschreibung"
-
-        self.project_folder = "Projekt Ordner"
-        self.results_folder = "Ergebnisse"
-        self.auto_save_folder =  "Autospeichern"
-
-        self.language = "Sprache"
-        self.days = "Tage"
-        self.pieces = "Stück"
-
-        self.no_autosave_deletion = "Kein Löschen der Autospeicherdateien"
-        self.autosave_deletion = "Autospeicherdateien löschen bis auf"
-        self.already_exists_override = "\nbesteht bereits!!!\nÜberschreiben?"
-
-
 
     def _setEnglish(self):
         # Buttons
-        self.yes = "Yes"
-        self.no = "No"
-        self.start = "Start"
-        self.end = "End"
-        self.options = "Options"
-        self.ok = "OK"
-        self.cancel = "Cancel"
         self.browse = "Browse"
-
+        self.cancel = "Cancel"
+        self.end = "End"
+        self.no = "No"
+        self.ok = "OK"
+        self.options = "Options"
         self.own_folder_setup = "Own folder setup"
         self.standard_folder_setup = "Standard folders"
+        self.start = "Start"
+        self.yes = "Yes"
 
         # Menu entries
+        self.about = "About..."
+        self.add_link = "Add Web-Link"
+        self.compose_results = "Compose result"
+        self.copy = "Copy"
+        self.cut = "Cut"
+        self.database = "Database"
+        self.delete = "Delete"
+        self.drawing = "Drawing"
+        self.edit = "Edit"
+        self.exit = "Exit"
         self.file = "File"
+        self.gimp = "Pixel-Manipulation"
+        self.help = "Help"
+        self.isolate = "Isolate"
+        self.new_project = "New Project"
         self.new_project_sheet = "New Project Sheet"
         self.open = "Open"
+        self.paste = "Paste"
+        self.presentation = "Presentation"
+        self.project = "Project"
+        self.reload = "Reload"
+        self.restore_task = "Restore Task"
+        self.results = "Results"
         self.save = "Save"
         self.save_at = "Save at"
-        self.exit = "Exit"
-
-        self.project = "Project"
-        self.new_project = "New Project"
-
-        self.edit = "Edit"
-        self.restore_task = "Restore Task"
-
         self.settings = "Settings"
-
-        self.window = "Window"
-        self.reload = "Reload"
-        self.help = "Help"
-        self.about = "About..."
-
-        self.sub_task = 'Subtask'
-        self.compose_results = "Compose result"
-        self.results = "Results"
-        self.add_link = "Add Web-Link"
-        self.isolate = "Isolate"
-        self.delete = "Delete"
-        self.paste = "Paste"
-        self.cut = "Cut"
-        self.copy = "Copy"
-        self.tree_view = "Tree view"
-
-        self.writer = "Writer"
         self.spreadsheet = "Spreadsheet"
-        self.presentation = "Presentation"
-        self.database = "Database"
-        self.drawing = "Drawing"
-        self.gimp = "Pixel-Manipulation"
+        self.sub_task = 'Subtask'
         self.svg = "Vektor-Manipulation"
+        self.tree_view = "Tree view"
+        self.window = "Window"
+        self.writer = "Writer"
 
         # texts
+        self.already_exists_override = "\nalready exists!!!\nOverride?"
+        self.app_name = "TaskAttack Project and Taskmanager"
+        self.auto_save_folder = "Auto save"
+        self.autosave_deletion = "Delete auto save files to"
+        self.completed = "Completed"
+        self.days = "Days"
+        self.description = "Description"
+        self.enter_weblink = "Enter Weblink"
+        self.file_name = "Filename"
+        self.high = "high"
+        self.language = "Language"
+        self.low = "low"
+        self.no_autosave_deletion = "No auto save file deletion"
+        self.not_later_than_master = "Not later than master task"
+        self.open_project = "Open project"
+        self.percent_compled = "Completed in percent"
+        self.pieces = "Pieces"
+        self.priority = "Priority"
+        self.project_folder = "Project Files"
+        self.project_part_percentage = "Percentage to the hole project"
+        self.projects = "Projects"
+        self.really_less_important_than_master = "Really less important tham master task?!?"
+        self.realy_delete = "Realy delete"
+        self.rem_days = "Remaining Days"
+        self.results_folder = "Results"
+        self.short_description ="Short Description"
+        self.short_pr = "PR"
+        self.sub_task_amount = "Amount of subtasks"
+        self.task = "Task"
         self.web_link = "Web-Link"
         self.web_links = "Web-Links"
-        self.enter_weblink = "Enter Weblink"
-        self.projects = "Projects"
-        self.realy_delete = "Realy delete"
-        self.open_project = "Open project"
-        self.priority = "Priority"
-
-        self.low = "low"
-        self.high = "high"
-
-        self.short_pr = "PR"
-        self.rem_days = "Remaining Days"
-        self.project_part_percentage = "Percentage to the hole project"
-        self.sub_task_amount = "Amount of subtasks"
-        self.percent_compled = "Completed in percent"
-        self.completed = "Completed"
-        self.not_later_than_master = "Not later than master task"
-        self.really_less_important_than_master = "Really less important tham master task?!?"
-        self.description = "Description"
-        self.task = "Task"
-        self.app_name = "TaskAttack Project and Taskmanager"
-        self.file_name = "Filename"
-        self.short_description ="Short Description"
-
-        self.project_folder = "Project Files"
-        self.results_folder = "Results"
-        self.auto_save_folder = "Auto save"
-
-        self.language = "Language"
-        self.days = "Days"
-        self.pieces = "Pieces"
-
-        self.no_autosave_deletion = "No auto save file deletion"
-        self.autosave_deletion = "Delete auto save files to"
-        self.already_exists_override = "\nalready exists!!!\nOverride?"
-
-
 
     def createResultFileTitle(self, kind_of_program):
         if self.not_later_than_master == "Not later than master task":
@@ -253,29 +218,6 @@ class Internationalisation:
                            self.results, [],
                            self.add_link, self.web_links, [],
                            self.isolate, self.tree_view, self.delete, self.cut, self.paste, self.copy]]
-
-    # @property
-    # def b_b_m_l(self):
-    #     """
-    #     fetches menu entries from chosen language for basic-button-menu-list
-    #     :return: list of list sg.ButtonMenu.layout
-    #     """
-    #     return ['Unused', [self.sub_task, self.edit,
-    #                        self.compose_results, self.chreate_result_menu,
-    #                        self.results, [],
-    #                        self.isolate, self.delete, self.cut, self.paste, self.copy]]
-    #
-    # @property
-    # def c_b_m_l(self):
-    #     """
-    #     fetches menu entries from chosen language for canged-button-menu-list
-    #     :return: list of list sg.ButtonMenu.layout
-    #     """
-    #     return ['Unused', [self.sub_task, self.edit,
-    #                        self.compose_results, self.chreate_result_menu,
-    #                        self.results, [],
-    #                        self.tree_view, self.delete, self.cut, self.paste, self.copy]]
-    #
     @property
     def duration_types(self):
         return (self.days, self.pieces)

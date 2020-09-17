@@ -3,18 +3,14 @@ __copyright__ = "Just Me"
 __email__ = "sebmueller.bt@gmail.com"
 
 import copy
-import itertools
 import os
 import queue
-import sys
 import time
-import warnings
 import webbrowser
 from datetime import timedelta
 from threading import Thread
 
 import PySimpleGUI as sg
-from colorama import Fore
 
 import gui_elements
 import tools
@@ -22,7 +18,8 @@ from gui_elements import TaskInputWindowCreator, MyGuiToolbox, Progressbar
 from internationalisation import inter
 from option import Option
 from task import Taskmanager, Task
-from tools import cwdBashFix, nowDateTime
+# from tools import cwdBashFix, nowDateTime
+from tools import nowDateTime
 
 
 class TaskAttack:
@@ -135,16 +132,13 @@ class TaskAttack:
 
 
     def onAddWebLink(self, task, event, values, command, *args, **kwargs):
-        link, description = self.mygtb.destinctTextWithDescriptionPopup(
+        link, description = self.mygtb.distinctTextWithDescriptionPopup(
                     text_name=inter.web_link, suggestet_text="", description_name=inter.description,
             suggested_description="", ensuranc_function=self.mygtb.webLinkDescriptionEnsurance)
         print(f"#M-9872983 link:description: {link} : {description}")
         if link:
             task.addLink((link, description))
 
-        # fixme web link cant get opened from button menu, because there is no distinction between link and file path,
-        #  either i remove the open link and open file entry entirely from button menu or i have to implement a
-        #  distinction between them, i think the distinct function is the easier solution
 
     def onOpenFile(self, event, values, *args, **kwargs):
         self._openFileOrUrl(event=event, values=values)

@@ -140,7 +140,6 @@ class Option:
             print(f"#09923 self.dict: {self.__dict__}")
 
 
-
 if __name__ == '__main__':
     test1 = Option("options.tas")
     test1.getSettingsFromUser()

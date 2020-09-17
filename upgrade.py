@@ -37,7 +37,6 @@ class Persistencer:
         #     self.in_version_3_0_added_atribute = "what ever"
         #     self.in_version_3_0_added_atribute2 = "what ever"
         #     print('upgrade to version 3.0')
-
         self._recursive_update(self)
 
     @staticmethod
@@ -94,6 +93,5 @@ class ModulDirectoryNameChangeRepickeler:
 
 
 if __name__ == '__main__':
-
     changer = ModulDirectoryNameChangeRepickeler("autosave")
     changer.runFolder()

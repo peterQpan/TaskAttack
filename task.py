@@ -2,12 +2,9 @@ __author__ = "Sebastian Müller"
 __copyright__ = "Just Me"
 __email__ = "sebmueller.bt@gmail.com"
 
-import copy
 import os
-import pickle
 import queue
 import threading
-import time
 
 from colorama import Fore
 
@@ -18,7 +15,6 @@ from upgrade import Persistencer
 
 
 class OldTask:
-
     def __init__(self, name:str, description:str=None, start=None, end=None, priority=21, master=None,
                  taskmanager:"Taskmanager"=None):
 
@@ -46,11 +42,6 @@ class OldTask:
 
     def __getstate__(self):
         state = {x:y for x,y in self.__dict__.items()}
-        #print(self.__dict__)
-        #print(state)
-        #since taskmanager is an atribute of task, and task gets pickled,
-        # but i woulnt taskmanager pickled as well it has to be exclude bevor,
-        # i do this at the getstate-step
         state["taskmanager"] = None # out or later have to be in persistencer
         return state
 
@@ -154,7 +145,6 @@ class OldTask:
         self._remaining_days = self._remaining_timedelta.days
         self._time_percentage = int(100 / self._complete_minutes * self._remaining_minutes)
 
-
     def _setAllTimeMappingsFalse(self):
         self._remaining_timedelta = self._remaining_minutes = False
         self._complete_time = False
@@ -227,7 +217,6 @@ class OldTask:
                 return " "
         return self._hierarchy_tree_positions_string[-lenght:]
 
-
     def hierarchyTreePositionList(self):
         """
         :return:list of str with own task hierarchy tree
@@ -238,7 +227,6 @@ class OldTask:
             return self._hierarchy_tree_positions
         else:
             return [f"{self.name}"]
-
 
     def changeCompleted(self):
         self._completed = 0 if self._completed else 100
@@ -278,14 +266,14 @@ class OldTask:
         :return:dict aller zur gui darstellung benötigten daten
         name, description, start, ende, priority, percentage, completed
         """
-        dr = {"name":self.name, "description":self.description, "start": self.start, "ende": self.ende,
+        data_representation = {"name":self.name, "description":self.description, "start": self.start, "ende": self.ende,
               "priority": self.priority, "percentage":self.sPercentage(), "completed":self.sCompleted,
               "masters_ende":self.sMastersEnde(), "masters_priority":self.sMastersPriority()}
         if self.master is None:
-            dr.update({"kind": inter.project})
+            data_representation.update({"kind": inter.project})
         else:
-            dr.update({"kind": inter.task})
-        return dr
+            data_representation.update({"kind": inter.task})
+        return data_representation
 
     def rowExpansion(self):
         """
@@ -322,7 +310,6 @@ class OldTask:
         :param span: row koordinate
         :return:
         """
-
         self.position = (depth, span)
         for sub_task in self.sub_tasks:
             sub_task.recognizeMatrixPosition(depth=depth+1, span=span)
@@ -355,8 +342,6 @@ class OldTask:
         self.sub_tasks.append(task)
 
     def setTaskManager(self, taskmanager):
-        # out or later beauty hav to be in persistencer, not an automation executed by the persistencer,
-        #  just the method totally unchanged for responsibility reasons
         self.taskmanager = taskmanager
 
     def insertClipbordTask(self, clipbord_task):
@@ -370,11 +355,15 @@ class OldTask:
         self._results.append((file_path, short_description))
 
     def checkResultFileExistens(self):
+        """
+        checks if the file_paths they are refer to results are really exists by now as file in save path directory
+        :return:
+        """
         if self._results:
             self._results = [result for result in self._results if os.path.exists(result[0])]
 
-class Task(OldTask, Persistencer):
 
+class Task(OldTask, Persistencer):
     def __init__(self, name: str, description: str = None, start=None, end=None, priority=21, master=None,
                  taskmanager: "Taskmanager" = None):
 
@@ -388,18 +377,13 @@ class Task(OldTask, Persistencer):
         self.links.append(link)
 
 
-
-
 class Taskmanager:
     def __init__(self):
 
         self.reset()
-
         self.thread_queue = queue.Queue()
         self.all_backend_threads = self._startAllBackendThreads()
-
         self.task_matrix = self.displayMatrix()
-
 
     def sTaskMatrix(self):
         return self.task_matrix
@@ -412,11 +396,10 @@ class Taskmanager:
         self._side_packed_project = None
         self.task_matrix = None
 
-
     def save(self, filename="dev-auto.atk"):
-        if not os.path.isdir("autosave"):
-            os.mkdir("autosave")
-
+        #should be come from user optiom
+        # if not os.path.isdir("autosave"):
+        #     os.mkdir("autosave")
         with open(filename, "wb") as fh:
             for projekt in self.orginal_sub_tasks:
                 projekt.save(fh=fh)
@@ -439,53 +422,34 @@ class Taskmanager:
                            taskmanager=self)
         self.deisolateTaskView()
         self.sub_tasks.append(new_project)
-
-        #todo remove isolated - tree view- menu destiction
-
-
-        #todo bring following 2 lines out of here?!?
-        if not self.renewal_thread:
-            self._startTimeDeletionForRenewalThread()
+        # todo bring following 2 lines out of here?!?
+        #  is allready in start all backend threads delete at 2020-10-01
+        # if not self.renewal_thread:
+        #     self._startTimeDeletionForRenewalThread()
 
     def deleteSubTask(self, task):
+        """
+        gets called from task that shall be removed, so task gets deleted from sub_tasks
+        :param task: tat asks to be deleted
+        """
         if task is self._side_packed_project:
             task.delete()
-
         self.sub_tasks.remove(task)
 
-
-    # def isolatedTaskView(self, task):
-    #     #fixme das button menu unterscheidet zwischen isolate und deisolate, schortcuts aber nicht, wenn ich also strg+t drücke, bekomme ich isolierten task,
-    #     """
-    #     isolate one task ond gives him the hole sheet space to look and work on
-    #     :param task:
-    #     """
-    #     # self._side_packed_project = self.sub_tasks
-    #     # task.setTaskManager(self)
-    #     self.sub_tasks = [task]
-
     def isolatedTaskView(self, task):
-        #fixme das button menu unterscheidet zwischen isolate und deisolate, schortcuts aber nicht, wenn ich also strg+t drücke, bekomme ich isolierten task,
         """
         isolate one task ond gives him the hole sheet space to look and work on
         :param task:
         """
-        print(f"#90980238098 comparing subtasks and task: subtasks: {self.sub_tasks}, task: {task}")
         if task is None:
             self.deisolateTaskView()
-            #todo add project ORGINAL_SUB.TASKS.append(new project)
         else:
-            # self._side_packed_project = self.sub_tasks
-            # task.setTaskManager(self)
             self.sub_tasks = [task]
-
 
     def deisolateTaskView(self, *args, **kwargs):
         """
         brings isolated view back to complete tree view of all the tasks"""
-        # self.sub_tasks[0].taskmanager = None
         self.sub_tasks = self.orginal_sub_tasks
-
 
     def subTaskDepth(self):
         """
@@ -493,8 +457,8 @@ class Taskmanager:
         """
         try:
             return max([projekt.subTaskDepth() for projekt in self.sub_tasks])
-        except ValueError:
-            print(f"noch keine projekte vorhanden")
+        except ValueError as e:
+            print(f"{Fore.RED}NoProblemERROR #098923i09 -->  {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
 
     def rowExpansion(self):
         """
@@ -502,8 +466,8 @@ class Taskmanager:
         """
         try:
             return sum([projekt.rowExpansion() for projekt in self.sub_tasks])
-        except ValueError:
-            print(f"noch keine projekte vorhanden")
+        except ValueError as e:
+            print(f"{Fore.RED}NoProblemERROR #233976564 -->  {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
 
     def matrixDimensions(self):
         """
@@ -573,9 +537,6 @@ class Taskmanager:
         """
         if not self.sub_tasks:
             return [[]]
-
-        print(f"#029832 subtasks in display matix: {self.sub_tasks}")
-
         self.recognizeMatrixPositions()
         self.task_matrix = self.createTaskMatix()
         return self.task_matrix
@@ -597,7 +558,6 @@ class Taskmanager:
         file_existens_asurance_thread = self._startFileExistenceAssuranceThread()
         return time_reset_thread, file_existens_asurance_thread
 
-
     def _startTimeDeletionForRenewalThread(self):
         """starts a thread that resets task-time-mapping, so actuality is ensured"""
         def renewal(subtasks):
@@ -613,6 +573,10 @@ class Taskmanager:
         self.renewal_thread.start()
 
     def _fileExistenceAssuranceTC(self):
+        """
+        Thread Command assures that, all saved result file paths are feasible
+        :return:
+        """
         while True:
             absolut_all_tasks = self.allSubordinatedTasks()
             [absolut_all_task.checkResultFileExistens() for absolut_all_task in absolut_all_tasks]

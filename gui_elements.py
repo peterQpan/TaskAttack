@@ -5,7 +5,6 @@ __email__ = "sebmueller.bt@gmail.com"
 import datetime
 import multiprocessing
 import os
-import re
 import shutil
 import textwrap
 import time
@@ -15,7 +14,6 @@ from time import strftime
 from typing import Any
 
 import PySimpleGUI as sg
-from colorama import Fore
 from nose.util import file_like
 
 import b64_p_bars
@@ -30,7 +28,6 @@ class RadioNew(sg.Frame):
     Radio Button Element - Used in a group of other Radio Elements to provide user with ability to select only
     1 choice in a list of choices.
     """
-
     def __init__(self, text, group_id, default=False, disabled=False, text_size=(None, None), rad_size=(None, None),
                  auto_size_text=None, background_color=None, text_color=None, font=None, key=None, rad_pad=(0, 0),
                  text_pad=(0, 0), pad=None,
@@ -139,8 +136,7 @@ class RadioNew(sg.Frame):
 
 class RadioRow(sg.Frame):
     """makes a horizontal radio button group"""
-
-    GROUP_ID = 345678
+    GROUP_ID = 345678999
 
     def __init__(self, all_values: tuple, active_value, disabled: bool, key: Any, group_id=None):
         """
@@ -149,7 +145,6 @@ class RadioRow(sg.Frame):
         :param disabled: true if elements are supposed to be disabled
         :return: sg.Frame() """
         self.values = all_values
-        # self.value_index_mapping = {index: value for index, value in enumerate(all_values)}
         self.active = active_value
         self.disabled = disabled
         self.key = key
@@ -218,12 +213,10 @@ class MyGuiToolbox:
                                             key_ok=key_ok, key_cancel=key_cancel)]
         window = sg.Window(title=title, layout=layout, auto_size_buttons=True, keep_on_top=keep_on_top, size=size)
         event, values = window.read()
-
         window.close()
         if event == key_ok:
             return True
         return False
-
 
     @staticmethod
     def webLinkDescriptionEnsurance(event, values, window):
@@ -241,7 +234,7 @@ class MyGuiToolbox:
                 window['-TEXT-INPUT-'].Update(text_color="#ff0000")
 
     @staticmethod
-    def fileDescriptionEnsurance(event, values, window, *args, **kwargs):
+    def fileDescriptionEnsurance(values, window, *args, **kwargs):
         """
         takes care that short description dont gets longer than 30 figures
         and that not the file_name <-> short desciption seperator gets used by the user
@@ -251,10 +244,8 @@ class MyGuiToolbox:
         elif values['-SHORT_DESCRIPTIOM-'][-3:] == "<->":
             window['-SHORT_DESCRIPTIOM-'].update(values['-SHORT_DESCRIPTIOM-'][:-3])
 
-
-
     @staticmethod
-    def destinctTextWithDescriptionPopup(text_name: str, suggestet_text:str, description_name: str,
+    def distinctTextWithDescriptionPopup(text_name: str, suggestet_text:str, description_name: str,
                                          suggested_description: str, ensuranc_function, *args, **kwargs):
         file_name_line = [sg.Text(text_name, size=(15, 1)),
                           sg.Input(default_text=suggestet_text, size=(50, 1), key='-TEXT-INPUT-', focus=True,
@@ -262,9 +253,10 @@ class MyGuiToolbox:
         description_line = [sg.Text(text=description_name, size=(15, 1)),
                             sg.Input(default_text=suggested_description, size=(50, 1), enable_events=True,
                                      key='-SHORT_DESCRIPTIOM-'), sg.Ok()]
-        layout =  [file_name_line, description_line]
 
+        layout =  [file_name_line, description_line]
         window = sg.Window(title=inter.enter_weblink, layout=layout)
+
         while True:
             event, values = window.read()
             if event in (sg.WIN_CLOSED, None):
@@ -279,18 +271,12 @@ class MyGuiToolbox:
     # user_defined_keys
     # next above: ("-PFL", "-RFL", "-AsFL")
     # under-keys: ("-DE", "-IEX729X", "-FB")
-
     # user_defined_keys
     # next above: ("-SFL")
     # under-keys: ("-DE", "-IEX729X", "-FB")
 
 
-    # todo this time implement the opening in webbrowser if link is clicked
-
-
 class ResultFileCreator:
-
-
 
     def __init__(self):
         self._file_templates = {inter.writer: ("/templates/writer_template.odt", ".odt"),
@@ -316,6 +302,7 @@ class ResultFileCreator:
                             sg.Ok()]
         return [file_name_line, description_line]
 
+    # todo delete 2020-10-01
     # @staticmethod
     # def _correctInputEnforcement(window, values):
     #     """
@@ -372,17 +359,14 @@ class ResultFileCreator:
         suggested_path, suggested_file_name = task.suggestetFileName(result_path)
 
         while True:
-            user_file_path, description = MyGuiToolbox.destinctTextWithDescriptionPopup(
+            user_file_path, description = MyGuiToolbox.distinctTextWithDescriptionPopup(
                     text_name=inter.file_name, suggestet_text=suggested_file_name, description_name=inter.description,
                     suggested_description="", ensuranc_function=MyGuiToolbox.fileDescriptionEnsurance)
-            # user_file_path, description = self._newResultFilePopup(
-            #     suggested_file_name=suggested_file_name, result_path=result_path,
-            #     kind_of_program=kind_of_porogramm, file_ext=self._file_templates[kind_of_porogramm][1], )
 
             if user_file_path is False and description is False:
                 break
-
-            if user_file_path.startswith(os.sep): user_file_path = user_file_path[1:]
+            if user_file_path.startswith(os.sep):
+                user_file_path = user_file_path[1:]
             user_path, user_file_name = os.path.split(user_file_path)
 
             if not user_path:
@@ -396,7 +380,7 @@ class ResultFileCreator:
 
             if os.path.isfile(save_file_path):
                 if not MyGuiToolbox.yesNoPopup(title=inter.save_at, size=(None, None),
-                                               text=f"{save_file_path}{inter.already_exists_override}"):
+                                               text=f"{save_file_path} {inter.already_exists_override}"):
                     continue
 
             self._createAndOpenResultFile(kind_of_porogramm, save_file_path)
@@ -404,12 +388,10 @@ class ResultFileCreator:
             break
 
 
-
 class TaskFrame(sg.Frame):
 
     def __init__(self, task: task.Task = None, size=31, view="complete"):
 
-        # self._button_menu_list = {"complete": inter.b_b_m_l, "partial":inter.c_b_m_l}[view]
         self.size = size
 
         if task:
@@ -461,14 +443,7 @@ class TaskFrame(sg.Frame):
         return sg.Text(f"{inter.completed}: {task.sCompleted():6.2f}", tooltip=tooltip_text,
                        background_color=background_color, key=f"COMPL-TEXT{task.sPosition()}")
 
-    # def sOptionButtonMenuList(self):
-    #     """
-    #     :return: list of list, sg.ButtonMenu.layout for option button menu
-    #     """
-    #     return self._button_menu_list
-
     def _buttonLinePlaceHolder(self, background_color, padding_size):
-        # origiinal x_size: self.sSize() - 15
         return sg.Text(text="", size=(padding_size, 1), background_color=background_color)
 
     def _makeListEntrysFromDoubleList(self, target_list, resource_list):
@@ -479,41 +454,35 @@ class TaskFrame(sg.Frame):
                 line = f"{file_path}"
             target_list.append(line)
 
-    def _createButtonMenuListWithResultFileEntrys(self, button_menu_list):
-        results = self.task.sResults()
-
-        if results:
-            self._makeListEntrysFromDoubleList(button_menu_list[1][5], results)
-
-            # for file_path, short_description in results:
-            #     if short_description:
-            #         line = f"{short_description} <-> {file_path}"
-            #     else:
-            #         line = f"{file_path}"
-            #     button_menu_list[1][5].append(line)
-            return button_menu_list, True
+    def _enritchList(self, entrys, menu_list):
+        if entrys:
+            self._makeListEntrysFromDoubleList(menu_list, entrys)
+            return menu_list, True
         else:
-            return button_menu_list, False
+            return menu_list, False
+
+    def _createButtonMenuListWithResultFileEntrys(self, button_menu_list):
+        """
+        Enriches button_menu_list with description and file path entrys
+        :param button_menu_list:
+        :return: button_menu_list, result_files_exists_flag
+        """
+        results = self.task.sResults()
+        return self._enritchList(entrys=results, menu_list=button_menu_list[1][5])
 
     def _createButtonMenuListWithWebLinkEntrys(self, button_menu_list):
+        """
+        Enriches button_menu_list with description and file path entrys
+        :param button_menu_list:
+        :return: button_menu_list, web_links_exists_flag
+        """
         web_links = self.task.sWebLinks()
-        if web_links:
-            self._makeListEntrysFromDoubleList(button_menu_list[1][8], web_links)
-            # for web_link, short_description in web_links:
-            #     if short_description:
-            #         line = f"{short_description} <-> {web_link}"
-            #     else:
-            #         line = f"{web_link}"
-            #     button_menu_list[1][8].append(line)
-            return button_menu_list, True
-        else:
-            return button_menu_list, False
+        return self._enritchList(menu_list=button_menu_list[1][8], entrys=web_links)
 
-    def _imageButtonMenu(self, menu_list, image_file_path, key):
-        if menu_list:
-            button_menu = sg.ButtonMenu(image_filename=image_file_path, button_text="", menu_def=["unused", menu_list],
-                                        key=key)
-
+    # def _imageButtonMenu(self, menu_list, image_file_path, key):
+    #     if menu_list:
+    #         button_menu = sg.ButtonMenu(image_filename=image_file_path, button_text="", menu_def=["unused", menu_list],
+    #                                     key=key)
 
     def _buttonMenuLine(self, background_color):
         """
@@ -527,12 +496,10 @@ class TaskFrame(sg.Frame):
 
         self.target_image = sg.Image(filename="templates/crosshair_black.png", enable_events=True, key=f"-TARGET-#7#{self.task.sPosition()}")
 
-        # file_image = sg.Image(filename="templates/file.png") if file_flag else None
         file_menu_button = sg.ButtonMenu(
             image_filename="templates/file.png", button_text="", menu_def=["unused", button_menu_list[1][5]],
             key=f"-FILES-#7#{self.task.sPosition()}") if file_flag else None
 
-        # globe_image = sg.Image(filename="templates/globus.png") if link_flag else None
         globe_menu_button = sg.ButtonMenu(
             image_filename="templates/globus.png", button_text="", menu_def=["unused", button_menu_list[1][8]],
             key=f"-GLOBE-#7#{self.task.sPosition()}") if link_flag else None
@@ -545,29 +512,12 @@ class TaskFrame(sg.Frame):
 
         #todo clean this up 2020-09-18
         if file_menu_button and globe_menu_button:
-            # placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 30)
-            # option_button = sg.ButtonMenu(button_text=inter.options, menu_def=button_menu_list,
-            #                               key=f'-BMENU-#7#{self.task.sPosition()}')
-
             return [self.target_image, placeholder, globe_menu_button, file_menu_button, option_button]
         elif file_menu_button:
-
-            # placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 25)
-            # option_button = sg.ButtonMenu(button_text=inter.options, menu_def=button_menu_list,
-            #                               key=f'-BMENU-#7#{self.task.sPosition()}')
-
             return [self.target_image, placeholder, file_menu_button, option_button]
         elif globe_menu_button:
-
-            # placeholer = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 25)
-            # option_button = sg.ButtonMenu(button_text=inter.options, menu_def=button_menu_list,
-            #                               key=f'-BMENU-#7#{self.task.sPosition()}')
-
             return [self.target_image, placeholder, globe_menu_button, option_button]
         else:
-            # placeholder = self._buttonLinePlaceHolder(background_color=background_color, padding_size=self.sSize() - 20)
-            # option_button = sg.ButtonMenu(button_text=inter.options, menu_def=inter.basic_button_menu,
-            #                               key=f'-BMENU-#7#{self.task.sPosition()}')
             return [self.target_image, placeholder, option_button]
 
     def _nameLine(self, tooltip_text, background_color):
@@ -680,6 +630,7 @@ class TaskFrame(sg.Frame):
 
 class TaskInputWindowCreator:
 
+    # todo next, make this a class of its own a factory is used for different classes with the same goal
     # todo think should this not too a class of its own instead of an factory?!?
     """factory for task input windows on work on task input windows"""
 
@@ -820,8 +771,7 @@ class TaskInputWindowCreator:
             self._calenderLine(calendar_date=start),
             self._calenderLine(calendar_date=ende, s_or_e=inter.end, key='-END_BUTTON-', target='-END_BUTTON-'),
             self._priorityLine(priority=priority, masters_priority=masters_priority),
-            self._buttonLine()
-        ]
+            self._buttonLine()]
         window = sg.Window(kind, layout, keep_on_top=keep_on_top)
         event, values = self.inputValidation(window, masters_ende, masters_priority)
         print(F"#0823823 event: {event}; vlues: {values}")
@@ -832,7 +782,8 @@ class TaskInputWindowCreator:
 
 class OptionWindow:
 
-    def _setDisabledStatusToUserDirectoryFrame(self, window: sg.Window, disabled: bool):
+    @staticmethod
+    def _setDisabledStatusToUserDirectoryFrame(window: sg.Window, disabled: bool):
         """option-window
         sets user directory choice frame text in red or green and buttons enabled and disabled
         :param window: option_window
@@ -848,7 +799,8 @@ class OptionWindow:
             window[f"{first_part}-IEX729X"].Update(disabled=disabled)
             window[f"{first_part}-FB"].Update(disabled=disabled)
 
-    def _setDisabledStatusToStandardDirectoryFrame(self, window: sg.Window, disabled: bool):
+    @staticmethod
+    def _setDisabledStatusToStandardDirectoryFrame(window: sg.Window, disabled: bool):
         """option-window
         sets standard directory choice frame text in red or green and buttons enabled and disabled
         :param window: option_window
@@ -861,7 +813,8 @@ class OptionWindow:
         window["-SFL-IEX729X"].Update(disabled=disabled)
         window["-SFL-FB"].Update(disabled=disabled)
 
-    def _horizontalRadioChoiceFrame(self, all_types: tuple, active_type, disabled, key: str, group_id="dura_radio"):
+    @staticmethod
+    def _horizontalRadioChoiceFrame(all_types: tuple, active_type, disabled, key: str, group_id="dura_radio"):
         """option-window
         makes a horizontal radio button group
         :param all_types: tuple of all values
@@ -883,7 +836,8 @@ class OptionWindow:
         frame = sg.Frame(title="", relief=sg.RELIEF_FLAT, layout=layout, pad=(0, 0))
         return frame
 
-    def _setDurationRadiosWithNewLanguage(self, all_types: tuple, key: str, window):
+    @staticmethod
+    def _setDurationRadiosWithNewLanguage(all_types: tuple, key: str, window):
         """
         option-window
         sets new language for duration radio buttons
@@ -904,6 +858,7 @@ class OptionWindow:
         :param enable_radio_button: sg.Radio()
         :return: sg.Frame
         """
+        #fixme get rid of deprecation
         duration_type_radio_frame = self._horizontalRadioChoiceFrame(all_types=inter.duration_types,
                                                                      active_type=duration_type, disabled=disabled,
                                                                      key="-AUS-1-")
@@ -1004,7 +959,6 @@ class OptionWindow:
         :param wich_enabled: "ind" or "std"
         :return: complete save folder line: [sg.Frame]
         """
-        print(f"#03923i wich disabled: {wich_disabled}")
         if wich_disabled == "ind":
             layout = [[self._standardFolderStructureFrame(directorys=directorys, disabled=False),
                        self._userDefinedFolderStructureFrame(directorys=directorys, disabled=True)]]
@@ -1020,8 +974,6 @@ class OptionWindow:
         :return: sg.Frame
         """
         layout = [[sg.Text(text=f"{inter.language}     ", key="language-t-f", size=(10, 1))], [sg.Text()], [sg.Text()]]
-        print(f"layout litzr: {layout}")
-
         frame = sg.Frame(title="", layout=layout, relief=sg.RELIEF_FLAT)
         return frame
 
@@ -1061,7 +1013,6 @@ class OptionWindow:
         """
         sets language directly anew in option window, all other windows will it do automatically by window reload
         """
-
         choosen_language = values[event][0]
         inter.setLanguage(choosen_language)
 
