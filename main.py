@@ -279,16 +279,16 @@ class TaskAttack:
 
     def onKeyCommand(self, key, window, *args, **kwargs):
         command = self.str_key_command_converter.pollCommand(key)
-        print(f"#092387892 onKeyCommand: {command}; self.selected_frame_coods: {self.selected_frame_coordinates}")
+
         if command and self.selected_frame_coordinates:
             task = self.getTaskFromMatrix(coordinates=self.selected_frame_coordinates)
             action = self.sFunctionMapping()[command]
             return action(task=task, window=window)
-        #todo is that beautiful?!?
+
         elif command == inter.isolate:
             return self.sFunctionMapping()[command](task=None)
-
         else:
+            print(f"#M-9823098009823 empty else?!?")
             return -1, -1
 
     @staticmethod
@@ -563,8 +563,6 @@ if __name__ == '__main__':
 # todo maybe there is a way for #print()/Error > stdout > DebugPrinter
 
 # todo complet documentation and code cleanup
-
-# todo dev insert links, implement it like results
 
 # todo dev make a Qt version
 

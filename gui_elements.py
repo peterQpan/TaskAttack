@@ -181,7 +181,7 @@ class RadioRow(sg.Frame):
             if radio.get():
                 return value
 
-    # todo needs a Update version
+    # todo needs a Update methode
 
 
 class MyGuiToolbox:
@@ -517,7 +517,6 @@ class TaskFrame(sg.Frame):
         option_button = sg.ButtonMenu(button_text=inter.options, menu_def=button_menu_list,
                                       key=f'-BMENU-#7#{self.task.sPosition()}')
 
-        #todo clean this up 2020-09-18
         if file_menu_button and globe_menu_button:
             return [self.target_image, placeholder, globe_menu_button, file_menu_button, option_button]
         elif file_menu_button:
