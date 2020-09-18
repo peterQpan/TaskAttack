@@ -840,15 +840,6 @@ class TaskInputWindow(sg.Window):
         super(TaskInputWindow, self).__init__(title=kind, layout=self.layout, keep_on_top=keep_on_top)
 
 
-
-    # layout = self.createLayout()
-    # window = sg.Window(kind, layout, keep_on_top=keep_on_top)
-    # event, values = self.inputValidation(window, masters_ende, masters_priority)
-    # print(F"#0823823 event: {event}; vlues: {values}")
-    # values = self._updateWithDates(values, window)
-    # window.close()
-    # return event, values
-
     def read(self, timeout=None, timeout_key=sg.TIMEOUT_KEY, close=False):
         event, values = self.Read(timeout=timeout, timeout_key=timeout_key, close=close)
         values = self._updateWithDates(values)
@@ -883,7 +874,7 @@ class TaskInputWindow(sg.Window):
                 if values['priority'] > masters_priority:
                     window['priority-KORREKTUR-'].update(inter.really_less_important_than_master)
             elif event == inter.ok:
-                values = self._updateWithDates(values, window)
+                values = self._updateWithDates(values)
                 if masters_ende and values["ende"] and values["ende"] > masters_ende:
                     window['Ende-KORREKTUR-'].update(inter.not_later_than_master)
                 else:
@@ -962,35 +953,35 @@ class TaskInputWindow(sg.Window):
         calendar_date_tuple = (calendar_date.month, calendar_date.day, calendar_date.year)
         return calendar_text, calendar_date_tuple
 
-    def inputWindow(self, kind: str, name: str = '', description: str = '',
-                    start: datetime.datetime = None, ende: datetime.datetime = None,
-                    priority='', masters_priority=None, masters_ende: datetime.datetime = None, keep_on_top=True,
-                    *args, **kwargs
-                    ):
-        """
-        :param kind: Project or Aufgabe
-        :param name: short header for task
-        :param description: detailed description
-        :param start: start datetime
-        :param ende: ende datetime or None
-        :param priority: priority for task (needed later on for sorting)
-        :param masters_ende: master tasks end, since a subtask needs to be finished befor master task can finish as well
-        :param existend: true if its a task to work on False if window is createt for a new task
-        :param keep_on_top: keep this window on top (i think it should always be True
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        if not ende:
-            ende = masters_ende
-
-        layout = self.createLayout()
-        window = sg.Window(kind, layout, keep_on_top=keep_on_top)
-        event, values = self.inputValidation(window, masters_ende, masters_priority)
-        print(F"#0823823 event: {event}; vlues: {values}")
-        values = self._updateWithDates(values, window)
-        window.close()
-        return event, values
+    # def inputWindow(self, kind: str, name: str = '', description: str = '',
+    #                 start: datetime.datetime = None, ende: datetime.datetime = None,
+    #                 priority='', masters_priority=None, masters_ende: datetime.datetime = None, keep_on_top=True,
+    #                 *args, **kwargs
+    #                 ):
+    #     """
+    #     :param kind: Project or Aufgabe
+    #     :param name: short header for task
+    #     :param description: detailed description
+    #     :param start: start datetime
+    #     :param ende: ende datetime or None
+    #     :param priority: priority for task (needed later on for sorting)
+    #     :param masters_ende: master tasks end, since a subtask needs to be finished befor master task can finish as well
+    #     :param existend: true if its a task to work on False if window is createt for a new task
+    #     :param keep_on_top: keep this window on top (i think it should always be True
+    #     :param args:
+    #     :param kwargs:
+    #     :return:
+    #     """
+    #     if not ende:
+    #         ende = masters_ende
+    #
+    #     layout = self.createLayout()
+    #     window = sg.Window(kind, layout, keep_on_top=keep_on_top)
+    #     event, values = self.inputValidation(window, masters_ende, masters_priority)
+    #     print(F"#0823823 event: {event}; vlues: {values}")
+    #     values = self._updateWithDates(values)
+    #     window.close()
+    #     return event, values
 
     def createLayout(self):
         return [
