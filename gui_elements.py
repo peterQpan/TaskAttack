@@ -181,6 +181,8 @@ class RadioRow(sg.Frame):
             if radio.get():
                 return value
 
+    # todo needs a Update version
+
 
 class MyGuiToolbox:
 
@@ -455,11 +457,12 @@ class TaskFrame(sg.Frame):
             target_list.append(line)
 
     def _enritchList(self, entrys, menu_list):
+        print(f"#33333333 entyx: {entrys}, menu list: {menu_list}")
         if entrys:
-            self._makeListEntrysFromDoubleList(menu_list, entrys)
-            return menu_list, True
+            self._makeListEntrysFromDoubleList(target_list=menu_list, resource_list=entrys)
+            return True
         else:
-            return menu_list, False
+            return False
 
     def _createButtonMenuListWithResultFileEntrys(self, button_menu_list):
         """
@@ -477,6 +480,7 @@ class TaskFrame(sg.Frame):
         :return: button_menu_list, web_links_exists_flag
         """
         web_links = self.task.sWebLinks()
+        print(f"#098230098 button_menu_list: {button_menu_list}")
         return self._enritchList(menu_list=button_menu_list[1][8], entrys=web_links)
 
     # def _imageButtonMenu(self, menu_list, image_file_path, key):
@@ -489,9 +493,12 @@ class TaskFrame(sg.Frame):
         :return: option menu button for every task frame
         """
         button_menu_list = deepcopy(inter.basic_button_menu)
+        print(f"#111111 button_menu_list: {button_menu_list}")
 
-        button_menu_list, file_flag = self._createButtonMenuListWithResultFileEntrys(button_menu_list)
-        button_menu_list, link_flag = self._createButtonMenuListWithWebLinkEntrys(button_menu_list)
+        file_flag = self._createButtonMenuListWithResultFileEntrys(button_menu_list)
+        print(f"#222222 button_menu_list: {button_menu_list}, file flag: {file_flag}")
+
+        link_flag = self._createButtonMenuListWithWebLinkEntrys(button_menu_list)
 
 
         self.target_image = sg.Image(filename="templates/crosshair_black.png", enable_events=True, key=f"-TARGET-#7#{self.task.sPosition()}")
@@ -628,10 +635,37 @@ class TaskFrame(sg.Frame):
         self.target_image.Update(filename="templates/crosshair_black.png", size=(26,26))
 
 
+# class TaskInputWindowCreator:
+#
+#
+#     def inputWindow(self, kind: str, name: str = '', description: str = '',
+#                     start: datetime.datetime = None, ende: datetime.datetime = None,
+#                     priority='', masters_priority=None, masters_ende: datetime.datetime = None, keep_on_top=True,
+#                     *args, **kwargs
+#                     ):
+#         """
+#         :param kind: Project or Aufgabe
+#         :param name: short header for task
+#         :param description: detailed description
+#         :param start: start datetime
+#         :param ende: ende datetime or None
+#         :param priority: priority for task (needed later on for sorting)
+#         :param masters_ende: master tasks end, since a subtask needs to be finished befor master task can finish as well
+#         :param existend: true if its a task to work on False if window is createt for a new task
+#         :param keep_on_top: keep this window on top (i think it should always be True
+#         :param args:
+#         :param kwargs:
+#         :return:
+#         """
+#         window = TaskInputWindow(kind=kind, name=name, description=description, start=start, ende=ende,
+#                                  priority=priority, masters_priority=masters_priority, masters_ende=masters_ende,
+#                                  keep_on_top=keep_on_top, *args, **kwargs)
+#         event, values = window.read()
+#         window.close()
+#         return event, values
+
 class TaskInputWindowCreator:
 
-    # todo next, make this a class of its own a factory is used for different classes with the same goal
-    # todo think should this not too a class of its own instead of an factory?!?
     """factory for task input windows on work on task input windows"""
 
     @staticmethod
@@ -780,6 +814,192 @@ class TaskInputWindowCreator:
         return event, values
 
 
+
+class TaskInputWindow(sg.Window):
+
+    def __init__(self, kind: str, name: str = '', description: str = '',
+                    start: datetime.datetime = None, ende: datetime.datetime = None,
+                    priority='', masters_priority=None, masters_ende: datetime.datetime = None, keep_on_top=True,
+                    *args, **kwargs
+                    ):
+
+        self.kind = kind
+        self.name = name
+        self.description = description
+
+        self.start = start
+        self.ende = ende if ende else masters_ende
+        self.priority = priority
+        self.masters_priority = masters_priority
+        self.keep_on_top = keep_on_top
+
+        self.layout = self.createLayout()
+
+        super(TaskInputWindow, self).__init__(title=kind, layout=self.layout, keep_on_top=keep_on_top)
+
+
+
+    # layout = self.createLayout()
+    # window = sg.Window(kind, layout, keep_on_top=keep_on_top)
+    # event, values = self.inputValidation(window, masters_ende, masters_priority)
+    # print(F"#0823823 event: {event}; vlues: {values}")
+    # values = self._updateWithDates(values, window)
+    # window.close()
+    # return event, values
+
+    def read(self, timeout=None, timeout_key=sg.TIMEOUT_KEY, close=False):
+        event, values = self.Read(timeout=timeout, timeout_key=timeout_key, close=close)
+        values = self._updateWithDates(values)
+        return event, values
+
+    @staticmethod
+    def _buttonLine():
+        return [sg.Submit(inter.ok), sg.Cancel(inter.cancel)]
+
+    def _updateWithDates(self, values):
+        """updates window-values-dict with values fetched from date buttons"""
+        values.update({"start": datetime.datetime(*time.strptime(self['-START_BUTTON-'].get_text(), "%Y-%m-%d")[:6])})
+        try:
+            values.update(
+                {"ende": datetime.datetime(*time.strptime(self['-END_BUTTON-'].get_text(), "%Y-%m-%d")[:6])})
+        except TypeError or ValueError:
+            values.update({"ende": None})
+        except ValueError:
+            values.update({"ende": None})
+        return values
+
+    def inputValidation(self, window, masters_ende, masters_priority):
+        """validates imput for user abort,
+        only entering int in priority and int() them already,
+        subtask dont prolong master task"""
+        while True:
+            event, values = window.read()
+
+            if event in {inter.cancel, None}:
+                break
+            elif event == 'priority' and masters_priority:
+                if values['priority'] > masters_priority:
+                    window['priority-KORREKTUR-'].update(inter.really_less_important_than_master)
+            elif event == inter.ok:
+                values = self._updateWithDates(values, window)
+                if masters_ende and values["ende"] and values["ende"] > masters_ende:
+                    window['Ende-KORREKTUR-'].update(inter.not_later_than_master)
+                else:
+                    break
+        return event, values
+
+    @staticmethod
+    def _priorityLine(priority, masters_priority):
+        """
+        :param priority:
+        :return:
+        """
+        inital_value = priority if priority else masters_priority
+        inital_value = inital_value if inital_value else 5
+
+        return [sg.Text(f'{inter.priority}: {inter.low} (0-9) {inter.high}', size=(15, 1)),
+                sg.Spin(values=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], initial_value=inital_value,
+                        size=(2, 1), key='priority', enable_events=True),
+                sg.Text(key='priority-KORREKTUR-', text_color="#FF0000", size=(35, 1))]
+        # sg.InputText(default_text=priority, key='priority', enable_events=True)]
+
+    def _calenderLine(self, calendar_date: datetime.datetime, s_or_e=inter.start, key='-START_BUTTON-',
+                      target='-START_BUTTON-'):
+        """
+        :param s_or_e: "Start" or "Ende"
+        :param key: button key to fetch value
+        :param target: button target key to update value
+        :return: calendar line for either start or end
+        """
+        button_text, date_tuple = self._calendarButtonParameter(calendar_date=calendar_date, s_or_e=s_or_e)
+        line = [sg.Text(s_or_e, size=(15, 1)),
+                sg.CalendarButton(default_date_m_d_y=date_tuple, button_text=button_text,
+                                  format="%Y-%m-%d", key=key, target=target),
+                sg.Text(key=f'{s_or_e}-KORREKTUR-', text_color="#FF0000", size=(35, 1))]
+        return line
+
+    @staticmethod
+    def _descriptionLine(description):
+        """
+        :param description: task description
+        :return: label and description multiple line text input
+        """
+        return [sg.Text(text=inter.description, size=(15, 1)),
+                sg.Multiline(default_text=description, size=(45, 20), key='description')]
+
+    @staticmethod
+    def _nameLine(kind: str, name: str):
+        """
+        :param kind: Aufgabe or Project
+        :param name: task name
+        :return: label and text input for nameline
+        """
+        return [sg.Text(text=f'{kind}name:', size=(15, 1)), sg.InputText(default_text=name, key='name')]
+
+    @staticmethod
+    def _calendarButtonText(calendar_date: datetime.datetime):
+        """
+        turns datetime.datetime in string "yyyy-mm-dd"
+        :param calendar_date: datetime.datetime
+        :return: string "yyyy-mm-dd"
+        """
+        calendar_text = strftime(f"%Y-%m-%d", calendar_date.timetuple())
+        return calendar_text
+
+    def _calendarButtonParameter(self, calendar_date: datetime.datetime = None, s_or_e=inter.start):
+        """
+        :param calendar_date: datetime.datetime
+        :param s_or_e: string "Start" or "Ende"
+        :return: string:calendar_text, tuple:calendar_date_tuple
+        """
+        if calendar_date:
+            calendar_text = self._calendarButtonText(calendar_date)
+        else:
+            calendar_date = tools.nowDateTime()
+            calendar_text = self._calendarButtonText(calendar_date) if s_or_e == inter.start else s_or_e
+        calendar_date_tuple = (calendar_date.month, calendar_date.day, calendar_date.year)
+        return calendar_text, calendar_date_tuple
+
+    def inputWindow(self, kind: str, name: str = '', description: str = '',
+                    start: datetime.datetime = None, ende: datetime.datetime = None,
+                    priority='', masters_priority=None, masters_ende: datetime.datetime = None, keep_on_top=True,
+                    *args, **kwargs
+                    ):
+        """
+        :param kind: Project or Aufgabe
+        :param name: short header for task
+        :param description: detailed description
+        :param start: start datetime
+        :param ende: ende datetime or None
+        :param priority: priority for task (needed later on for sorting)
+        :param masters_ende: master tasks end, since a subtask needs to be finished befor master task can finish as well
+        :param existend: true if its a task to work on False if window is createt for a new task
+        :param keep_on_top: keep this window on top (i think it should always be True
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        if not ende:
+            ende = masters_ende
+
+        layout = self.createLayout()
+        window = sg.Window(kind, layout, keep_on_top=keep_on_top)
+        event, values = self.inputValidation(window, masters_ende, masters_priority)
+        print(F"#0823823 event: {event}; vlues: {values}")
+        values = self._updateWithDates(values, window)
+        window.close()
+        return event, values
+
+    def createLayout(self):
+        return [
+            self._nameLine(name=self.name, kind=self.kind),
+            self._descriptionLine(description=self.description),
+            self._calenderLine(calendar_date=self.start),
+            self._calenderLine(calendar_date=self.ende, s_or_e=inter.end, key='-END_BUTTON-', target='-END_BUTTON-'),
+            self._priorityLine(priority=self.priority, masters_priority=self.masters_priority),
+            self._buttonLine()]
+
+
 class OptionWindow:
 
     @staticmethod
@@ -822,7 +1042,6 @@ class OptionWindow:
         :param disabled: needed if elements are supposed to be enablede
         :return: sg.Frame()
         """
-        warnings.warn("use RadioRow instead", DeprecationWarning)
         layout = []
         for index, d_type in enumerate(all_types):
             print(f"#18u3209 ---> d_type: {d_type} -- : active_type -- {active_type}")
@@ -858,7 +1077,6 @@ class OptionWindow:
         :param enable_radio_button: sg.Radio()
         :return: sg.Frame
         """
-        #fixme get rid of deprecation
         duration_type_radio_frame = self._horizontalRadioChoiceFrame(all_types=inter.duration_types,
                                                                      active_type=duration_type, disabled=disabled,
                                                                      key="-AUS-1-")
