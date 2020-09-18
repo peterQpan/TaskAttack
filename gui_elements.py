@@ -667,6 +667,7 @@ class TaskInputWindowCreator:
 
 #
 # class TaskInputWindowCreator:
+#     warnings.warn("there is a new factory wich implements task-input-window from a class of its own", DeprecationWarning)
 #
 #     """factory for task input windows on work on task input windows"""
 #
