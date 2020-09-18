@@ -14,6 +14,7 @@ from time import strftime
 from typing import Any
 
 import PySimpleGUI as sg
+from colorama import Fore
 from nose.util import file_like
 
 import b64_p_bars
@@ -1337,7 +1338,9 @@ class Progressbar:
                         self.queue.get(block=False)
                         window.close()
                         break
-                    except:
+                    except Exception as e:
+                        print(f"{Fore.RED}ERROR #76532897091 -->  {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
+
                         pass
                     _, _ = window.read(
                         timeout=10)  # loop every 10 ms to show that the 100 ms value below is used for animation
@@ -1354,7 +1357,6 @@ class Progressbar:
 
     def start(self):
         if not self.visible:
-            print(f"#928374 shall start")
             self.queue.put("start")
             self.visible = True
 

@@ -5,6 +5,8 @@ __email__ = "sebmueller.bt@gmail.com"
 import os
 import pickle
 
+from colorama import Fore
+
 import tools
 
 
@@ -27,11 +29,18 @@ class Persistencer:
         print(f"upgrade from version {self.version}")
         if self.version < 0.1:
             print("blau")
-            self.version = 0.1
-            if not self.links:
-                self.links = []
+            # self.version = 0.1
+            try:
+
+                if not self.links:
+                    self.links = []
+            except Exception as e:
+                print(f"{Fore.RED}ERROR #092309832 --> NoProblemError {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
+                
         if self.version < 0.2:
-            self.completedWorkReduction = tools.completedWorkReducer(refresh_time=2, completed=self._completed)
+            self.version = 0.2
+            print("grün")
+            self.completedWorkReduction = tools.CompleedWorkReducer(refresh_time=2, completed=self._completed)
 
         # if self.version < 2.0:
         #     self.version = 2.0

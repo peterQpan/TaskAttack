@@ -11,6 +11,7 @@ from datetime import timedelta
 from threading import Thread
 
 import PySimpleGUI as sg
+from colorama import Fore
 
 import gui_elements
 import tools
@@ -55,10 +56,13 @@ class TaskAttack:
         if base_file:
             try:
                 self.taskmanager.load(base_file)
-            except:
+            except Exception as e:
+                print(f"{Fore.RED}ERROR #87687612 -->  {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
                 pass
+        print(f"#11111 : ")
         self._instantiateBasicFolderStructur(
             folders=(self.opt.sUsedMainFolder(), self.opt.sUsedResultFolder(), self.opt.sUsedAutosavePath()))
+        print(f"#22222 : ")
         self.mainLoop()
 
     @staticmethod
@@ -353,7 +357,9 @@ class TaskAttack:
             try:
                 action = self.sFunctionMapping()[command]
                 return action(window=window)
-            except:
+            except Exception as e:
+                print(f"{Fore.RED}ERROR #9879879812 -->  {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
+
                 return self.onKeyCommand(key=command, window=window)
 
     def keyCommandMapping(self):
@@ -448,10 +454,14 @@ class TaskAttack:
         """
         project_matrix = self.propperProjectMatrix()
         # tools.printMatrix("#333", project_matrix)
+        print(f"#3333 : ")
         layout = self.propperWindowLayout(self.sMenuBar(), project_matrix)
+        print(f"#44444 : ")
         title = f"{self.last_file_path} - {inter.app_name}" if self.last_file_path else inter.app_name
+        print(f"#55555 : ")
         main_window = sg.Window(title=title, layout=layout, return_keyboard_events=True,
                                 finalize=True, resizable=True, size=self.window_size, location=self.window_location)
+        print(f"#66666 : ")
         return main_window
 
     def _stopBackGroundThread(self):

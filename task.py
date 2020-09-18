@@ -31,7 +31,7 @@ class OldTask:
 
         self.sub_tasks = []
         self._completed = 0
-        self.completedWorkReduction = tools.completedWorkReducer(refresh_time=2, completed=self._completed, name=name)
+        self.completedWorkReduction = tools.CompleedWorkReducer(refresh_time=2, completed=self._completed)
 
         self._colorSheme = tools.ColorTransistor()
 
@@ -62,6 +62,7 @@ class OldTask:
         """
         returns the completed percentage of an task, if value is provided, this value will be set
         """
+        # print(f"#982979832 self.subtasks in {self.name}: {self.sub_tasks}")
         return self.completedWorkReduction(sub_tasks=self.sub_tasks, completed=completed)
 
     # def sCompleted(self, completed:int=None):
@@ -495,6 +496,9 @@ class Taskmanager:
             one_row = [None for _ in range(x)]
             return [one_row[:] for _ in range(y)]
         except TypeError as e:
+
+            print(f"{Fore.RED}ERROR #9879238793234 -->  {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
+
             if e.__str__() == "can't multiply sequence by non-int of type 'NoneType'":
                 return [[]]
             else:
