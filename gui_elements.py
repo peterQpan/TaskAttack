@@ -635,147 +635,8 @@ class TaskFrame(sg.Frame):
         self.target_image.Update(filename="templates/crosshair_black.png", size=(26,26))
 
 
-# class TaskInputWindowCreator:
-#
-#
-#     def inputWindow(self, kind: str, name: str = '', description: str = '',
-#                     start: datetime.datetime = None, ende: datetime.datetime = None,
-#                     priority='', masters_priority=None, masters_ende: datetime.datetime = None, keep_on_top=True,
-#                     *args, **kwargs
-#                     ):
-#         """
-#         :param kind: Project or Aufgabe
-#         :param name: short header for task
-#         :param description: detailed description
-#         :param start: start datetime
-#         :param ende: ende datetime or None
-#         :param priority: priority for task (needed later on for sorting)
-#         :param masters_ende: master tasks end, since a subtask needs to be finished befor master task can finish as well
-#         :param existend: true if its a task to work on False if window is createt for a new task
-#         :param keep_on_top: keep this window on top (i think it should always be True
-#         :param args:
-#         :param kwargs:
-#         :return:
-#         """
-#         window = TaskInputWindow(kind=kind, name=name, description=description, start=start, ende=ende,
-#                                  priority=priority, masters_priority=masters_priority, masters_ende=masters_ende,
-#                                  keep_on_top=keep_on_top, *args, **kwargs)
-#         event, values = window.read()
-#         window.close()
-#         return event, values
-
 class TaskInputWindowCreator:
 
-    """factory for task input windows on work on task input windows"""
-
-    @staticmethod
-    def _buttonLine():
-        return [sg.Submit(inter.ok), sg.Cancel(inter.cancel)]
-
-    @staticmethod
-    def _updateWithDates(values, window):
-        """updates window-values-dict with values fetched from date buttons"""
-        values.update({"start": datetime.datetime(*time.strptime(window['-START_BUTTON-'].get_text(), "%Y-%m-%d")[:6])})
-        try:
-            values.update(
-                {"ende": datetime.datetime(*time.strptime(window['-END_BUTTON-'].get_text(), "%Y-%m-%d")[:6])})
-        except TypeError or ValueError:
-            values.update({"ende": None})
-        except ValueError:
-            values.update({"ende": None})
-        return values
-
-    def inputValidation(self, window, masters_ende, masters_priority):
-        """validates imput for user abort,
-        only entering int in priority and int() them already,
-        subtask dont prolong master task"""
-        while True:
-            event, values = window.read()
-
-            if event in {inter.cancel, None}:
-                break
-            elif event == 'priority' and masters_priority:
-                if values['priority'] > masters_priority:
-                    window['priority-KORREKTUR-'].update(inter.really_less_important_than_master)
-            elif event == inter.ok:
-                values = self._updateWithDates(values, window)
-                if masters_ende and values["ende"] and values["ende"] > masters_ende:
-                    window['Ende-KORREKTUR-'].update(inter.not_later_than_master)
-                else:
-                    break
-        return event, values
-
-    @staticmethod
-    def _priorityLine(priority, masters_priority):
-        """
-        :param priority:
-        :return:
-        """
-        inital_value = priority if priority else masters_priority
-        inital_value = inital_value if inital_value else 5
-
-        return [sg.Text(f'{inter.priority}: {inter.low} (0-9) {inter.high}', size=(15, 1)),
-                sg.Spin(values=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], initial_value=inital_value,
-                        size=(2, 1), key='priority', enable_events=True),
-                sg.Text(key='priority-KORREKTUR-', text_color="#FF0000", size=(35, 1))]
-        # sg.InputText(default_text=priority, key='priority', enable_events=True)]
-
-    def _calenderLine(self, calendar_date: datetime.datetime, s_or_e=inter.start, key='-START_BUTTON-',
-                      target='-START_BUTTON-'):
-        """
-        :param s_or_e: "Start" or "Ende"
-        :param key: button key to fetch value
-        :param target: button target key to update value
-        :return: calendar line for either start or end
-        """
-        button_text, date_tuple = self._calendarButtonParameter(calendar_date=calendar_date, s_or_e=s_or_e)
-        line = [sg.Text(s_or_e, size=(15, 1)),
-                sg.CalendarButton(default_date_m_d_y=date_tuple, button_text=button_text,
-                                  format="%Y-%m-%d", key=key, target=target),
-                sg.Text(key=f'{s_or_e}-KORREKTUR-', text_color="#FF0000", size=(35, 1))]
-        return line
-
-    @staticmethod
-    def _descriptionLine(description):
-        """
-        :param description: task description
-        :return: label and description multiple line text input
-        """
-        return [sg.Text(text=inter.description, size=(15, 1)),
-                sg.Multiline(default_text=description, size=(45, 20), key='description')]
-
-    @staticmethod
-    def _nameLine(kind: str, name: str):
-        """
-        :param kind: Aufgabe or Project
-        :param name: task name
-        :return: label and text input for nameline
-        """
-        return [sg.Text(text=f'{kind}name:', size=(15, 1)), sg.InputText(default_text=name, key='name')]
-
-    @staticmethod
-    def _calendarButtonText(calendar_date: datetime.datetime):
-        """
-        turns datetime.datetime in string "yyyy-mm-dd"
-        :param calendar_date: datetime.datetime
-        :return: string "yyyy-mm-dd"
-        """
-        calendar_text = strftime(f"%Y-%m-%d", calendar_date.timetuple())
-        return calendar_text
-
-    def _calendarButtonParameter(self, calendar_date: datetime.datetime = None, s_or_e=inter.start):
-        """
-        :param calendar_date: datetime.datetime
-        :param s_or_e: string "Start" or "Ende"
-        :return: string:calendar_text, tuple:calendar_date_tuple
-        """
-        if calendar_date:
-            calendar_text = self._calendarButtonText(calendar_date)
-        else:
-            calendar_date = tools.nowDateTime()
-            calendar_text = self._calendarButtonText(calendar_date) if s_or_e == inter.start else s_or_e
-        calendar_date_tuple = (calendar_date.month, calendar_date.day, calendar_date.year)
-        return calendar_text, calendar_date_tuple
 
     def inputWindow(self, kind: str, name: str = '', description: str = '',
                     start: datetime.datetime = None, ende: datetime.datetime = None,
@@ -796,23 +657,164 @@ class TaskInputWindowCreator:
         :param kwargs:
         :return:
         """
-        if not ende:
-            ende = masters_ende
-
-        layout = [
-            self._nameLine(name=name, kind=kind),
-            self._descriptionLine(description=description),
-            self._calenderLine(calendar_date=start),
-            self._calenderLine(calendar_date=ende, s_or_e=inter.end, key='-END_BUTTON-', target='-END_BUTTON-'),
-            self._priorityLine(priority=priority, masters_priority=masters_priority),
-            self._buttonLine()]
-        window = sg.Window(kind, layout, keep_on_top=keep_on_top)
-        event, values = self.inputValidation(window, masters_ende, masters_priority)
-        print(F"#0823823 event: {event}; vlues: {values}")
-        values = self._updateWithDates(values, window)
+        window = TaskInputWindow(kind=kind, name=name, description=description, start=start, ende=ende,
+                                 priority=priority, masters_priority=masters_priority, masters_ende=masters_ende,
+                                 keep_on_top=keep_on_top, *args, **kwargs)
+        event, values = window.read()
         window.close()
         return event, values
 
+
+#
+# class TaskInputWindowCreator:
+#
+#     """factory for task input windows on work on task input windows"""
+#
+#     @staticmethod
+#     def _buttonLine():
+#         return [sg.Submit(inter.ok), sg.Cancel(inter.cancel)]
+#
+#     @staticmethod
+#     def _updateWithDates(values, window):
+#         """updates window-values-dict with values fetched from date buttons"""
+#         values.update({"start": datetime.datetime(*time.strptime(window['-START_BUTTON-'].get_text(), "%Y-%m-%d")[:6])})
+#         try:
+#             values.update(
+#                 {"ende": datetime.datetime(*time.strptime(window['-END_BUTTON-'].get_text(), "%Y-%m-%d")[:6])})
+#         except TypeError or ValueError:
+#             values.update({"ende": None})
+#         except ValueError:
+#             values.update({"ende": None})
+#         return values
+#
+#     def inputValidation(self, window, masters_ende, masters_priority):
+#         """validates imput for user abort,
+#         only entering int in priority and int() them already,
+#         subtask dont prolong master task"""
+#         while True:
+#             event, values = window.read()
+#
+#             if event in {inter.cancel, None}:
+#                 break
+#             elif event == 'priority' and masters_priority:
+#                 if values['priority'] > masters_priority:
+#                     window['priority-KORREKTUR-'].update(inter.really_less_important_than_master)
+#             elif event == inter.ok:
+#                 values = self._updateWithDates(values, window)
+#                 if masters_ende and values["ende"] and values["ende"] > masters_ende:
+#                     window['Ende-KORREKTUR-'].update(inter.not_later_than_master)
+#                 else:
+#                     break
+#         return event, values
+#
+#     @staticmethod
+#     def _priorityLine(priority, masters_priority):
+#         """
+#         :param priority:
+#         :return:
+#         """
+#         inital_value = priority if priority else masters_priority
+#         inital_value = inital_value if inital_value else 5
+#
+#         return [sg.Text(f'{inter.priority}: {inter.low} (0-9) {inter.high}', size=(15, 1)),
+#                 sg.Spin(values=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], initial_value=inital_value,
+#                         size=(2, 1), key='priority', enable_events=True),
+#                 sg.Text(key='priority-KORREKTUR-', text_color="#FF0000", size=(35, 1))]
+#         # sg.InputText(default_text=priority, key='priority', enable_events=True)]
+#
+#     def _calenderLine(self, calendar_date: datetime.datetime, s_or_e=inter.start, key='-START_BUTTON-',
+#                       target='-START_BUTTON-'):
+#         """
+#         :param s_or_e: "Start" or "Ende"
+#         :param key: button key to fetch value
+#         :param target: button target key to update value
+#         :return: calendar line for either start or end
+#         """
+#         button_text, date_tuple = self._calendarButtonParameter(calendar_date=calendar_date, s_or_e=s_or_e)
+#         line = [sg.Text(s_or_e, size=(15, 1)),
+#                 sg.CalendarButton(default_date_m_d_y=date_tuple, button_text=button_text,
+#                                   format="%Y-%m-%d", key=key, target=target),
+#                 sg.Text(key=f'{s_or_e}-KORREKTUR-', text_color="#FF0000", size=(35, 1))]
+#         return line
+#
+#     @staticmethod
+#     def _descriptionLine(description):
+#         """
+#         :param description: task description
+#         :return: label and description multiple line text input
+#         """
+#         return [sg.Text(text=inter.description, size=(15, 1)),
+#                 sg.Multiline(default_text=description, size=(45, 20), key='description')]
+#
+#     @staticmethod
+#     def _nameLine(kind: str, name: str):
+#         """
+#         :param kind: Aufgabe or Project
+#         :param name: task name
+#         :return: label and text input for nameline
+#         """
+#         return [sg.Text(text=f'{kind}name:', size=(15, 1)), sg.InputText(default_text=name, key='name')]
+#
+#     @staticmethod
+#     def _calendarButtonText(calendar_date: datetime.datetime):
+#         """
+#         turns datetime.datetime in string "yyyy-mm-dd"
+#         :param calendar_date: datetime.datetime
+#         :return: string "yyyy-mm-dd"
+#         """
+#         calendar_text = strftime(f"%Y-%m-%d", calendar_date.timetuple())
+#         return calendar_text
+#
+#     def _calendarButtonParameter(self, calendar_date: datetime.datetime = None, s_or_e=inter.start):
+#         """
+#         :param calendar_date: datetime.datetime
+#         :param s_or_e: string "Start" or "Ende"
+#         :return: string:calendar_text, tuple:calendar_date_tuple
+#         """
+#         if calendar_date:
+#             calendar_text = self._calendarButtonText(calendar_date)
+#         else:
+#             calendar_date = tools.nowDateTime()
+#             calendar_text = self._calendarButtonText(calendar_date) if s_or_e == inter.start else s_or_e
+#         calendar_date_tuple = (calendar_date.month, calendar_date.day, calendar_date.year)
+#         return calendar_text, calendar_date_tuple
+#
+#     def inputWindow(self, kind: str, name: str = '', description: str = '',
+#                     start: datetime.datetime = None, ende: datetime.datetime = None,
+#                     priority='', masters_priority=None, masters_ende: datetime.datetime = None, keep_on_top=True,
+#                     *args, **kwargs
+#                     ):
+#         """
+#         :param kind: Project or Aufgabe
+#         :param name: short header for task
+#         :param description: detailed description
+#         :param start: start datetime
+#         :param ende: ende datetime or None
+#         :param priority: priority for task (needed later on for sorting)
+#         :param masters_ende: master tasks end, since a subtask needs to be finished befor master task can finish as well
+#         :param existend: true if its a task to work on False if window is createt for a new task
+#         :param keep_on_top: keep this window on top (i think it should always be True
+#         :param args:
+#         :param kwargs:
+#         :return:
+#         """
+#         if not ende:
+#             ende = masters_ende
+#
+#         layout = [
+#             self._nameLine(name=name, kind=kind),
+#             self._descriptionLine(description=description),
+#             self._calenderLine(calendar_date=start),
+#             self._calenderLine(calendar_date=ende, s_or_e=inter.end, key='-END_BUTTON-', target='-END_BUTTON-'),
+#             self._priorityLine(priority=priority, masters_priority=masters_priority),
+#             self._buttonLine()]
+#         window = sg.Window(kind, layout, keep_on_top=keep_on_top)
+#         event, values = self.inputValidation(window, masters_ende, masters_priority)
+#         print(F"#0823823 event: {event}; vlues: {values}")
+#         values = self._updateWithDates(values, window)
+#         window.close()
+#         return event, values
+#
 
 
 class TaskInputWindow(sg.Window):
