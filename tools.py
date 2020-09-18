@@ -34,7 +34,7 @@ class CompleedWorkReducer:
         if completed:
             self.completed = completed
 
-        if self.last_time + self.refresh_time > time.time():
+        if self.last_time + self.refresh_time < time.time():
             return self.completed
         else:
             if sub_tasks:
