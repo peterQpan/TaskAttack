@@ -31,6 +31,7 @@ class OldTask:
 
         self.sub_tasks = []
         self._completed = 0
+        self.completedWorkReduction = tools.completedWorkReducer(refresh_time=2, completed=self._completed, name=name)
 
         self._colorSheme = tools.ColorTransistor()
 
@@ -55,23 +56,31 @@ class OldTask:
     def __repr__(self):
         return f"Task: {self.sName()} {self.sStart()} {self.sCompleted()}"
 
+
+
     def sCompleted(self, completed:int=None):
         """
         returns the completed percentage of an task, if value is provided, this value will be set
         """
-        if self.sub_tasks:
-            zaehler = sum(x.sCompleted() for x in self.sub_tasks)
-            teiler = len(self.sub_tasks)
-            #todo fixme enable this print statement and look the massive amount of execution of this!!!!!
-            #print(f"zaehler/teiler: {zaehler /teiler}")
-            #todo fixme enable this print statement and look the massive amount of execution of this!!!!!
-            return zaehler / teiler
-        else:
-            if completed:
-                self._completed = completed
-            else:
-                #print(self._completed)
-                return self._completed
+        return self.completedWorkReduction(sub_tasks=self.sub_tasks, completed=completed)
+
+    # def sCompleted(self, completed:int=None):
+    #     """
+    #     returns the completed percentage of an task, if value is provided, this value will be set
+    #     """
+    #     if self.sub_tasks:
+    #         zaehler = sum(x.sCompleted() for x in self.sub_tasks)
+    #         teiler = len(self.sub_tasks)
+    #         #todo fixme enable this print statement and look the massive amount of execution of this!!!!!
+    #         print(f"{self.sName():20s}zaehler/teiler: {zaehler /teiler}")
+    #         #todo fixme enable this print statement and look the massive amount of execution of this!!!!!
+    #         return zaehler / teiler
+    #     else:
+    #         if completed:
+    #             self._completed = completed
+    #         else:
+    #             #print(self._completed)
+    #             return self._completed
 
     def sMastersEnde(self):
         if self.master:

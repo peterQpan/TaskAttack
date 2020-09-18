@@ -5,6 +5,8 @@ __email__ = "sebmueller.bt@gmail.com"
 import os
 import pickle
 
+import tools
+
 
 class Persistencer:
     """Abstract Class which handles persistence, including introducing new attributes
@@ -12,7 +14,7 @@ class Persistencer:
     Abstract upgrade class for Task, for unpickeling old save data with
     inadequate/insufficient attributes (able to do upgrades recursively)"""
     sub_tasks: list  # inherited then by task.Task()
-    class_version = 0.1    # class attribute to make versioning global starts at 1 zero is without Upgradeable,
+    class_version = 0.2    # class attribute to make versioning global starts at 1 zero is without Upgradeable,
                            #  have to be continuously raised with actual version number# """
 
     def __init__(self):
@@ -26,7 +28,11 @@ class Persistencer:
         if self.version < 0.1:
             print("blau")
             self.version = 0.1
-            self.links = []
+            if not self.links:
+                self.links = []
+        if self.version < 0.2:
+            self.completedWorkReduction = tools.completedWorkReducer(refresh_time=2, completed=self._completed)
+
         # if self.version < 2.0:
         #     self.version = 2.0
         #     self.in_version_2_0_added_atribute = "what ever"
