@@ -53,7 +53,7 @@ class CompleedWorkReducer:
 class DebugPrinter:
     def __init__(self, file_name="tak_debug"):
         self._fh = open(file_name, "w")
-        sys.stderr = self._fh
+        sys.stdout = self._fh
         sys.stderr = self._fh
 
 class ColorTransistor:
@@ -328,6 +328,7 @@ class strgCommandConverter:
         self.function_mapping = function_mapping
 
     def pollCommand(self, key):
+        print(f"#91919191 key in pollCommand: {key}")
         assert ":" in key, ("is no key commmand you forgot something")
         real_command, _, _ = key.partition(":")
         if real_command.startswith("Control") and self.last_button:

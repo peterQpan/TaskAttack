@@ -555,12 +555,9 @@ class TaskAttack:
 
 
 if __name__ == '__main__':
-    # debug_printer = DebugPrinter() #achtung removes all console output,
-    # achtung despite its name its really bad for debuging while dev xD
+    debug_printer = tools.DebugPrinter() #achtung removes all console output,
     tools.path.cwdBashFix()
     main_gui_task_atack = TaskAttack(base_file="base.tak")
-
-#fixme achtung in isolatet tree view sind die subtasks nicht mehr in seslf subtask und werden daher nicht mehr gespeichert
 
 # todo this still troubles once in a while
 #  invalid command name "140326498775872showtip"

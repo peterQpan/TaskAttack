@@ -65,24 +65,6 @@ class OldTask:
         # print(f"#982979832 self.subtasks in {self.name}: {self.sub_tasks}")
         return self.completedWorkReduction(sub_tasks=self.sub_tasks, completed=completed)
 
-    # def sCompleted(self, completed:int=None):
-    #     """
-    #     returns the completed percentage of an task, if value is provided, this value will be set
-    #     """
-    #     if self.sub_tasks:
-    #         zaehler = sum(x.sCompleted() for x in self.sub_tasks)
-    #         teiler = len(self.sub_tasks)
-    #         #todo fixme enable this print statement and look the massive amount of execution of this!!!!!
-    #         print(f"{self.sName():20s}zaehler/teiler: {zaehler /teiler}")
-    #         #todo fixme enable this print statement and look the massive amount of execution of this!!!!!
-    #         return zaehler / teiler
-    #     else:
-    #         if completed:
-    #             self._completed = completed
-    #         else:
-    #             #print(self._completed)
-    #             return self._completed
-
     def sMastersEnde(self):
         if self.master:
             return self.master.sEnde()
@@ -240,9 +222,6 @@ class OldTask:
 
     def changeCompleted(self):
         self.completedWorkReduction.changeCompleted()
-
-
-        # self._completed = 0 if self._completed else 100
 
     def addSubTask(self, name: str, description, start, ende=None, priority: int = 9):
         sub_task = self.__class__(name, description, start, ende, priority, self)
@@ -524,27 +503,6 @@ class Taskmanager:
             print(f"#9209832 project in subtasks: {projekt}")
             projekt.recognizeMatrixPosition(depth=0, span=span_here)
             span_here += projekt.rowExpansion()
-
-    # def addMasterTaskPlaceholderStrings(self, display_matrix):
-    #     # todo 2020-09-05 programm works just fine without this method and i cant remember what it was used for
-    #     #  delete it if there is no trouble till the time
-    #     """
-    #     adds master-tree-placeholder-str to display matrix
-    #     :param display_matrix: task filled list of list
-    #     :return: Task and master-string filled lost of list
-    #     """
-    #     # todo this function makes no sense on second thought
-    #     display_matrix_to_work_on = copy.deepcopy(display_matrix)
-    #     for y_index, y in enumerate(display_matrix):
-    #         actual_task = None
-    #         for x_index, x in enumerate(y):
-    #             if isinstance(x, Task):
-    #                 all_masters_strings_list = x.hierarchyTreePositionString()
-    #                 # actual_taskfile_type = ">".join(all_masters_strings_list)
-    #             else:
-    #                 if actual_task:
-    #                     display_matrix_to_work_on[y_index][x_index] = actual_task
-    #     return display_matrix_to_work_on
 
     def displayMatrix(self):
         """
