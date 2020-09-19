@@ -54,11 +54,11 @@ class TaskAttack:
         self.window_location = (None, None)
 
         if base_file:
-            try:
-                self.taskmanager.load(base_file)
-            except Exception as e:
-                print(f"{Fore.RED}ERROR #87687612 -->  {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
-                pass
+            # try:
+            self.taskmanager.load(base_file)
+            # except Exception as e:
+            #     print(f"{Fore.RED}ERROR #87687612 -->  {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
+            #     pass
         print(f"#11111 : ")
         self._instantiateBasicFolderStructur(
             folders=(self.opt.sUsedMainFolder(), self.opt.sUsedResultFolder(), self.opt.sUsedAutosavePath()))

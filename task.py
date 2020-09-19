@@ -239,7 +239,10 @@ class OldTask:
             return [f"{self.name}"]
 
     def changeCompleted(self):
-        self._completed = 0 if self._completed else 100
+        self.completedWorkReduction.changeCompleted()
+
+
+        # self._completed = 0 if self._completed else 100
 
     def addSubTask(self, name: str, description, start, ende=None, priority: int = 9):
         sub_task = self.__class__(name, description, start, ende, priority, self)

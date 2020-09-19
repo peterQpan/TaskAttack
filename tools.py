@@ -25,26 +25,29 @@ class CompleedWorkReducer:
 
     def __init__(self, completed, refresh_time=2):
 
-        self.refresh_time = refresh_time
+        self.refresh_amount = refresh_time
         self.completed = completed
         self.last_time = time.time() - (refresh_time + 2)
 
-
     def __call__(self, sub_tasks, completed=False):
-        print(f"#9827398732 completed income: {completed}")
-        if completed is not False:
-            self.completed = completed
+
+        if self.last_time + self.refresh_amount > time.time():
             return self.completed
 
-        if self.last_time + self.refresh_time < time.time():
+        if sub_tasks:
+            zaehler = sum(x.sCompleted() for x in sub_tasks)
+            teiler = len(sub_tasks)
+            self.completed = zaehler / teiler
+            self.last_time = time.time()
             return self.completed
         else:
-            if sub_tasks:
-                zaehler = sum(x.sCompleted() for x in sub_tasks)
-                teiler = len(sub_tasks)
-                return zaehler / teiler
+            if completed:
+                self.completed = completed
             else:
-                return self.completed
+                return int(self.completed)
+
+    def changeCompleted(self):
+        self.completed = 0 if self.completed else 100
 
 
 class DebugPrinter:
