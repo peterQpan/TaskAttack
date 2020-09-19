@@ -23,16 +23,18 @@ def webLinkRePattern():
 
 class CompleedWorkReducer:
 
-    def __init__(self, refresh_time=2, completed=None):
+    def __init__(self, completed, refresh_time=2):
 
         self.refresh_time = refresh_time
         self.completed = completed
         self.last_time = time.time() - (refresh_time + 2)
 
 
-    def __call__(self, sub_tasks, completed=None):
-        if completed:
+    def __call__(self, sub_tasks, completed=False):
+        print(f"#9827398732 completed income: {completed}")
+        if completed is not False:
             self.completed = completed
+            return self.completed
 
         if self.last_time + self.refresh_time < time.time():
             return self.completed

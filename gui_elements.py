@@ -1339,8 +1339,7 @@ class Progressbar:
                         window.close()
                         break
                     except Exception as e:
-                        print(f"{Fore.RED}ERROR #76532897091 -->  {e.__traceback__.tb_lineno}, {repr(e.__traceback__)}, {repr(e)},  {e.__cause__}{Fore.RESET}")
-
+                        #truly no debug printer needed
                         pass
                     _, _ = window.read(
                         timeout=10)  # loop every 10 ms to show that the 100 ms value below is used for animation
